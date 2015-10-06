@@ -1,0 +1,11 @@
+GUIDEseq
+------------------------
+
+NEW FEATURES
+
+     o Obtain unique Cas9 cleavage events using UMI sequences 
+     o Estimate the straded tag density around the cleavage sites and find peaks 
+     o Merge and filter peaks from both strand 
+     o Off target analysis of extended regions around the cleavage sites 
+
+

@@ -1,0 +1,99 @@
+\name{uniqueCleavageEvents}
+\alias{uniqueCleavageEvents}
+\docType{data}
+\title{
+example unique cleavage sites
+}
+\description{
+An example data set containing cleavage sites with unique UMI, generated from 
+    getUniqueCleavageEvents
+}
+\usage{data("uniqueCleavageEvents")}
+\value{
+    \describe{ 
+        \item{cleavage.gr }{Cleavage sites with one site per UMI as
+            GRanges with metadata column total set to 1 for each range}
+         \item{unique.umi.plus.R2}{a data frame containing unique cleavage 
+             site from R2 reads mapped to plus strand with
+             the following columns
+             chr.y (chromosome of readSide.y/R2 read)   
+             chr.x (chromosome of readSide.x/R1 read)
+             strand.y (strand of readSide.y/R2 read)
+             strand.x (strand of readSide.x/R1 read)
+             start.y (start of readSide.y/R2 read)
+             end.x (start of readSide.x/R1 read)
+             UMI (unique molecular identifier (umi) or 
+             umi with the first few bases of R1 read)
+        }
+        \item{unique.umi.minus.R2}{a data frame containing 
+            unique cleavage site from
+            R2 reads mapped to minus strand
+            with the following columns
+            chr.y (chromosome of readSide.y/R2 read)   
+            chr.x (chromosome of readSide.x/R1 read)
+            strand.y (strand of readSide.y/R2 read)
+            strand.x (strand of readSide.x/R1 read)
+            end.y (end of readSide.y/R2 read)
+            start.x (start of readSide.x/R1 read)
+            UMI (unique molecular identifier (umi) or 
+            umi with the first few bases of R1 read)
+        }
+        \item{unique.umi.plus.R1}{a data frame containing 
+             unique cleavage site from R1 
+             reads mapped to minus strand without corresponding 
+             R2 reads mapped to the plus 
+             strand, with the following columns
+             chr.y (chromosome of readSide.y/R2 read)   
+             chr.x (chromosome of readSide.x/R1 read)
+             strand.y (strand of readSide.y/R2 read)
+             strand.x (strand of readSide.x/R1 read)
+             start.x (start of readSide.x/R1 read)
+             start.y (start of readSide.y/R2 read)
+             UMI (unique molecular identifier (umi) or 
+             umi with the first few bases of R1 read)
+        }
+        \item{unique.umi.minus.R1}{a data frame containing 
+            unique cleavage site from R1
+            reads mapped to plus strand without corresponding 
+            R2 reads mapped to the 
+            minus strand, with the following columns
+            chr.y (chromosome of readSide.y/R2 read)   
+            chr.x (chromosome of readSide.x/R1 read)
+            strand.y (strand of readSide.y/R2 read)
+            strand.x (strand of readSide.x/R1 read)
+            end.x (end of readSide.x/R1 read)
+            end.y (end of readSide.y/R2 read)
+            UMI (unique molecular identifier (umi) or 
+            umi with the first few bases of R1 read)
+        }
+        \item{all.umi}{a data frame containing all the mapped 
+            reads with the following columns. 
+            readName (read ID),   
+            chr.x (chromosome of readSide.x/R1 read),  
+            start.x (start of eadSide.x/R1 read), 
+            end.x (end of eadSide.x/R1 read),
+            mapping.qual.x (mapping quality of readSide.x/R1 read),  
+            strand.x (strand of readSide.x/R1 read),
+            cigar.x (CIGAR of readSide.x/R1 read) , readSide.x (1/R1),  
+            chr.y (chromosome of readSide.y/R2 read)        
+            start.y (start of readSide.y/R2 read), 
+            end.y (end of readSide.y/R2 read), 
+            mapping.qual.y (mapping quality of readSide.y/R2 read),
+            strand.y (strand of readSide.y/R2 read), 
+            cigar.y (CIGAR of readSide.y/R2 read), readSide.y (2/R2)   
+            R1.base.kept (retained R1 length), 
+            R2.base.kept (retained R2 length), 
+            distance (distance between mapped R1 and R2), 
+            UMI (unique molecular identifier (umi) or 
+            umi with the first few bases of R1 read)
+}}
+}
+\source{
+http://trace.ncbi.nlm.nih.gov/Traces/sra/?run=SRR1695644
+}
+\examples{
+    data(uniqueCleavageEvents)
+    names(uniqueCleavageEvents)
+    str(uniqueCleavageEvents) 
+}
+\keyword{datasets}
