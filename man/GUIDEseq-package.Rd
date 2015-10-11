@@ -43,9 +43,9 @@ GUIDEseqAnalysis
         alignFile <- system.file("extdata","bowtie2.HEK293_site4.sort.bed" , 
             package = "GUIDEseq")
         gRNA.file <- system.file("extdata","gRNA.fa", package = "GUIDEseq")
-        system.time(guideRes <- GUIDEseqAnalysis(
+        guideRes <- GUIDEseqAnalysis(
             alignment.inputfile = alignFile ,
-            umi.inputfile = umiFile, gRNA.file = gRNA.file))
+            umi.inputfile = umiFile, gRNA.file = gRNA.file)
         names(cleavages)
    }
 }

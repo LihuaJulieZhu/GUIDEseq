@@ -5,7 +5,7 @@ function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
     p.adjust.methods = 
     c( "none", "BH", "holm", "hochberg", "hommel", "bonferroni", "BY", "fdr"))
 {
-    cat("Validating input ...\n");
+    message("Validating input ...\n");
     if (missing(gr)) {
         stop("Missing required argument gr!")
     }
@@ -18,16 +18,16 @@ function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
     minus.gr = subset(gr, strand(gr) == "-")
     if (length(plus.gr) >= 2)
     {
-        cat("parpare for plus strand ...\n");
+        message("parpare for plus strand ...\n");
         plus.runsum <- .getStrandedCoverage(plus.gr, window.size = window.size,
-            bg.window.size = bg.window.size, min.reads = min.reads, 
+            bg.window.size = bg.window.size, min.reads = min.reads,
             strand = "+")
         if (length(minus.gr) >= 2)
         {
-            cat("prepare for minus strand ...\n");
-            minus.runsum <- .getStrandedCoverage(minus.gr, 
+            message("prepare for minus strand ...\n");
+            minus.runsum <- .getStrandedCoverage(minus.gr,
                 window.size = window.size,
-                bg.window.size = bg.window.size, min.reads = min.reads, 
+                bg.window.size = bg.window.size, min.reads = min.reads,
                 strand = "-")
             both.runsum <- c(plus.runsum, minus.runsum)
         }
@@ -38,20 +38,20 @@ function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
     }
     else if (length(minus.gr) >= 2)
     {
-        cat("prepare for minus strand ...\n");
+        message("prepare for minus strand ...\n");
         both.runsum <- .getStrandedCoverage(minus.gr, window.size = window.size,
             bg.window.size = bg.window.size, 
             min.reads = min.reads, strand = "-")
     }
     else
         stop("too few reads for peak calling! \n")
-    cat("call peaks ...\n");
+    message("call peaks ...\n");
     if (!exists("both.runsum"))
         stop("no peaks found! \n")
     if (stats == "poisson")
     {
         both.runsum$p.value <- ppois(as.numeric(both.runsum$count),
-            lambda = as.numeric(both.runsum$bg), lower.tail = FALSE, 
+            lambda = as.numeric(both.runsum$bg), lower.tail = FALSE,
             log.p = FALSE)
     }
     else if (stats == "nbinom")
@@ -69,11 +69,11 @@ function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
         cl <- makeCluster(n.cores)
         clusterExport(cl, varlist = c("both.runsum", ".locMaxPos"),
             envir = environment()) 
-        clusterExport(cl, varlist =  c("window.size", "step", "min.reads"), 
+        clusterExport(cl, varlist =  c("window.size", "step", "min.reads"),
             envir = environment())
         local.max.gr <- do.call(c, parLapply(cl, seqnames(seqinfo(both.runsum)),
             function(chr) {
-            cat("processing chromosome", chr, "\n")
+            message("processing chromosome", chr, "\n")
             this.gr <- subset(both.runsum, seqnames(both.runsum) == chr & 
                 strand(both.runsum) == "+")
             minus.gr <- subset(both.runsum, seqnames(both.runsum) == chr & 
@@ -88,7 +88,7 @@ function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
                     step = step, min.reads = min.reads)
                 plus.grs2 <- plus.grs[start(plus.grs) %in% max.pos2]
                 if (length(minus.gr) >= 1) {
-                    max.pos <- .locMaxPos(minus.gr, window.size = window.size, 
+                    max.pos <- .locMaxPos(minus.gr, window.size = window.size,
                         step = step, min.reads = min.reads)
                     minus.grs <- minus.gr[start(minus.gr) %in% max.pos]
                     max.pos2 <- .locMaxPos(minus.grs, window.size = window.size,
@@ -119,11 +119,11 @@ function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
     {
         local.max.gr <- do.call(c, lapply(seqnames(seqinfo(both.runsum)),
             function(chr) {
-            cat("processing chromosome", chr, "\n")
-            this.gr <- subset(both.runsum, seqnames(both.runsum) == chr &
-                strand(both.runsum) == "+")
-            minus.gr <- subset(both.runsum, seqnames(both.runsum) == chr &
-                strand(both.runsum) == "-")
+            message("processing chromosome", chr, "\n")
+            this.gr <- both.runsum[seqnames(both.runsum) == chr &
+                strand(both.runsum) == "+"]
+            minus.gr <- both.runsum[seqnames(both.runsum) == chr &
+                strand(both.runsum) == "-"]
             #max.pos <- which(diff(sign(diff(as.numeric(
                 #as.character(this.gr$count)))))==-2)+1
             if (length(this.gr) >= 1) {
@@ -162,20 +162,19 @@ function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
     }
     both.runsum.bk <- both.runsum
     both.runsum <- local.max.gr
-    rm(local.max.gr)
    
     if (length(both.runsum) > 0)
     {
         if (p.adjust.methods != "none")
         {
-            both.runsum$adjusted.p.value <- p.adjust(both.runsum$p.value, 
+            both.runsum$adjusted.p.value <- p.adjust(both.runsum$p.value,
                 method = p.adjust.methods)
-            peaks <- subset(both.runsum, both.runsum$adjusted.p.value <= maxP &
+            peaks <- subset(both.runsum, both.runsum$adjusted.p.value <= maxP & 
                 both.runsum$SNratio >= min.SNratio)
         }
         else
         {
-            peaks <- subset(both.runsum, both.runsum$p.value <= maxP &
+            peaks <- subset(both.runsum, both.runsum$p.value <= maxP & 
                 both.runsum$SNratio >= min.SNratio)
         }
     }

@@ -1,5 +1,5 @@
 mergePlusMinusPeaks <-
-    function(peaks.gr, peak.height.mcol ="count", 
+    function(peaks.gr, peak.height.mcol ="count",
     bg.height.mcol = "bg", distance.threshold = 40, step = 20,
     plus.strand.start.gt.minus.strand.end = TRUE, output.bedfile)
 {
@@ -14,7 +14,7 @@ mergePlusMinusPeaks <-
         stop("Missing required bed output file \n")
     } 
     if (length(intersect(names(mcols(peaks.gr)), peak.height.mcol))  == 0)
-        stop(paste(peak.height.mcol, "is not a valid metadata column.\n Please", 
+        stop(paste(peak.height.mcol, "is not a valid metadata column.\n Please",
             "specify a valid metadata column with peak height in peaks.gr \n"))
     pos.gr <- subset(peaks.gr, strand(peaks.gr) %in% c( "+", "*"))
     neg.gr <- subset(peaks.gr, strand(peaks.gr) == "-")
@@ -24,7 +24,7 @@ mergePlusMinusPeaks <-
         start(pos.gr),end(pos.gr), sep=":")
     names(neg.gr) <- paste(paste(seqnames(neg.gr), strand(neg.gr), sep=""),
         start(neg.gr),end(neg.gr), sep=":")
-    mergedPeaks <- .annotate(from.gr = pos.gr, to.gr = neg.gr, 
+    mergedPeaks <- .annotate(from.gr = pos.gr, to.gr = neg.gr,
         peak.height.mcol = peak.height.mcol, bg.height.mcol = bg.height.mcol,
         distance.threshold = distance.threshold, step = step,
         plus.strand.start.gt.minus.strand.end = 
@@ -41,7 +41,7 @@ mergePlusMinusPeaks <-
         pos.gr2 <- pos.gr[ names(pos.gr) %in% ann.peaks$peak]
         if (length(neg.gr2) > 0 ) {
             mergedPeaks2 <- .annotate(from.gr = neg.gr2, to.gr = pos.gr2,
-                peak.height.mcol = peak.height.mcol, 
+                peak.height.mcol = peak.height.mcol,
                 bg.height.mcol = bg.height.mcol,
                 distance.threshold = distance.threshold, step = step,
                 plus.strand.start.gt.minus.strand.end =
@@ -50,12 +50,12 @@ mergePlusMinusPeaks <-
             if (length(mergedPeaks2) > 0)
             {
                 bed <- rbind(mergedPeaks$bed, mergedPeaks2$bed)
-                mergedPeaks.gr <- unique(c(mergedPeaks$mergedPeaks, 
+                mergedPeaks.gr <- unique(c(mergedPeaks$mergedPeaks,
                     mergedPeaks$mergedPeaks2))
                 mergedPeaksFromMinus2Plus = mergedPeaks2$all.mergedPeaks
             }
         }
-        write.table(bed, file = output.bedfile, sep = "\t", 
+        write.table(bed, file = output.bedfile, sep = "\t",
             col.names = FALSE, row.names=FALSE, quote=FALSE)
         list(mergedPeaks.gr = mergedPeaks.gr, mergedPeaks.bed = bed,
             mergedPeaksFromPlus2Minus = mergedPeaksFromPlus2Minus,

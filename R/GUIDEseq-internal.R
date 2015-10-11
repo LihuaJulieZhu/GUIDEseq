@@ -23,13 +23,13 @@
         to.peaks <- to.peaks[, c(1, metadata.col)]
         temp1 <- merge(to.peaks, ann.peaks)
         temp1 <- cbind(temp1, 
-            totalCount = rowSums(temp1[,grep(peak.height.mcol, 
+            totalCount = rowSums(temp1[,grep(peak.height.mcol,
             colnames(temp1))]))
         temp1$names <- paste(temp1$peak, temp1$feature, sep=":")
         temp1$minStart <- rowMins(as.matrix(
             temp1[, c("start_position", "start")]))
         temp1$maxEnd <- rowMaxs(as.matrix(temp1[, c("end_position", "end")]))
-        bed.temp <- temp1[, c("seqnames", "minStart", 
+        bed.temp <- temp1[, c("seqnames", "minStart",
             "maxEnd", "names", "totalCount")]
         bed.temp <- cbind(bed.temp, strand = "+")
         if (length(intersect(names(mcols(to.gr)), bg.height.mcol))  > 0)
@@ -41,13 +41,13 @@
             }
             else
             {
-                temp1 <- cbind(temp1, 
+                temp1 <- cbind(temp1,
                     totalBg = rowSums(
-                    temp1[,grep(bg.height.mcol, colnames(temp1))])) 
+                    temp1[,grep(bg.height.mcol, colnames(temp1))]))
             }
             mergedPeaks.gr <- GRanges(IRanges(start = 
                 as.numeric(as.character(bed.temp[,2])),
-                end = as.numeric(as.character(bed.temp[,3])), 
+                end = as.numeric(as.character(bed.temp[,3])),
                 names = bed.temp[,4]),
                 seqnames = bed.temp[,1], strand = Rle("+", dim(bed.temp)[1]),
                 count = as.numeric(as.character(bed.temp[,5])),
@@ -57,7 +57,7 @@
         {
             mergedPeaks.gr <- GRanges(IRanges(
                 start = as.numeric(as.character(bed.temp[,2])),
-                end = as.numeric(as.character(bed.temp[,3])), 
+                end = as.numeric(as.character(bed.temp[,3])),
                 names = bed.temp[,4]),
                 seqnames = bed.temp[,1], strand = Rle("+", dim(bed.temp)[1]),
                 count = as.numeric(as.character(bed.temp[,5])))
@@ -78,13 +78,13 @@
         sum(as.numeric(unlist(strsplit(gsub("^M", "", gsub("M|I|D|S", "M", i)),
             "M"))), na.rm = TRUE) - 2 * sum(as.numeric(lapply(unlist(strsplit(
             gsub("M|I|S", "M", i ), "M")), function(thisStr)
-           {if (length(grep("D",thisStr)) >0) 
+           {if (length(grep("D",thisStr)) >0)
                as.numeric(strsplit(thisStr, "D")[[1]][1]) else 0})))
     }      
     else
     { 
         i <- substr(cigar, 1, nchar(cigar) - 1)
-        sum(as.numeric(unlist(strsplit(gsub("^M", "", 
+        sum(as.numeric(unlist(strsplit(gsub("^M", "",
             gsub("M|I|D|S", "M", i)), "M"))), na.rm = TRUE)
     }
 }
@@ -109,10 +109,10 @@ function(gr, window.size = 20L, step = 10L,
         temp
     }))
     window.gr <- GRanges(IRanges(
-        start = as.numeric(as.character(pos.value[,2])), 
-        end = as.numeric(as.character(pos.value[,3]))), 
+        start = as.numeric(as.character(pos.value[,2])),
+        end = as.numeric(as.character(pos.value[,3]))),
         seqnames = pos.value[,1], strand = Rle(strand, dim(pos.value)[1]),
-        count = as.numeric(as.character(pos.value[,4])), 
+        count = as.numeric(as.character(pos.value[,4])),
         bg = round(as.numeric(as.character(
             pos.value[,5])) / bg.window.size * window.size))
     window.gr

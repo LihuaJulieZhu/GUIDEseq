@@ -213,8 +213,8 @@ getPeaks
             package = "GUIDEseq")       
         alignFile <- system.file("extdata","bowtie2.HEK293_site4.sort.bed",
             package = "GUIDEseq")
-        system.time(cleavages <- getUniqueCleavageEvents(
-            alignment.inputfile = alignFile , umi.inputfile = umiFile))
+        cleavages <- getUniqueCleavageEvents(
+            alignment.inputfile = alignFile , umi.inputfile = umiFile)
         names(cleavages)
     }
 }

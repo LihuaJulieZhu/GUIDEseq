@@ -156,7 +156,6 @@ to 2. For detailed parameter settings using function
 
 \begin{scriptsize}
 <<>>=
-#data(uniqueCleavageEvents)
 peaks <- getPeaks(uniqueCleavageEvents$cleavage.gr, min.reads = 80)
 peaks.gr <- peaks$peaks
 peaks.gr
