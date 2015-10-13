@@ -119,8 +119,10 @@ at http://mccb.umassmed.edu/GUIDE-seq/.
 
 The umi.inputfile is a tab delimited file containing at least two columns, 
 read IDs and corresponding unique molecular identifiers (UMI). Script for 
-creating umi.inputfile is also available at 
-http://mccb.umassmed.edu/GUIDE-seq/.
+creating umi.inputfile is available at 
+http://mccb.umassmed.edu/GUIDE-seq/getUmi.pl. An example input file is at
+http://mccb.umassmed.edu/GUIDE-seq/testGetUmi/. Please make sure to use
+R1 reads as input to getUmi.pl.
 
 \subsection{Step 1: Remove PCR bias and obtain unique cleavage events }
 
