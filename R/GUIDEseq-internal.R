@@ -102,7 +102,7 @@ function(gr, window.size = 20L, step = 10L,
         value <- runValue(observed[[i]])
         temp <- cbind(names(observed)[i], start, end, value)
         temp <- subset(temp, as.numeric(temp[,4]) >= min.reads)
-        pos.bg <- as.numeric(temp[,2]) - ceiling(bg.window.size - window.size)/2
+        pos.bg <- as.numeric(temp[,2]) - ceiling((bg.window.size - window.size)/2)
         pos.bg[pos.bg < 1] <- 1
         bg.value <- as.data.frame(bg[[i]][pos.bg ])
         temp <- cbind(temp, bg.value)
@@ -113,8 +113,8 @@ function(gr, window.size = 20L, step = 10L,
         end = as.numeric(as.character(pos.value[,3]))),
         seqnames = pos.value[,1], strand = Rle(strand, dim(pos.value)[1]),
         count = as.numeric(as.character(pos.value[,4])),
-        bg = round(as.numeric(as.character(
-            pos.value[,5])) / bg.window.size * window.size))
+        bg = as.numeric(as.character(
+            pos.value[,5])) / bg.window.size * window.size)
     window.gr
 }
 .locMaxPos <- function(data.ranges, window.size, step, min.reads)

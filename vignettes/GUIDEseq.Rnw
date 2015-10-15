@@ -112,17 +112,18 @@ alignment.inputfile <- system.file("extdata","bowtie2.HEK293_site4.sort.bed",
 The alignment.inputfile is an alignment file in bed format containing CIGAR 
 information. The alignment.inputfile contains chromosome, start, end, readID,
 mapping quality, strand and CIGAR information as a tab delimited file. 
-Here is an example line.
-chr13 27629253 27629403	HWI-M01326:156:1:113:4572:6938/1 44 + 150M
-Scripts for bin reads, remove adaptor, mapping to genome are available
+Here is an example line. \linebreak
+chr13 27629253 27629403 HWI-M01326:156:1:113:4572:6938/1 44 + 150M \linebreak
+Scripts for bin reads, remove adaptor, mapping to genome are available \linebreak
 at http://mccb.umassmed.edu/GUIDE-seq/. 
 
 The umi.inputfile is a tab delimited file containing at least two columns, 
 read IDs and corresponding unique molecular identifiers (UMI). Script for 
-creating umi.inputfile is available at 
-http://mccb.umassmed.edu/GUIDE-seq/getUmi.pl. An example input file is at
-http://mccb.umassmed.edu/GUIDE-seq/testGetUmi/. Please make sure to use
-R1 reads as input to getUmi.pl.
+creating umi.inputfile is available at \linebreak
+http://mccb.umassmed.edu/GUIDE-seq/getUmi.pl. \linebreak 
+An example input file is at \linebreak
+http://mccb.umassmed.edu/GUIDE-seq/testGetUmi/. \linebreak
+Please make sure to use R1 reads as input to getUmi.pl.
 
 \subsection{Step 1: Remove PCR bias and obtain unique cleavage events }
 
@@ -136,7 +137,7 @@ filters out reads that does not contain the integration oligo sequence, too
 short or not in the right paired configuration. 
 
 For detailed parameter settings for function 
-\Rfunction{getUniqueCleavageEvents}, 
+\Rfunction{getUniqueCleavageEvents}, \linebreak 
 please type help(getUniqueCleavageEvents).
 
 \begin{scriptsize}
@@ -171,7 +172,7 @@ specific orientation and within certain distance apart.
 
 By default, plus.strand.start.gt.minus.strand.end is set to TRUE
 and distance.threshold is set to 40, i.e., twice of the window size. 
-For detailed parameter settings using function 
+For detailed parameter settings using function \linebreak
 \Rfunction{mergePlusMinusPeaks}, please type help(mergePlusMinusPeaks).
 
 \begin{scriptsize}
@@ -188,8 +189,8 @@ identified cleavage sites}
 Calling the function \Rfunction{offTargetAnalysisOfPeakRegions} with
 input gRNA, peaks and genome of interest, to annotate identified cleavage sites 
 with sequence homolgy to input gRNA.
-For detailed parameter settings using function 
-\Rfunction{offTargetAnalysisOfPeakRegions},
+For detailed parameter settings using function \linebreak
+\Rfunction{offTargetAnalysisOfPeakRegions}, \linebreak
 please type help(offTargetAnalysisOfPeakRegions)
 
 \begin{scriptsize}
@@ -217,8 +218,8 @@ estimate the starting sequence library, piles up reads with a user defined
 window and step size, identify the cleavage sites, merge cleavage sites from 
 plus strand and minus strand, followed by off target analysis of extended 
 regions around the identified cleavage sites. 
-For detailed parameter settings using function 
-\Rfunction{GUIDEseqAnalysis}, please type help(GUIDEseqAnalysis)
+For detailed parameter settings using function \Rfunction{GUIDEseqAnalysis}, \linebreak
+please type help(GUIDEseqAnalysis)
 
 \begin{scriptsize}
 <<>>=
