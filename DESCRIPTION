@@ -1,7 +1,7 @@
 Package: GUIDEseq
 Type: Package
 Title: GUIDE-seq analysis pipeline
-Version: 1.1.2
+Version: 1.1.3
 Date: 2015-10-19
 Author: Lihua Julie Zhu, Michael Lawrence, Ankit Gupta,
         Alper Kucukura, Manuel Garber & Scot A. Wolfe

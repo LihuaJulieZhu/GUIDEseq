@@ -51,7 +51,7 @@ mergePlusMinusPeaks <-
             {
                 bed <- rbind(mergedPeaks$bed, mergedPeaks2$bed)
                 mergedPeaks.gr <- unique(c(mergedPeaks$mergedPeaks,
-                    mergedPeaks$mergedPeaks2))
+                    mergedPeaks2$mergedPeaks))
                 mergedPeaksFromMinus2Plus = mergedPeaks2$all.mergedPeaks
             }
         }
