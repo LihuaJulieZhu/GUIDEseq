@@ -14,7 +14,7 @@ BiocStyle::latex()
 \usepackage{graphicx}
 \usepackage[section]{placeins}
 \bibliographystyle{plainnat}
-\author{Lihua Julie Zhu, Ankit Gupta, Manuel Garber \& Scot Wolfe}
+\author{Lihua Julie Zhu, Michael Lawrence, Ankit Gupta, Scot Wolfe}
 \begin{document}
 \SweaveOpts{concordance=TRUE}
 
