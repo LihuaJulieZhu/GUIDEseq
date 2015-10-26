@@ -8,6 +8,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     BSgenomeName,
     gRNA.file,
     outputDir,
+    n.cores.max = 6,
     keep.R1only = TRUE,
     keep.R2only = TRUE,
     paired.direction = "opposite.strand",
@@ -87,7 +88,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         apply.both.min.mapped = apply.both.min.mapped,
         max.duplicate.distance = max.duplicate.distance,
         umi.plus.R1start.unique = umi.plus.R1start.unique,
-        umi.plus.R2start.unique = umi.plus.R2start.unique)
+        umi.plus.R2start.unique = umi.plus.R2start.unique,
+        n.cores.max = n.cores.max)
     gRNAName <- gsub(".fa", "", basename(gRNA.file))
     fileName <- gsub("bowtie2.", "", basename(alignment.inputfile))
     fileName <- gsub("bowtie1.", "", fileName)
@@ -103,10 +105,11 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         sep = "\t", row.names = FALSE)
 
     message("Peak calling ...\n")
-    system.time(peaks <- getPeaks(cleavages$cleavage.gr, step = step,
+    peaks <- getPeaks(cleavages$cleavage.gr, step = step,
         window.size = window.size, bg.window.size = bg.window.size,
+        n.cores.max = n.cores.max,
         maxP = maxP, p.adjust.methods = p.adjust.methods,
-        min.reads = min.reads, min.SNratio = min.SNratio))
+        min.reads = min.reads, min.SNratio = min.SNratio)
 
     if (missing(outputDir))
     {
@@ -138,10 +141,9 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         outputDir <- paste(gRNAName, fileName, "min", min.reads,
             "window", window.size, "step", step, "distance",
             distance.threshold, sep = "" )
-        if(!file.exists(outputDir))
-            dir.create(outputDir)
     }
-   
+    if(!file.exists(outputDir))
+        dir.create(outputDir)
     write.table(cbind(name = names(merged.gr$mergedPeaks.gr),
         as.data.frame(merged.gr$mergedPeaks.gr)),
         file = file.path(outputDir, paste(gRNAName, fileName,
@@ -159,7 +161,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         allowed.mismatch.PAM = allowed.mismatch.PAM, overwrite = overwrite,
         weights = weights
     )
-   
+
     message("Please check output file in directory ", outputDir , "\n")
     list(offTargets = offTargets, merged.peaks = merged.gr$mergedPeaks.gr,
         peaks = peaks$peaks, uniqueCleavages = cleavages$cleavages.gr,

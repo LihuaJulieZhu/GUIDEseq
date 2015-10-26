@@ -1,7 +1,7 @@
 getPeaks <-
 function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
-    min.reads = 10L, min.SNratio = 2, maxP = 0.05, multi.core = TRUE,
-    stats = c("poisson", "nbinom"),
+    min.reads = 10L, min.SNratio = 2, maxP = 0.05,
+    n.cores.max = 6, stats = c("poisson", "nbinom"),
     p.adjust.methods = 
     c( "none", "BH", "holm", "hochberg", "hommel", "bonferroni", "BY", "fdr"))
 {
@@ -62,9 +62,10 @@ function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
     }
     both.runsum$SNratio <- 
         as.numeric(both.runsum$count)/as.numeric(both.runsum$bg)
-    n.cores <- detectCores() - 1
-    n.cores <- min(n.cores, length(seqnames(seqinfo(both.runsum))))
-    if (multi.core == TRUE && n.cores > 1)
+    n.cores <- detectCores()
+    n.cores <- min(n.cores.max, n.cores, 
+       length(seqnames(seqinfo(both.runsum))))
+    if (n.cores > 1)
     {
         cl <- makeCluster(n.cores)
         clusterExport(cl, varlist = c("both.runsum", ".locMaxPos"),
@@ -129,17 +130,19 @@ function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
             if (length(this.gr) >= 1) {
                 max.pos <- .locMaxPos(this.gr, window.size = window.size,
                     step = step, min.reads = min.reads)
-                plus.grs <- this.gr[start(this.gr) %in% max.pos]
-                max.pos2 <- .locMaxPos(plus.grs, window.size = window.size,
-                    step = step, min.reads = min.reads)
-                plus.grs2 <- plus.grs[start(plus.grs) %in% max.pos2]
+                plus.grs2 <- this.gr[start(this.gr) %in% max.pos] 
+                #plus.grs <- this.gr[start(this.gr) %in% max.pos]
+                #max.pos2 <- .locMaxPos(plus.grs, window.size = window.size,
+                    #step = step, min.reads = min.reads)
+                #plus.grs2 <- plus.grs[start(plus.grs) %in% max.pos2]
                 if (length(minus.gr) >= 1) {
                     max.pos <- .locMaxPos(minus.gr, window.size = window.size,
                         step = step, min.reads = min.reads)
-                    minus.grs <- minus.gr[start(minus.gr) %in% max.pos]
-                    max.pos2 <- .locMaxPos(minus.grs, window.size = window.size,
-                        step = step, min.reads = min.reads)
-                    minus.grs2 <- minus.grs[start(minus.grs) %in% max.pos2]
+                    minus.grs2 <- minus.gr[start(minus.gr) %in% max.pos]
+                    #minus.grs <- minus.gr[start(minus.gr) %in% max.pos]
+                    #max.pos2 <- .locMaxPos(minus.grs, window.size = window.size,
+                    #    step = step, min.reads = min.reads)
+                    #minus.grs2 <- minus.grs[start(minus.grs) %in% max.pos2]
                     max.gr <- c(plus.grs2, minus.grs2)
                 }
                 else {
@@ -150,9 +153,10 @@ function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
                 max.pos <- .locMaxPos(minus.gr, window.size = window.size,
                     step = step, min.reads = min.reads)
                 minus.grs <- minus.gr[start(minus.gr) %in% max.pos]
-                max.pos2 <- .locMaxPos(minus.grs, window.size = window.size,
-                    step = step, min.reads = min.reads)
-                max.gr <- minus.grs[start(minus.grs) %in% max.pos2]
+                #max.pos2 <- .locMaxPos(minus.grs, window.size = window.size,
+                #    step = step, min.reads = min.reads)
+                #max.gr <- minus.grs[start(minus.grs) %in% max.pos2]
+                max.gr <- minus.grs[start(minus.grs) %in% max.pos]
             }
             else {
                 max.gr = GRanges()

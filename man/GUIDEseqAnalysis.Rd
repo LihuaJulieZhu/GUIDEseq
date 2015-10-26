@@ -18,6 +18,7 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
     BSgenomeName, 
     gRNA.file,
     outputDir,
+    n.cores.max = 6,
     keep.R1only = TRUE, keep.R2only = TRUE,
     paired.direction = "opposite.strand",
     max.paired.distance = 1000, min.mapping.quality = 30,
@@ -90,6 +91,11 @@ gRNA input file path or a DNAStringSet object that contains gRNA plus PAM
 }
   \item{outputDir}{
 the directory where the off target analysis and reports will be written to
+}
+\item{n.cores.max}{
+Indicating maximum number of cores to use in multi core mode, 
+    i.e., parallel processing, default 6. Please set it to 1 to disable
+    multicore processing for small dataset.
 }
   \item{keep.R1only}{
 Specify whether to include alignment with only R1 without paired R2.
@@ -332,7 +338,7 @@ if(interactive())
         guideSeqRes <- GUIDEseqAnalysis(
             alignment.inputfile = alignFile,
             umi.inputfile = umiFile, gRNA.file = gRNA.file,
-            BSgenomeName = Hsapiens, min.reads = 80)
+            BSgenomeName = Hsapiens, min.reads = 80, n.cores.max = 1)
         names(guideSeqRes)
    }
 }

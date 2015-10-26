@@ -8,8 +8,8 @@ Obtain strand-specific peaks from GUIDE-seq
 }
 \usage{
 getPeaks(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
-    min.reads = 10L, min.SNratio = 2, maxP = 0.05, multi.core = TRUE,
-    stats = c("poisson", "nbinom"), p.adjust.methods = 
+    min.reads = 10L, min.SNratio = 2, maxP = 0.05, 
+    n.cores.max = 6, stats = c("poisson", "nbinom"), p.adjust.methods = 
     c("none", "BH", "holm", "hochberg", "hommel", "bonferroni", "BY", "fdr"))
 }
 \arguments{
@@ -35,9 +35,10 @@ minimum signal noise ratio, which is the coverage normalized by local
   \item{maxP}{
 Maximum p-value to be considered as significant
 }
- \item{multi.core}{
-Indicating whether run in multi core mode, i.e., parallel processing, 
-    default TRUE
+\item{n.cores.max}{
+Indicating maximum number of cores to use in multi core mode, 
+    i.e., parallel processing, default 6. Please set it to 1 to disable
+    multicore processing for small dataset.
 }
   \item{stats}{
 Statistical test, default poisson
@@ -62,7 +63,7 @@ Lihua Julie Zhu
     {
         data(uniqueCleavageEvents)
         peaks <- getPeaks(uniqueCleavageEvents$cleavage.gr,
-            min.reads = 80)
+            min.reads = 80, multicore = TRUE, n.cores.max = 2)
         peaks$peaks
     }
 }

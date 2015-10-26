@@ -19,7 +19,8 @@ min.mapping.quality = 30, max.R1.len = 130, max.R2.len = 130,
 apply.both.max.len = FALSE, same.chromosome = TRUE, 
 distance.inter.chrom = -1, min.R1.mapped = 30, min.R2.mapped = 30, 
 apply.both.min.mapped = FALSE, max.duplicate.distance = 0, 
-umi.plus.R1start.unique = TRUE, umi.plus.R2start.unique = TRUE)
+umi.plus.R1start.unique = TRUE, umi.plus.R2start.unique = TRUE,
+n.cores.max = 6)
 }
 \arguments{
   \item{alignment.inputfile}{
@@ -121,6 +122,10 @@ containing the same UMI and same alignment start for R1 read, default TRUE.
 To specify whether two mapped reads are considered as unique if both 
 containing the same UMI and same alignment start for R2 read, default TRUE.
 }
+\item{n.cores.max}{Indicating maximum number of cores to use in multi core mode, 
+    i.e., parallel processing, default 6. Please set it to 1 to disable multicore
+    processing for small dataset.
+}
 }
 \value{
 \item{cleavage.gr }{Cleavage sites with one site per UMI as GRanges with 
@@ -214,7 +219,8 @@ getPeaks
         alignFile <- system.file("extdata","bowtie2.HEK293_site4.sort.bed",
             package = "GUIDEseq")
         cleavages <- getUniqueCleavageEvents(
-            alignment.inputfile = alignFile , umi.inputfile = umiFile)
+            alignment.inputfile = alignFile , umi.inputfile = umiFile,
+            n.cores.max = 1)
         names(cleavages)
     }
 }

@@ -21,7 +21,8 @@ getUniqueCleavageEvents <-
     apply.both.min.mapped = FALSE, 
     max.duplicate.distance = 0,
     umi.plus.R1start.unique = TRUE,
-    umi.plus.R2start.unique = TRUE)
+    umi.plus.R2start.unique = TRUE,
+    n.cores.max = 6)
 { 
     if(!file.exists(alignment.inputfile))
         stop("alignment.inputfile is required, 
@@ -46,11 +47,20 @@ getUniqueCleavageEvents <-
         umi <- umi[, c(read.ID.col, umi.col)]
         colnames(umi) <- c("readName", "UMI")
         align <- subset(align, align[,5] >= min.mapping.quality)
-        n.cores <- detectCores() - 1
-        cl <- makeCluster(n.cores)
-        reads <- do.call(rbind, parLapply(cl, align[,4], function(i) {
-            unlist(strsplit(i, "/")) }))
-        stopCluster(cl)
+        n.cores <- detectCores()
+        n.cores <- min(n.cores, n.cores.max)
+        if (n.cores > 1)
+        {
+            cl <- makeCluster(n.cores)
+            reads <- do.call(rbind, parLapply(cl, align[,4], function(i) {
+                unlist(strsplit(i, "/")) }))
+            stopCluster(cl)
+        }
+        else
+        {
+            reads <- do.call(rbind, lapply(align[,4], function(i) {
+                unlist(strsplit(i, "/")) }))
+        }
         align <- cbind(align, reads)
         align <- align[, -4]
         colnames(align) <- c("chr", "start", "end","mapping.qual",
@@ -93,16 +103,25 @@ getUniqueCleavageEvents <-
         all <- subset(all, is.na(distance) | distance <=  max.paired.distance)
         all[,1] <- gsub("@", "", all[,1])
         umi[,1] <- gsub("@", "", umi[,1])
-        cl <- makeCluster(n.cores)
         unique.cigar <- unique(c(all$cigar.x, all$cigar.y))
-        unique.base.kept <- cbind(cigar = unique.cigar,
-            base.kept = unlist(parLapply(cl, unique.cigar, 
-                .getReadLengthFromCigar)))
+        if (n.cores > 1)
+        {
+            cl <- makeCluster(n.cores)
+            unique.base.kept <- cbind(cigar = unique.cigar,
+                 base.kept = unlist(parLapply(cl, unique.cigar, 
+                    .getReadLengthFromCigar)))
+            stopCluster(cl) 
+        }
+        else
+        {
+             unique.base.kept <- cbind(cigar = unique.cigar,
+                 base.kept = unlist(lapply(unique.cigar,
+                    .getReadLengthFromCigar)))
+        }
         R1.base.kept <- as.numeric(
             unique.base.kept[match(all$cigar.x, unique.base.kept[,1]),2])
         R2.base.kept <- as.numeric(
             unique.base.kept[match(all$cigar.y, unique.base.kept[,1]),2])
-        stopCluster(cl)
         all <- cbind(all, R1.base.kept, R2.base.kept)
         if (apply.both.max.len)
             all <- subset(all, R1.base.kept <= max.R1.len &

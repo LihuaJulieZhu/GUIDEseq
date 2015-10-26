@@ -143,7 +143,8 @@ please type help(getUniqueCleavageEvents).
 \begin{scriptsize}
 <<>>=
 system.time(uniqueCleavageEvents <- getUniqueCleavageEvents(
-    alignment.inputfile = alignment.inputfile , umi.inputfile = umi.inputfile))
+    alignment.inputfile = alignment.inputfile , umi.inputfile = umi.inputfile,
+    n.cores.max = 1))
 uniqueCleavageEvents$cleavage.gr
 @
 \end{scriptsize}
@@ -159,7 +160,8 @@ to 2. For detailed parameter settings using function
 
 \begin{scriptsize}
 <<>>=
-peaks <- getPeaks(uniqueCleavageEvents$cleavage.gr, min.reads = 80)
+peaks <- getPeaks(uniqueCleavageEvents$cleavage.gr, min.reads = 80,
+    n.cores.max = 1)
 peaks.gr <- peaks$peaks
 peaks.gr
 @
@@ -227,7 +229,7 @@ gRNA.file <- system.file("extdata","gRNA.fa", package = "GUIDEseq")
 system.time(guideSeqRes <- GUIDEseqAnalysis(
     alignment.inputfile = alignment.inputfile, 
     umi.inputfile = umi.inputfile, gRNA.file = gRNA.file, 
-    BSgenomeName = Hsapiens, min.reads = 2))
+    BSgenomeName = Hsapiens, min.reads = 2,  n.cores.max = 1))
 names(guideSeqRes)
 @
 \end{scriptsize}
