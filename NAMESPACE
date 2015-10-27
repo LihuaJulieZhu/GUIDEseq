@@ -11,5 +11,8 @@ importFrom(ChIPpeakAnno, annotatePeakInBatch)
 importFrom(data.table, fread)
 importFrom(matrixStats, rowMins)
 importFrom(matrixStats, rowMaxs)
-export(GUIDEseqAnalysis, getUniqueCleavageEvents, getPeaks, 
+importFrom(Rsamtools, ScanBamParam, BamFile, bamFlagTest)
+importFrom(GenomicAlignments, readGAlignmentsList, first, last)
+importFrom(GenomeInfoDb, seqlevels, seqinfo, "seqinfo<-", "seqlevels<-")
+export(GUIDEseqAnalysis, getUniqueCleavageEvents, getPeaks,
     mergePlusMinusPeaks, offTargetAnalysisOfPeakRegions)

@@ -117,6 +117,28 @@ function(gr, window.size = 20L, step = 10L,
             pos.value[,5])) / bg.window.size * window.size)
     window.gr
 }
+.getStrandedCoverage2 <- ## Assumes data from single chromosome!!
+    function(gr, window.size = 20L, bg.window.size = 5000L,
+             strand, min.reads = 10L)
+{
+    cvg <- coverage(gr)
+    cvg <- Filter(length, cvg)
+    observed <- runsum(cvg, k = window.size + 1, endrule = "constant")
+    bg <- runsum(cvg, k = bg.window.size + 1, endrule = "constant")
+    observed.gr <- as(observed, "GRanges")
+    strand(observed.gr) <- strand
+    observed.gr <- observed.gr[score(observed.gr) >= min.reads]
+    bg.pos <- start(observed.gr) -
+        as.integer(ceiling((bg.window.size - window.size)/2))
+    bg.pos <- pmax(1L, bg.pos)
+    bg.value <- unlist(bg[split(bg.pos, seqnames(observed.gr))],
+                       use.names=FALSE)
+    mcols(observed.gr)$bg <- as.numeric(bg.value / bg.window.size * window.size)
+    seqlevels(observed.gr) <- seqlevels(gr)
+    seqinfo(observed.gr) <- seqinfo(gr)
+    observed.gr
+}
+
 .locMaxPos <- function(data.ranges, window.size, step, min.reads)
 {
     if (length(data.ranges) > 1)
@@ -126,7 +148,7 @@ function(gr, window.size = 20L, step = 10L,
         i <- min(start(data.ranges))
         max.pos <- max.count
         j <- 0
-        while (i < total){
+        while (i <= total){
             this.range <- data.ranges[start(data.ranges) >= i &
                 start(data.ranges) < (i + window.size)]
             i <- i + step
@@ -143,11 +165,15 @@ function(gr, window.size = 20L, step = 10L,
                 max.count <- c(as.numeric(as.character(this.range$count)),
                     max.count)
             }
-            j <- min(which(start(data.ranges) > i))
-            #print(paste("j = ", j))
-            if (i < total & start(data.ranges)[j] >= (i + window.size))
-            {
-                i <- start(data.ranges)[j]
+
+            nextI <- which(start(data.ranges) > i)
+            if (length(nextI) > 0L) {
+                j <- min(nextI)
+                ##print(paste("j = ", j))
+                if (start(data.ranges)[j] >= (i + window.size))
+                {
+                    i <- start(data.ranges)[j]
+                }
             }
             local.max.start <- unique(max.pos[max.count >= min.reads])
         }
@@ -158,4 +184,21 @@ function(gr, window.size = 20L, step = 10L,
     }
     #list(max.pos,  max.count)
     local.max.start 
+}
+
+### While these functions take GRanges, they assume ranges on one sequence
+
+.locMaxPos2 <- function(gr, window.size, step) {
+    cov <- coverage(ranges(gr), weight=score(gr))
+    starts <- seq((min(start(gr)) %/% step) * step, max(start(gr)), step)
+    windows <- IRanges(starts, width=window.size)
+    viewWhichMaxs(Views(cov, windows))
+}
+
+.findProminentPeaks <- function(gr, maxgap) {
+    cov <- coverage(ranges(gr), weight=score(gr))
+    windows <- ranges(gr) + maxgap
+    maxs <- viewWhichMaxs(Views(cov, windows))
+    self.max <- ranges(gr) %pover% maxs
+    gr[self.max]
 }

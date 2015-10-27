@@ -101,11 +101,12 @@ path as umi.inputfile containing unique molecularidentifier for each sequence.
 \begin{scriptsize}
 <<>>=
 library(GUIDEseq)
-library(BSgenome.Hsapiens.UCSC.hg19)
-umi.inputfile <- system.file("extdata", "UMI-HEK293_site4_R1.txt", 
-    package = "GUIDEseq")       
-alignment.inputfile <- system.file("extdata","bowtie2.HEK293_site4.sort.bed",
-    package = "GUIDEseq")
+umifile <- system.file("extdata", "UMI-HEK293_site4_chr13.txt", 
+                       package = "GUIDEseq")
+bedfile <- system.file("extdata","bowtie2.HEK293_site4_chr13.sort.bed",
+                       package = "GUIDEseq")
+bamfile <- system.file("extdata","bowtie2.HEK293_site4_chr13.sort.bam",
+                       package = "GUIDEseq")
 @
 \end{scriptsize}
 
@@ -142,9 +143,8 @@ please type help(getUniqueCleavageEvents).
 
 \begin{scriptsize}
 <<>>=
-system.time(uniqueCleavageEvents <- getUniqueCleavageEvents(
-    alignment.inputfile = alignment.inputfile , umi.inputfile = umi.inputfile,
-    n.cores.max = 1))
+uniqueCleavageEvents <- getUniqueCleavageEvents(bamfile, umifile)
+uniqueCleavageEventsOld <- getUniqueCleavageEvents(bedfile, umifile)
 uniqueCleavageEvents$cleavage.gr
 @
 \end{scriptsize}
@@ -160,8 +160,15 @@ to 2. For detailed parameter settings using function
 
 \begin{scriptsize}
 <<>>=
+<<<<<<< .mine
+peaks.old <- getPeaks(uniqueCleavageEventsOld$cleavage.gr, min.reads = 80)
+peaks <- GUIDEseq:::getPeaks2(uniqueCleavageEvents$cleavage.gr, min.reads = 80)
+||||||| .r109790
+peaks <- getPeaks(uniqueCleavageEvents$cleavage.gr, min.reads = 80)
+=======
 peaks <- getPeaks(uniqueCleavageEvents$cleavage.gr, min.reads = 80,
     n.cores.max = 1)
+>>>>>>> .r109960
 peaks.gr <- peaks$peaks
 peaks.gr
 @
@@ -175,7 +182,7 @@ specific orientation and within certain distance apart.
 By default, plus.strand.start.gt.minus.strand.end is set to TRUE
 and distance.threshold is set to 40, i.e., twice of the window size. 
 For detailed parameter settings using function \linebreak
-\Rfunction{mergePlusMinusPeaks}, please type help(mergePlusMinusPeaks).
+\Rfunction{mergePlusMinusPeaks}, please type \Rcode{help(mergePlusMinusPeaks)}.
 
 \begin{scriptsize}
 <<>>=
@@ -197,6 +204,7 @@ please type help(offTargetAnalysisOfPeakRegions)
 
 \begin{scriptsize}
 <<>>=
+library(BSgenome.Hsapiens.UCSC.hg19)
 peaks <- system.file("extdata", "T2plus100OffTargets.bed",
     package = "CRISPRseek")
 gRNAs <- system.file("extdata", "T2.fa",
