@@ -6,9 +6,11 @@ Date: 2015-10-26
 Author: Lihua Julie Zhu, Michael Lawrence, Ankit Gupta,
         Alper Kucukural, Manuel Garber, Scot A. Wolfe
 Maintainer: Lihua Julie Zhu <julie.zhu@umassmed.edu>
-Depends: R (>= 3.2.0), IRanges, BiocGenerics, S4Vectors
+Depends: R (>= 3.2.0), GenomicRanges, BiocGenerics
 Imports: BiocParallel, Biostrings, CRISPRseek, ChIPpeakAnno,
-        GenomicRanges, data.table, matrixStats, BSgenome, parallel
+         data.table, matrixStats, BSgenome, parallel,
+	 IRanges (>= 2.5.5), S4Vectors (>= 0.9.6),
+	 GenomicAlignments (>= 1.7.3)
 biocViews: GeneRegulation, Sequencing, WorkflowStep
 Suggests: knitr, RUnit, BiocStyle, BSgenome.Hsapiens.UCSC.hg19
 VignetteBuilder: knitr
