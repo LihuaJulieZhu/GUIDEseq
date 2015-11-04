@@ -6,9 +6,10 @@ Analysis pipeline for GUIDE-seq dataset
 \description{
 A wrapper function that uses the UMI sequence plus the first few bases of each
     sequence from R1 reads to estimate the starting sequence library, piles up
-    reads with a user defined window and step size, identify the cleavage sites,
-    merge cleavage sites from plus strand and minus strand, followed by off
-    target analysis of extended regions around the identified cleavage sites.
+    reads with a user defined window and step size, identify the insertion 
+    sites (proxy of cleavage sites), merge insertion sites from plus strand 
+    and minus strand, followed by off target analysis of extended regions 
+    around the identified insertion sites.
 }
 \usage{
 GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
@@ -20,7 +21,7 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
     outputDir,
     n.cores.max = 6,
     keep.R1only = TRUE, keep.R2only = TRUE,
-    paired.direction = "opposite.strand",
+    concordant.strand = TRUE,
     max.paired.distance = 1000, min.mapping.quality = 30,
     max.R1.len = 130, max.R2.len = 130,
     apply.both.max.len = FALSE, same.chromosome = TRUE,
@@ -105,9 +106,9 @@ Specify whether to include alignment with only R1 without paired R2.
 Specify whether to include alignment with only R2 without paired R1.
     Default TRUE
 }
-  \item{paired.direction}{
-Specify whether the R1 and R2 should be aligned to the same strand or
-    opposite strand. Default opposite.strand
+\item{concordant.strand}{
+Specify whether the R1 and R2 should be aligned to the same strand or opposite
+strand. Default opposite.strand (TRUE)
 }
   \item{max.paired.distance}{
 Specify the maximum distance allowed between paired R1 and R2 reads.

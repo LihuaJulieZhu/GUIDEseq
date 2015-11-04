@@ -12,9 +12,10 @@ sequence from R1 reads to obtain the starting sequence library.
 }
 \usage{
 getUniqueCleavageEvents(alignment.inputfile, umi.inputfile, 
-alignment.format = "bed", umi.header = FALSE, read.ID.col = 1, 
+ alignment.format = c("auto", "bam", "bed"),
+ umi.header = FALSE, read.ID.col = 1, 
 umi.col = 2, umi.sep = "\t", keep.R1only = TRUE, keep.R2only = TRUE, 
-paired.direction = "opposite.strand", max.paired.distance = 1000, 
+concordant.strand = TRUE, max.paired.distance = 1000, 
 min.mapping.quality = 30, max.R1.len = 130, max.R2.len = 130, 
 apply.both.max.len = FALSE, same.chromosome = TRUE, 
 distance.inter.chrom = -1, min.R1.mapped = 30, min.R2.mapped = 30, 
@@ -37,8 +38,8 @@ getUMI.sh to generate this file. Please download the script and its helper
 scripts at http://mccb.umassmed.edu/GUIDE-seq/getUMI/
 }
   \item{alignment.format}{
-The format of the alignment input file. Default bed file format. Currently only
-bed file format is supported, which is generated from binReads.sh
+The format of the alignment input file. Currently only
+bam and bed file format is supported. BED format will be deprecated soon.
 }
   \item{umi.header}{
 Indicates whether the umi input file contains a header line or not. 
@@ -63,9 +64,9 @@ Default TRUE
 Specify whether to include alignment with only R2 without paired R1. 
 Default TRUE
 }
-  \item{paired.direction}{
+  \item{concordant.strand}{
 Specify whether the R1 and R2 should be aligned to the same strand or opposite
-strand. Default opposite.strand 
+strand. Default opposite.strand (TRUE) 
 }
   \item{max.paired.distance}{
 Specify the maximum distance allowed between paired R1 and R2 reads. 

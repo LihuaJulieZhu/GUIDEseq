@@ -127,7 +127,7 @@ function(gr, window.size = 20L, step = 10L,
     bg <- runsum(cvg, k = bg.window.size + 1, endrule = "constant")
     observed.gr <- as(observed, "GRanges")
     strand(observed.gr) <- strand
-    observed.gr <- observed.gr[score(observed.gr) >= min.reads]
+    observed.gr <- observed.gr[count(observed.gr) >= min.reads]
     bg.pos <- start(observed.gr) -
         as.integer(ceiling((bg.window.size - window.size)/2))
     bg.pos <- pmax(1L, bg.pos)
@@ -189,14 +189,14 @@ function(gr, window.size = 20L, step = 10L,
 ### While these functions take GRanges, they assume ranges on one sequence
 
 .locMaxPos2 <- function(gr, window.size, step) {
-    cov <- coverage(ranges(gr), weight=score(gr))
+    cov <- coverage(ranges(gr), weight=count(gr))
     starts <- seq((min(start(gr)) %/% step) * step, max(start(gr)), step)
     windows <- IRanges(starts, width=window.size)
     viewWhichMaxs(Views(cov, windows))
 }
 
 .findProminentPeaks <- function(gr, maxgap) {
-    cov <- coverage(ranges(gr), weight=score(gr))
+    cov <- coverage(ranges(gr), weight=count(gr))
     windows <- ranges(gr) + maxgap
     maxs <- viewWhichMaxs(Views(cov, windows))
     self.max <- ranges(gr) %pover% maxs

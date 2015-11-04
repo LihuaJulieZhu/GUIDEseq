@@ -1,8 +1,8 @@
 Package: GUIDEseq
 Type: Package
 Title: GUIDE-seq analysis pipeline
-Version: 1.1.6
-Date: 2015-10-26
+Version: 1.1.7
+Date: 2015-11-2
 Author: Lihua Julie Zhu, Michael Lawrence, Ankit Gupta,
         Alper Kucukural, Manuel Garber, Scot A. Wolfe
 Maintainer: Lihua Julie Zhu <julie.zhu@umassmed.edu>
@@ -15,11 +15,11 @@ biocViews: GeneRegulation, Sequencing, WorkflowStep
 Suggests: knitr, RUnit, BiocStyle, BSgenome.Hsapiens.UCSC.hg19
 VignetteBuilder: knitr
 Description: The package implements GUIDE-seq analysis workflow
-        including functions for obtaining unique cleavage events,
-        estimating the locations of the cleavage sites, aka, peaks,
-        merging estimated cleavage sites from plus and minus strand,
-        and performing off target search of the extended regions around
-        cleavage sites.
+        including functions for obtaining unique insertion 
+        sites (proxy of cleavage sites), estimating the locations 
+        of the insertion sites, aka, peaks, merging estimated insertion
+        sites from plus and minus strand, and performing off target 
+        search of the extended regions around insertion sites.
 License: GPL (>= 2)
 LazyLoad: yes
 NeedsCompilation: no

@@ -48,7 +48,8 @@ getUniqueCleavageEvents <-
                                      concordant.strand,
                                      same.chromosome,
                                      max.paired.distance,
-                                     distance.inter.chrom)
+                                     distance.inter.chrom,
+                                     n.cores.max)
     } else {
         align <- importBAMAlignments(alignment.inputfile,
                                      min.mapping.quality,
@@ -244,7 +245,7 @@ importBEDAlignments <- function(file,
                                 same.chromosome = TRUE,
                                 max.paired.distance = 1000L,
                                 distance.inter.chrom = -1L,
-                                n.cores = detectCores() - 1)
+                                n.cores = 6)
 {
     align <- as.data.frame(fread(file, sep = "\t",
                                   header = FALSE, 
@@ -298,15 +299,25 @@ importBEDAlignments <- function(file,
                  all$seqnames.first != all$seqnames.last] <- distance.inter.chrom
     all <- cbind(all, distance)
     all <- subset(all, is.na(distance) | distance <=  max.paired.distance)
-    cl <- makeCluster(n.cores)
+    n.cores <- min(n.cores, detectCores() -1 )
     unique.cigar <- unique(c(all$cigar.first, all$cigar.last))
-    unique.base.kept <- cbind(cigar = unique.cigar,
+    if (n.cores > 1)
+    {
+        cl <- makeCluster(n.cores)
+        unique.base.kept <- cbind(cigar = unique.cigar,
                               base.kept = unlist(parLapply(cl, unique.cigar, 
                               .getReadLengthFromCigar)))
+        stopCluster(cl)
+    }
+    else
+    {
+        unique.base.kept <- cbind(cigar = unique.cigar,
+                              base.kept = unlist(lapply(unique.cigar,
+                              .getReadLengthFromCigar)))
+    }
     qwidth.first <- as.numeric(
         unique.base.kept[match(all$cigar.first, unique.base.kept[,1]),2])
     qwidth.last <- as.numeric(
         unique.base.kept[match(all$cigar.last, unique.base.kept[,1]),2])
-    stopCluster(cl)
     cbind(all, qwidth.first, qwidth.last)
 }

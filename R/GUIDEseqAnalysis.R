@@ -1,6 +1,6 @@
 GUIDEseqAnalysis <- function(alignment.inputfile,
     umi.inputfile,
-    alignment.format = "bed",
+    alignment.format = c("auto", "bam", "bed"),
     umi.header = FALSE,
     read.ID.col = 1, 
     umi.col = 2,

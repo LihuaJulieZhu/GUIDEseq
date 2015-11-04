@@ -207,7 +207,7 @@ getPeaks2 <-
     if (length(plus.gr) < 2 && length(minus.gr) < 2) {
         stop("too few reads for peak calling!")
     }
-    plus.runsum <- minus.runsum <- GRanges(score=integer())
+    plus.runsum <- minus.runsum <- GRanges(count=integer())
     if (length(plus.gr) >= 2) {
         message("computing coverage for plus strand ...")
         plus.runsum <- .getStrandedCoverage2(plus.gr, window.size = window.size,
@@ -226,13 +226,13 @@ getPeaks2 <-
     both.runsum <- c(plus.runsum, minus.runsum)
     message("call peaks ...")
     both.runsum$p.value <- if (stats == "poisson") {
-        ppois(score(both.runsum), lambda = both.runsum$bg,
+        ppois(count(both.runsum), lambda = both.runsum$bg,
               lower.tail = FALSE, log.p = FALSE)
     } else if (stats == "nbinom") {
-        pnbinom(score(both.runsum), mu = both.runsum$bg,
+        pnbinom(count(both.runsum), mu = both.runsum$bg,
                 size = window.size, lower.tail = FALSE, log.p = FALSE)
     }
-    both.runsum$SNratio <- score(both.runsum)/both.runsum$bg
+    both.runsum$SNratio <- count(both.runsum)/both.runsum$bg
 
     locMaxForChrStrand <- function(strand.gr) {
         max.pos <- .locMaxPos2(strand.gr, window.size = window.size, step = step)

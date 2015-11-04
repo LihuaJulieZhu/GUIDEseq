@@ -14,11 +14,11 @@ BiocStyle::latex()
 \usepackage{graphicx}
 \usepackage[section]{placeins}
 \bibliographystyle{plainnat}
-\author{Lihua Julie Zhu, Michael Lawrence, Ankit Gupta, Scot Wolfe}
+\author{Lihua Julie Zhu, Michael Lawrence, Ankit Gupta, \\ Alper Kucukural, Manuel Garber, Scot Wolfe}
 \begin{document}
 \SweaveOpts{concordance=TRUE}
 
-<<include=FALSE>>=
+<<include=FALSE, echo=FALSE, eval=TRUE>>=
 library(knitr)
 opts_chunk$set(
 concordance=TRUE
@@ -160,17 +160,12 @@ to 2. For detailed parameter settings using function
 
 \begin{scriptsize}
 <<>>=
-<<<<<<< .mine
-peaks.old <- getPeaks(uniqueCleavageEventsOld$cleavage.gr, min.reads = 80)
-peaks <- GUIDEseq:::getPeaks2(uniqueCleavageEvents$cleavage.gr, min.reads = 80)
-||||||| .r109790
 peaks <- getPeaks(uniqueCleavageEvents$cleavage.gr, min.reads = 80)
-=======
-peaks <- getPeaks(uniqueCleavageEvents$cleavage.gr, min.reads = 80,
-    n.cores.max = 1)
->>>>>>> .r109960
+peaks.old <- GUIDEseq:::getPeaks.old(uniqueCleavageEvents$cleavage.gr, min.reads = 80,
+    n.cores.max = 15)
 peaks.gr <- peaks$peaks
 peaks.gr
+peaks.old$peaks
 @
 \end{scriptsize}
 
@@ -235,9 +230,9 @@ please type help(GUIDEseqAnalysis)
 <<>>=
 gRNA.file <- system.file("extdata","gRNA.fa", package = "GUIDEseq")
 system.time(guideSeqRes <- GUIDEseqAnalysis(
-    alignment.inputfile = alignment.inputfile, 
-    umi.inputfile = umi.inputfile, gRNA.file = gRNA.file, 
-    BSgenomeName = Hsapiens, min.reads = 2,  n.cores.max = 1))
+    alignment.inputfile = bamfile, 
+    umi.inputfile = umifile, gRNA.file = gRNA.file, 
+    BSgenomeName = Hsapiens, min.reads = 1))
 names(guideSeqRes)
 @
 \end{scriptsize}
