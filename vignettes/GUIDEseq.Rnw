@@ -144,7 +144,7 @@ please type help(getUniqueCleavageEvents).
 \begin{scriptsize}
 <<>>=
 uniqueCleavageEvents <- getUniqueCleavageEvents(bamfile, umifile)
-uniqueCleavageEventsOld <- getUniqueCleavageEvents(bedfile, umifile)
+#uniqueCleavageEventsOld <- getUniqueCleavageEvents(bedfile, umifile)
 uniqueCleavageEvents$cleavage.gr
 @
 \end{scriptsize}
@@ -161,11 +161,8 @@ to 2. For detailed parameter settings using function
 \begin{scriptsize}
 <<>>=
 peaks <- getPeaks(uniqueCleavageEvents$cleavage.gr, min.reads = 80)
-peaks.old <- GUIDEseq:::getPeaks.old(uniqueCleavageEvents$cleavage.gr, min.reads = 80,
-    n.cores.max = 15)
 peaks.gr <- peaks$peaks
-peaks.gr
-peaks.old$peaks
+peaks.gr$peaks
 @
 \end{scriptsize}
 

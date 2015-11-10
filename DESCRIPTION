@@ -10,7 +10,7 @@ Depends: R (>= 3.2.0), GenomicRanges, BiocGenerics
 Imports: BiocParallel, Biostrings, CRISPRseek, ChIPpeakAnno,
          data.table, matrixStats, BSgenome, parallel,
 	 IRanges (>= 2.5.5), S4Vectors (>= 0.9.6),
-	 GenomicAlignments (>= 1.7.3)
+	 GenomicAlignments (>= 1.7.3), GenomeInfoDb, Rsamtools
 biocViews: GeneRegulation, Sequencing, WorkflowStep
 Suggests: knitr, RUnit, BiocStyle, BSgenome.Hsapiens.UCSC.hg19
 VignetteBuilder: knitr

@@ -11,7 +11,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     n.cores.max = 6,
     keep.R1only = TRUE,
     keep.R2only = TRUE,
-    paired.direction = "opposite.strand",
+    concordant.strand = TRUE,
     max.paired.distance = 1000,
     min.mapping.quality = 30, 
     max.R1.len = 130,
@@ -51,9 +51,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     weights = c(0, 0, 0.014, 0, 0, 0.395, 0.317, 0, 0.389, 0.079,
     0.445, 0.508, 0.613, 0.851, 0.732, 0.828, 0.615,0.804, 0.685, 0.583))
 {
-    if (alignment.format != "bed")
-        stop("Currently, only bed formatted alignment input files
-            are supported.") 
+    alignment.format <- match.arg(alignment.format)
     message("Remove duplicate reads ...\n")
     if (missing(BSgenomeName))
     {
@@ -76,7 +74,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         umi.header = umi.header, read.ID.col = read.ID.col,
         umi.col = umi.col, umi.sep = umi.sep,
         keep.R1only = keep.R1only, keep.R2only = keep.R2only,
-        paired.direction = paired.direction,
+        concordant.strand = concordant.strand,
         max.paired.distance = max.paired.distance,
         min.mapping.quality = min.mapping.quality,
         max.R1.len = max.R1.len, max.R2.len = max.R2.len,
@@ -107,7 +105,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     message("Peak calling ...\n")
     peaks <- getPeaks(cleavages$cleavage.gr, step = step,
         window.size = window.size, bg.window.size = bg.window.size,
-        n.cores.max = n.cores.max,
+       # n.cores.max = n.cores.max,
         maxP = maxP, p.adjust.methods = p.adjust.methods,
         min.reads = min.reads, min.SNratio = min.SNratio)
 

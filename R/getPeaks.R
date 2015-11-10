@@ -1,4 +1,4 @@
-getPeaks <-
+getPeaks.old <-
 function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
     min.reads = 10L, min.SNratio = 2, maxP = 0.05,
     n.cores.max = 6, stats = c("poisson", "nbinom"),
@@ -186,11 +186,11 @@ function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
         summarized.count = both.runsum)
 }
 
-getPeaks2 <-
+getPeaks <-
     function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
              min.reads = 10L, min.SNratio = 2, maxP = 0.05,
              stats = c("poisson", "nbinom"),
-             p.adjust.method = 
+             p.adjust.methods = 
                  c( "none", "BH", "holm", "hochberg", "hommel", "bonferroni",
                    "BY", "fdr"))
 {
@@ -201,13 +201,13 @@ getPeaks2 <-
         stop("No valid gr passed in. It needs to be GRanges object")
     }
     stats <- match.arg(stats)
-    p.adjust.method <- match.arg(p.adjust.method)
+    p.adjust.methods <- match.arg(p.adjust.methods)
     plus.gr = subset(gr, strand(gr) == "+")
     minus.gr = subset(gr, strand(gr) == "-")
     if (length(plus.gr) < 2 && length(minus.gr) < 2) {
         stop("too few reads for peak calling!")
     }
-    plus.runsum <- minus.runsum <- GRanges(count=integer())
+    plus.runsum <- minus.runsum <- GRanges(score = integer())
     if (length(plus.gr) >= 2) {
         message("computing coverage for plus strand ...")
         plus.runsum <- .getStrandedCoverage2(plus.gr, window.size = window.size,
@@ -226,13 +226,13 @@ getPeaks2 <-
     both.runsum <- c(plus.runsum, minus.runsum)
     message("call peaks ...")
     both.runsum$p.value <- if (stats == "poisson") {
-        ppois(count(both.runsum), lambda = both.runsum$bg,
+        ppois(score(both.runsum), lambda = both.runsum$bg,
               lower.tail = FALSE, log.p = FALSE)
     } else if (stats == "nbinom") {
-        pnbinom(count(both.runsum), mu = both.runsum$bg,
+        pnbinom(score(both.runsum), mu = both.runsum$bg,
                 size = window.size, lower.tail = FALSE, log.p = FALSE)
     }
-    both.runsum$SNratio <- count(both.runsum)/both.runsum$bg
+    both.runsum$SNratio <- score(both.runsum)/both.runsum$bg
 
     locMaxForChrStrand <- function(strand.gr) {
         max.pos <- .locMaxPos2(strand.gr, window.size = window.size, step = step)
@@ -255,11 +255,16 @@ getPeaks2 <-
                           locMaxForChr)
     loc.max.gr <- do.call(c, unname(loc.max.chr))
 
+    colnames(mcols(both.runsum))[colnames(mcols(both.runsum))
+          == "score"]  <-  "count"
     both.runsum.bk <- both.runsum
     both.runsum <- loc.max.gr
+    
+    colnames(mcols(both.runsum))[colnames(mcols(both.runsum))
+          == "score"]  <-  "count"
 
     both.runsum$adjusted.p.value <- p.adjust(both.runsum$p.value,
-                                             method = p.adjust.method)
+                                             method = p.adjust.methods)
     peaks <- subset(both.runsum,
                     adjusted.p.value <= maxP & SNratio >= min.SNratio)
     
