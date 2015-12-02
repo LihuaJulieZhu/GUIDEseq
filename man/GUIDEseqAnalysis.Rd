@@ -13,7 +13,7 @@ A wrapper function that uses the UMI sequence plus the first few bases of each
 }
 \usage{
 GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
-    alignment.format = "bed", 
+    alignment.format = c("auto", "bam", "bed"), 
     umi.header = FALSE, read.ID.col = 1,
     umi.col = 2, umi.sep = "\t",
     BSgenomeName, 
@@ -25,8 +25,8 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
     max.paired.distance = 1000, min.mapping.quality = 30,
     max.R1.len = 130, max.R2.len = 130,
     apply.both.max.len = FALSE, same.chromosome = TRUE,
-    distance.inter.chrom = -1, min.R1.mapped = 30,
-    min.R2.mapped = 30, apply.both.min.mapped = FALSE,
+    distance.inter.chrom = -1, min.R1.mapped = 20,
+    min.R2.mapped = 20, apply.both.min.mapped = FALSE,
     max.duplicate.distance = 0,
     umi.plus.R1start.unique = TRUE, umi.plus.R2start.unique = TRUE,
     window.size = 20L, step = 20L, bg.window.size = 5000L,
@@ -46,7 +46,7 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
 }
 \arguments{
   \item{alignment.inputfile}{
-The alignment file. Currently supports bed output file with CIGAR information.
+The alignment file. Currently supports bam and bed output file with CIGAR information.
     Suggest run the workflow binReads.sh, which sequentially runs barcode
     binning, adaptor removal, alignment to genome, alignment quality filtering,
     and bed file conversion. Please download the workflow function and its

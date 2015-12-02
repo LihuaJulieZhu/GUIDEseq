@@ -18,7 +18,7 @@ umi.col = 2, umi.sep = "\t", keep.R1only = TRUE, keep.R2only = TRUE,
 concordant.strand = TRUE, max.paired.distance = 1000, 
 min.mapping.quality = 30, max.R1.len = 130, max.R2.len = 130, 
 apply.both.max.len = FALSE, same.chromosome = TRUE, 
-distance.inter.chrom = -1, min.R1.mapped = 30, min.R2.mapped = 30, 
+distance.inter.chrom = -1, min.R1.mapped = 20, min.R2.mapped = 20, 
 apply.both.min.mapped = FALSE, max.duplicate.distance = 0, 
 umi.plus.R1start.unique = TRUE, umi.plus.R2start.unique = TRUE,
 n.cores.max = 6)

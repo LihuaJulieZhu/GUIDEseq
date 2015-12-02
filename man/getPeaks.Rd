@@ -9,7 +9,7 @@ Obtain strand-specific peaks from GUIDE-seq
 \usage{
 getPeaks(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
     min.reads = 10L, min.SNratio = 2, maxP = 0.05, 
-    n.cores.max = 6, stats = c("poisson", "nbinom"), p.adjust.methods = 
+    stats = c("poisson", "nbinom"), p.adjust.methods = 
     c("none", "BH", "holm", "hochberg", "hommel", "bonferroni", "BY", "fdr"))
 }
 \arguments{
@@ -34,11 +34,6 @@ minimum signal noise ratio, which is the coverage normalized by local
 }
   \item{maxP}{
 Maximum p-value to be considered as significant
-}
-\item{n.cores.max}{
-Indicating maximum number of cores to use in multi core mode, 
-    i.e., parallel processing, default 6. Please set it to 1 to disable
-    multicore processing for small dataset.
 }
   \item{stats}{
 Statistical test, default poisson
