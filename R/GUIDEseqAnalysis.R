@@ -29,6 +29,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     step = 20L,
     bg.window.size = 5000L,
     min.reads = 5L,
+    min.reads.per.lib = 1L,
     min.SNratio = 2,
     maxP = 0.05, 
     stats = c("poisson", "nbinom"),
@@ -68,66 +69,99 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         stop("alignment.inputfile, umi.inputfile and gRNA.file
             are all required!")
     }
-    cleavages <-
-        getUniqueCleavageEvents(alignment.inputfile = alignment.inputfile,
-        umi.inputfile = umi.inputfile, alignment.format = alignment.format,
-        umi.header = umi.header, read.ID.col = read.ID.col,
-        umi.col = umi.col, umi.sep = umi.sep,
-        keep.R1only = keep.R1only, keep.R2only = keep.R2only,
-        concordant.strand = concordant.strand,
-        max.paired.distance = max.paired.distance,
-        min.mapping.quality = min.mapping.quality,
-        max.R1.len = max.R1.len, max.R2.len = max.R2.len,
-        apply.both.max.len = apply.both.max.len,
-        same.chromosome = same.chromosome,
-        distance.inter.chrom = distance.inter.chrom,
-        min.R1.mapped = min.R1.mapped,
-        min.R2.mapped = min.R2.mapped,
-        apply.both.min.mapped = apply.both.min.mapped,
-        max.duplicate.distance = max.duplicate.distance,
-        umi.plus.R1start.unique = umi.plus.R1start.unique,
-        umi.plus.R2start.unique = umi.plus.R2start.unique,
-        n.cores.max = n.cores.max)
+    if (length(alignment.inputfile) != length(umi.inputfile))
+    {
+       stop("number of alignment.inputfiles and number of 
+           umi.inputfiles should be the same")
+    }
+    if (length(alignment.inputfile) > 2 || length(umi.inputfile) > 2)
+    {
+       warning("Only the first 2 input files are used for
+           the subsequent analysis")
+    }
+    n.files <- min(length(alignment.inputfile), 
+        length(umi.inputfile))
+    n.files <- min(n.files, 2)
     gRNAName <- gsub(".fa", "", basename(gRNA.file))
-    fileName <- gsub("bowtie2.", "", basename(alignment.inputfile))
-    fileName <- gsub("bowtie1.", "", fileName)
-    fileName <- gsub("bowtie.", "", fileName)
-    fileName <- gsub(".bed", "", fileName)
-    fileName <- gsub(".sort", "", fileName)
+    cleavages.gr <- do.call(c, lapply(1:n.files, function(i)
+    {
+        cleavages <-
+            getUniqueCleavageEvents(
+            alignment.inputfile = alignment.inputfile[i],
+            umi.inputfile = umi.inputfile[i], 
+            alignment.format = alignment.format,
+            umi.header = umi.header, read.ID.col = read.ID.col,
+            umi.col = umi.col, umi.sep = umi.sep,
+            keep.R1only = keep.R1only, keep.R2only = keep.R2only,
+            concordant.strand = concordant.strand,
+            max.paired.distance = max.paired.distance,
+            min.mapping.quality = min.mapping.quality,
+            max.R1.len = max.R1.len, max.R2.len = max.R2.len,
+            apply.both.max.len = apply.both.max.len,
+            same.chromosome = same.chromosome,
+            distance.inter.chrom = distance.inter.chrom,
+            min.R1.mapped = min.R1.mapped,
+            min.R2.mapped = min.R2.mapped,
+            apply.both.min.mapped = apply.both.min.mapped,
+            max.duplicate.distance = max.duplicate.distance,
+            umi.plus.R1start.unique = umi.plus.R1start.unique,
+            umi.plus.R2start.unique = umi.plus.R2start.unique,
+            n.cores.max = n.cores.max)
+        fileName <- gsub("bowtie2.", "", 
+            basename(alignment.inputfile[i]))
+        fileName <- gsub("bowtie1.", "", fileName)
+        fileName <- gsub("bowtie.", "", fileName)
+        fileName <- gsub(".bed", "", fileName)
+        fileName <- gsub(".sort", "", fileName)
 
-    temp <- as.data.frame(cleavages$cleavage.gr)
-    temp1 <- paste(temp[,1], temp[,5], temp[,2], sep = "")
-    read.summary <- table(temp1)
-    write.table(read.summary, file = paste(gRNAName, fileName,
-        "ReadSummary.xls", sep = ""),
-        sep = "\t", row.names = FALSE)
-
+        temp <- as.data.frame(cleavages$cleavage.gr)
+        temp1 <- paste(temp[,1], temp[,5], temp[,2], sep = "")
+        read.summary <- table(temp1)
+        write.table(read.summary, file = paste(gRNAName, fileName,
+            "ReadSummary.xls", sep = ""),
+            sep = "\t", row.names = FALSE)
+	list(cleavages.gr = cleavages$cleavage.gr, read.summary = read.summary) 
+    }))
     message("Peak calling ...\n")
-    peaks <- getPeaks(cleavages$cleavage.gr, step = step,
+    if (n.files > 1)
+         combined.gr <- c(cleavages.gr[[1]], cleavages.gr[[3]])
+    else
+         combined.gr <- cleavages.gr[[1]]
+    peaks <- getPeaks(combined.gr, step = step,
         window.size = window.size, bg.window.size = bg.window.size,
-       # n.cores.max = n.cores.max,
         maxP = maxP, p.adjust.methods = p.adjust.methods,
         min.reads = min.reads, min.SNratio = min.SNratio)
-
+    if (n.files >1)
+    {
+        peaks1 <- getPeaks(cleavages.gr[[1]], step = step,
+            window.size = window.size, bg.window.size = bg.window.size,
+            maxP = maxP, p.adjust.methods = p.adjust.methods,
+            min.reads = min.reads.per.lib, min.SNratio = min.SNratio)
+        peaks2 <- getPeaks(cleavages.gr[[3]], step = step,
+            window.size = window.size, bg.window.size = bg.window.size,
+            maxP = maxP, p.adjust.methods = p.adjust.methods,
+            min.reads = min.reads.per.lib, min.SNratio = min.SNratio) 
+    }
     if (missing(outputDir))
     {
         outputDir <- getwd()
     }
     write.table(as.data.frame(peaks$peaks),
-        file = file.path(outputDir, paste(gRNAName, fileName,
+        file = file.path(outputDir, paste(gRNAName, 
         "peaks.xls", sep = "-" )), sep="\t", row.names=FALSE)
 
     message("combine plus and minus peaks ... \n")
 
-    output.bedfile <- paste(gRNAName, fileName, "PlusMinusPeaksMerged.bed",
+    output.bedfile <- paste(gRNAName, "PlusMinusPeaksMerged.bed",
         sep = "-" )
     merged.gr<- mergePlusMinusPeaks(peaks.gr = peaks$peaks,
         distance.threshold = distance.threshold, step = step,
         output.bedfile = output.bedfile)
 
+####### keep peaks not in merged.gr but present in both peaks1 and peaks2
     write.table(cbind(name = names(merged.gr$mergedPeaks.gr),
         as.data.frame(merged.gr$mergedPeaks.gr)),
-        file = paste(gRNAName, fileName, "PlusMinusPeaksMerged.xls",
+        file = paste(gRNAName, "PlusMinusPeaksMerged.xls",
         sep = "-" ), sep="\t", row.names=FALSE)
 
     message("offtarget analysis ...\n")
@@ -136,7 +170,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
 
     if (missing(outputDir) || outputDir == getwd())
     {
-        outputDir <- paste(gRNAName, fileName, "min", min.reads,
+        outputDir <- paste(gRNAName,  "min", min.reads,
             "window", window.size, "step", step, "distance",
             distance.threshold, sep = "" )
     }
@@ -144,7 +178,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         dir.create(outputDir)
     write.table(cbind(name = names(merged.gr$mergedPeaks.gr),
         as.data.frame(merged.gr$mergedPeaks.gr)),
-        file = file.path(outputDir, paste(gRNAName, fileName,
+        file = file.path(outputDir, paste(gRNAName, 
         "PlusMinusPeaksMerged.xls", sep = "-" )),
         sep="\t", row.names=FALSE)
 
@@ -161,7 +195,12 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     )
 
     message("Please check output file in directory ", outputDir , "\n")
-    list(offTargets = offTargets, merged.peaks = merged.gr$mergedPeaks.gr,
-        peaks = peaks$peaks, uniqueCleavages = cleavages$cleavages.gr,
-        read.summary = read.summary)
+    if (n.files > 1)
+        list(offTargets = offTargets, merged.peaks = merged.gr$mergedPeaks.gr,
+            peaks = peaks$peaks, uniqueCleavages = combined.gr,
+            read.summary = c(s1 = cleavages.gr[[2]], s2 = cleavages.gr[[4]]))
+    else
+         list(offTargets = offTargets, merged.peaks = merged.gr$mergedPeaks.gr,
+            peaks = peaks$peaks, uniqueCleavages = combined.gr,
+            read.summary = cleavages.gr[[2]])
 }

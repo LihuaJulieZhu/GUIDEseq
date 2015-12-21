@@ -30,7 +30,7 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
     max.duplicate.distance = 0,
     umi.plus.R1start.unique = TRUE, umi.plus.R2start.unique = TRUE,
     window.size = 20L, step = 20L, bg.window.size = 5000L,
-    min.reads = 5L, min.SNratio = 2, maxP = 0.05,
+    min.reads = 5L, min.reads.per.lib = 1L, min.SNratio = 2, maxP = 0.05,
     stats = c("poisson", "nbinom"),
     p.adjust.methods =
     c( "none", "BH", "holm", "hochberg", "hommel", "bonferroni", "BY", "fdr"),
@@ -176,6 +176,10 @@ window size to calculate local background
 }
   \item{min.reads}{
 minimum number of reads to be considered as a peak
+}
+\item{min.reads.per.lib}{
+minimum number of reads in each library (usually two libraries)
+to be considered as a peak
 }
   \item{min.SNratio}{
 minimum signal noise ratio, which is the coverage normalized by local

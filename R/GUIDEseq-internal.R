@@ -3,16 +3,27 @@
     bg.height.mcol = "bg", distance.threshold = 40, step = 20,
     plus.strand.start.gt.minus.strand.end = TRUE, to.strand = "-")
 {
+    if (length(names(from.gr)) < length(from.gr))
+       names(from.gr) <- paste(seqnames(from.gr), start(from.gr), sep=":")
+    if (length(names(to.gr)) < length(to.gr)) 
+       names(to.gr) <- paste(seqnames(to.gr), start(to.gr), sep=":")
+  
     gr <- annotatePeakInBatch(from.gr, featureType = "TSS", 
-        AnnotationData = to.gr, output="nearestStart",
-        PeakLocForDistance = "middle", FeatureLocForDistance = "middle")
-    gr <- subset(gr, !is.na(gr$distancetoFeature))
+        AnnotationData = to.gr, output="both",
+        PeakLocForDistance = "middle", FeatureLocForDistance = "middle",
+        maxgap = distance.threshold)
+    gr <- subset(gr, gr$peak != gr$feature)
     if (plus.strand.start.gt.minus.strand.end) 
-        ann.peaks <- as.data.frame(gr[abs(gr$distancetoFeature) <= 
-            distance.threshold & gr$distancetoFeature <= step,])
+    {
+        ann.peaks <- as.data.frame(gr[!is.na(gr$distancetoFeature) &
+            gr$shortestDistance <=  distance.threshold &
+            gr$distancetoFeature <= step,])
+    }
     else
-        ann.peaks <- as.data.frame(gr[abs(gr$distancetoFeature) <=
-            distance.threshold, ])
+    {
+        ann.peaks <- as.data.frame(gr[!is.na(gr$distancetoFeature) &
+            gr$shortestDistance <= distance.threshold, ])
+    }
     if (dim(as.data.frame(ann.peaks))[1] > 0)
     {
         to.peaks <- as.data.frame(to.gr)

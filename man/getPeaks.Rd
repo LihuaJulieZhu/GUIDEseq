@@ -58,7 +58,7 @@ Lihua Julie Zhu
     {
         data(uniqueCleavageEvents)
         peaks <- getPeaks(uniqueCleavageEvents$cleavage.gr,
-            min.reads = 80, multicore = TRUE, n.cores.max = 2)
+            min.reads = 80)
         peaks$peaks
     }
 }

@@ -224,50 +224,68 @@ getPeaks <-
                                               strand = "-")
     }
     both.runsum <- c(plus.runsum, minus.runsum)
-    message("call peaks ...")
-    both.runsum$p.value <- if (stats == "poisson") {
-        ppois(score(both.runsum), lambda = both.runsum$bg,
+    if (length(both.runsum) > 0)
+    {
+        message("call peaks ...")
+        both.runsum$p.value <- if (stats == "poisson") {
+            ppois(score(both.runsum), lambda = both.runsum$bg,
               lower.tail = FALSE, log.p = FALSE)
-    } else if (stats == "nbinom") {
-        pnbinom(score(both.runsum), mu = both.runsum$bg,
+        } else if (stats == "nbinom") {
+            pnbinom(score(both.runsum), mu = both.runsum$bg,
                 size = window.size, lower.tail = FALSE, log.p = FALSE)
-    }
-    both.runsum$SNratio <- score(both.runsum)/both.runsum$bg
-
-    locMaxForChrStrand <- function(strand.gr) {
-        max.pos <- .locMaxPos2(strand.gr, window.size = window.size, step = step)
-        .findProminentPeaks(strand.gr[start(strand.gr) %in% max.pos],
-                            window.size - 1L)
-    }
-    
-    locMaxForChr <- function(chr.gr) {
-        if (length(chr.gr) == 0L) {
-            return(GRanges())
         }
-        message("finding local max for chromosome: ", seqnames(chr.gr)[1L])
-        plus.gr <- subset(chr.gr, strand == "+")
-        minus.gr <- subset(chr.gr, strand == "-")
-        c(locMaxForChrStrand(plus.gr),
-          locMaxForChrStrand(minus.gr))
-    }
+        both.runsum$SNratio <- score(both.runsum)/both.runsum$bg
 
-    loc.max.chr <- lapply(split(both.runsum, seqnames(both.runsum)),
+        locMaxForChrStrand <- function(strand.gr) {
+            if(length(strand.gr) > 0) 
+	    {
+                max.pos <- .locMaxPos2(strand.gr, 
+                    window.size = window.size, step = step)
+                .findProminentPeaks(strand.gr[start(strand.gr) %in% max.pos],
+                            window.size - 1L)
+             }
+             else
+             {
+                 strand.gr
+             }
+        }
+    
+        locMaxForChr <- function(chr.gr) {
+           if (length(chr.gr) == 0L) {
+              return(GRanges())
+           }
+           message("finding local max for chromosome: ", seqnames(chr.gr)[1L])
+           plus.gr <- subset(chr.gr, strand == "+")
+           minus.gr <- subset(chr.gr, strand == "-")
+           c(locMaxForChrStrand(plus.gr),
+              locMaxForChrStrand(minus.gr))
+         }
+
+         loc.max.chr <- lapply(split(both.runsum, seqnames(both.runsum)),
                           locMaxForChr)
-    loc.max.gr <- do.call(c, unname(loc.max.chr))
+         loc.max.gr <- do.call(c, unname(loc.max.chr))
 
-    colnames(mcols(both.runsum))[colnames(mcols(both.runsum))
-          == "score"]  <-  "count"
-    both.runsum.bk <- both.runsum
-    both.runsum <- loc.max.gr
+         colnames(mcols(both.runsum))[colnames(mcols(both.runsum))
+             == "score"]  <-  "count"
+         both.runsum.bk <- both.runsum
+         both.runsum <- loc.max.gr
     
-    colnames(mcols(both.runsum))[colnames(mcols(both.runsum))
+         colnames(mcols(both.runsum))[colnames(mcols(both.runsum))
           == "score"]  <-  "count"
 
-    both.runsum$adjusted.p.value <- p.adjust(both.runsum$p.value,
+         both.runsum$adjusted.p.value <- p.adjust(both.runsum$p.value,
                                              method = p.adjust.methods)
-    peaks <- subset(both.runsum,
+         if (length(both.runsum) > 0)
+             peaks <- subset(both.runsum,
                     adjusted.p.value <= maxP & SNratio >= min.SNratio)
-    
-    list(peaks = peaks, both.runsum.bk = both.runsum.bk, 
-         summarized.count = both.runsum)
+         else
+             peaks <- GRanges() 
+         list(peaks = peaks, both.runsum.bk = both.runsum.bk, 
+             summarized.count = both.runsum)
+    }
+    else
+    {
+         list(peaks = both.runsum, both.runsum.bk = both.runsum,
+             summarized.count = both.runsum)
+    }
 }
