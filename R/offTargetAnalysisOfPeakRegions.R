@@ -58,9 +58,12 @@ offTargetAnalysisOfPeakRegions <-
         outputDir = outputDir, foldgRNAs = FALSE,
         allowed.mismatch.PAM = allowed.mismatch.PAM, overwrite = overwrite,
         weights = weights)),
-        error = function(e) { print(e); "error" })
+        error = function(e) {
+            message(e)
+            return(NA)
+        })
 
-    if ( TS2 != "error")
+    if ( !is.na(TS2))
     {
         n.cores <- detectCores() - 1
         cl <- makeCluster(n.cores)
