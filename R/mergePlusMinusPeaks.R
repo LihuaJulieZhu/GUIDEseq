@@ -21,10 +21,9 @@ mergePlusMinusPeaks <-
     pos.gr <- subset(peaks.gr, strand(peaks.gr) %in% c( "+", "*"))
     neg.gr <- subset(peaks.gr, strand(peaks.gr) == "-")
     ### peaks from both strand or present in both library
-    #if (length(pos.gr) == 0 || length(neg.gr) == 0)
-   #     stop("Need peaks from both + and - strand to merge")
     if (length(pos.gr) == 0 || length(neg.gr) == 0 )
     {
+        #### fake merge to get the same formated output even there is only one strand
 	mergedPeaks <- .annotate(from.gr = peaks.gr, to.gr = peaks.gr,
             peak.height.mcol = peak.height.mcol, 
             bg.height.mcol = bg.height.mcol,
@@ -59,8 +58,46 @@ mergePlusMinusPeaks <-
         pos.gr2 <- pos.gr[!names(pos.gr) %in% ann.peaks$peak]
         peaks.1strandOnly <- c(pos.gr2, neg.gr2)
     }
-    write.table(bed, file = output.bedfile, sep = "\t",
+######### peaks merged to multiple peaks in the other strand
+    temp <- as.data.frame(table(ann.peaks$peak))
+######### peaks merged to multiple peaks in the other strand
+    temp1 <- as.data.frame(table(ann.peaks$feature))
+######### details for peaks merged to multiple peaks in the other strand
+    bed.m1 <- do.call(rbind, lapply(temp[temp[,2] > 1,1], function(loc) {
+        thisLoc <- ann.peaks[ann.peaks$peak == loc,]
+        minStart <- min(thisLoc$minStart)
+        maxEnd <- max(thisLoc$maxEnd)
+        totalCount <- sum(thisLoc$totalCount) - sum(thisLoc$count) + thisLoc$count[1]
+        names <- paste( thisLoc$names[1], thisLoc$feature[1], sep=":")
+        c(as.character(thisLoc$seqnames[1]), minStart, maxEnd, names, totalCount, "+")
+    }))
+
+    bed.m2 <- do.call(rbind, lapply(temp1[temp1[,2] > 1,1], function(loc) {
+        thisLoc <- ann.peaks[ann.peaks$feature == loc,]
+        minStart <- min(thisLoc$minStart)
+        maxEnd <- max(thisLoc$maxEnd)
+        totalCount <- sum(thisLoc$totalCount) - sum(thisLoc$`-:count`) + thisLoc$`-:count`[1]
+        names <- paste(thisLoc$peak[-1], thisLoc$names[1], sep=":")
+        c(as.character(thisLoc$seqnames[1]), minStart, maxEnd, names, totalCount, "+")
+    }))
+
+    names.m1 <- ann.peaks[ann.peaks$peak %in% temp[temp[,2] > 1,1],]$names
+    names.m2 <- ann.peaks[ann.peaks$feature %in% temp1[temp1[,2] > 1,1],]$names
+    bed.s <- bed[ !bed$names %in% c( names.m1, names.m2), ]
+
+    if (length(bed.m1) >0)
+    {
+        colnames(bed.m1) <- colnames(bed.s)
+        bed.s <- rbind(bed.s, bed.m1)
+    }
+    if (length(bed.m2) > 0)
+    {
+        colnames(bed.m2) <- colnames(bed.s)
+        bed.s <- rbind(bed.s,  bed.m2)
+     }
+    write.table(bed.s, file = output.bedfile, sep = "\t",
         col.names = FALSE, row.names=FALSE, quote=FALSE)
-    list(mergedPeaks.gr = mergedPeaks.gr, mergedPeaks.bed = bed,
+    list(bed.m1 = bed.m1, bed.m2 = bed.m2, mergedPeaks.gr = mergedPeaks.gr, 
+        mergedPeaks.bed = bed.s,
         peaks.1strandOnly = peaks.1strandOnly, mergedPeaks.details = ann.peaks)
 }
