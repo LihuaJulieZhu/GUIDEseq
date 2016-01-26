@@ -34,6 +34,7 @@ combineOfftargets <- function(offtarget.folder,
 
         all <- merge(all, off, by = common.col, all = TRUE)
     }
+
     write.table(all, file = outputFileName, sep="\t", row.names=FALSE)
     all
 }

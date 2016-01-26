@@ -15,7 +15,8 @@ combineOfftargets(offtarget.folder, sample.name,
         "offTarget_End", "gRNAPlusPAM", "offTarget_sequence",
          "n.mismatch", "guideAlignment2OffTarget", 
          "predicted_cleavage_score"), 
-    exclude.col = 2, outputFileName)
+    exclude.col = 2, 
+    outputFileName)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

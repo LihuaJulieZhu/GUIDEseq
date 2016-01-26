@@ -16,7 +16,10 @@ offTargetAnalysisOfPeakRegions <-
     overwrite = TRUE,
     weights = c(0, 0, 0.014, 0, 0, 0.395,
     0.317, 0, 0.389, 0.079, 0.445, 0.508, 0.613, 0.851, 0.732, 0.828, 0.615,
-    0.804, 0.685, 0.583)
+    0.804, 0.685, 0.583),
+    orderOfftargetsBy = c("predicted_cleavage_score", "n.mismatch"),
+    descending = c(TRUE, FALSE),
+    keepTopOfftargetsOnly = TRUE
    )
 {
     thePeaks <- read.table(peaks, sep="\t", header = peaks.withHeader,
@@ -114,7 +117,37 @@ offTargetAnalysisOfPeakRegions <-
             as.character(offtargets$peak_strand) == "*" | 
             is.na(offtargets$offTargetStrand)),
             offtargets.minus.minus, offtargets.minus.plus)
-   
+        if (keepTopOfftargetsOnly)
+        {
+            peaks.without.offtargets <- subset(offtargets, is.na(gRNAPlusPAM))
+            offtargets <- subset(offtargets, !is.na(gRNAPlusPAM))
+            if (dim(offtargets)[1] > 1)
+            {
+                offtargets$predicted_cleavage_score <- 
+                    as.numeric(as.character(offtargets$predicted_cleavage_score))
+                offtargets$n.mismatch <- as.numeric(as.character(offtargets$n.mismatch))
+           
+                for (i in 1:length(descending))
+                {
+                    if (descending[i])
+                    { 
+                        if (orderOfftargetsBy[i] == "predicted_cleavage_score")
+                            temp <- aggregate(predicted_cleavage_score ~ names, offtargets, max)
+                        if (orderOfftargetsBy[i] == "n.mismatch")
+                            temp <- aggregate(n.mismatch ~ names, offtargets, max)
+                    }
+                    else
+                    {
+                        if (orderOfftargetsBy[i] == "predicted_cleavage_score")
+                            temp <- aggregate(predicted_cleavage_score ~ names, offtargets, min)
+                        if (orderOfftargetsBy[i] == "n.mismatch")
+                            temp <- aggregate(n.mismatch ~ names, offtargets, min)
+                    }
+                    offtargets <- merge(offtargets, temp)       
+                 }
+             }   
+             offtargets <- rbind(offtargets, peaks.without.offtargets)
+        }
         write.table(offtargets, 
             file = file.path(outputDir,"offTargetsInPeakRegions.xls"),
             sep="\t", row.names = FALSE)
