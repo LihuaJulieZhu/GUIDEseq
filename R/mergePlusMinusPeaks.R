@@ -29,7 +29,8 @@ mergePlusMinusPeaks <-
             bg.height.mcol = bg.height.mcol,
             distance.threshold = distance.threshold, step = step,
             plus.strand.start.gt.minus.strand.end = FALSE,
-            to.strand = "-")
+            to.strand = "-",
+            PeakLocForDistance = "middle", FeatureLocForDistance = "middle")
     }
     else
     {
@@ -58,9 +59,9 @@ mergePlusMinusPeaks <-
         pos.gr2 <- pos.gr[!names(pos.gr) %in% ann.peaks$peak]
         peaks.1strandOnly <- c(pos.gr2, neg.gr2)
     }
-######### peaks merged to multiple peaks in the other strand
+######### plus strand peaks merged to multiple peaks in the other strand
     temp <- as.data.frame(table(ann.peaks$peak))
-######### peaks merged to multiple peaks in the other strand
+######### minus strand peaks merged to multiple peaks in the other strand
     temp1 <- as.data.frame(table(ann.peaks$feature))
 ######### details for peaks merged to multiple peaks in the other strand
     bed.m1 <- do.call(rbind, lapply(temp[temp[,2] > 1,1], function(loc) {
@@ -68,7 +69,7 @@ mergePlusMinusPeaks <-
         minStart <- min(thisLoc$minStart)
         maxEnd <- max(thisLoc$maxEnd)
         totalCount <- sum(thisLoc$totalCount) - sum(thisLoc$count) + thisLoc$count[1]
-        names <- paste( thisLoc$names[1], thisLoc$feature[1], sep=":")
+        names <- paste(thisLoc$names[1], paste(thisLoc$feature[-1], collapse = ":"), sep=":")
         c(as.character(thisLoc$seqnames[1]), minStart, maxEnd, names, totalCount, "+")
     }))
 
@@ -77,7 +78,7 @@ mergePlusMinusPeaks <-
         minStart <- min(thisLoc$minStart)
         maxEnd <- max(thisLoc$maxEnd)
         totalCount <- sum(thisLoc$totalCount) - sum(thisLoc$`-:count`) + thisLoc$`-:count`[1]
-        names <- paste(thisLoc$peak[-1], thisLoc$names[1], sep=":")
+        names <- paste(paste(thisLoc$peak[-1], collapse = ":"), thisLoc$names[1], sep=":")
         c(as.character(thisLoc$seqnames[1]), minStart, maxEnd, names, totalCount, "+")
     }))
 

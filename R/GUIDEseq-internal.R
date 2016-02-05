@@ -1,7 +1,8 @@
 .annotate <-
     function(from.gr, to.gr, peak.height.mcol ="count",
     bg.height.mcol = "bg", distance.threshold = 40, step = 20,
-    plus.strand.start.gt.minus.strand.end = TRUE, to.strand = "-")
+    plus.strand.start.gt.minus.strand.end = TRUE, to.strand = "-",
+    PeakLocForDistance = "start", FeatureLocForDistance = "TSS")
 {
     if (length(names(from.gr)) < length(from.gr))
        names(from.gr) <- paste(seqnames(from.gr), start(from.gr), sep=":")
@@ -10,14 +11,16 @@
   
     gr <- annotatePeakInBatch(from.gr, featureType = "TSS", 
         AnnotationData = to.gr, output="both",
-        PeakLocForDistance = "middle", FeatureLocForDistance = "middle",
+        PeakLocForDistance = PeakLocForDistance, 
+        FeatureLocForDistance = FeatureLocForDistance,
         maxgap = distance.threshold)
     gr <- subset(gr, gr$peak != gr$feature)
     if (plus.strand.start.gt.minus.strand.end) 
     {
         ann.peaks <- as.data.frame(gr[!is.na(gr$distancetoFeature) &
             gr$shortestDistance <=  distance.threshold &
-            gr$distancetoFeature <= step,])
+            (abs(gr$distancetoFeature) <= step & gr$insideFeature == "inside" | 
+            gr$insideFeature == "upstream"), ])
     }
     else
     {

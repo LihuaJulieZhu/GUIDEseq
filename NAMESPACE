@@ -14,5 +14,5 @@ importFrom(matrixStats, rowMaxs)
 importFrom(Rsamtools, ScanBamParam, BamFile, bamFlagTest)
 importFrom(GenomicAlignments, readGAlignmentsList, first, last)
 importFrom(GenomeInfoDb, seqlevels, seqinfo, "seqinfo<-", "seqlevels<-")
-export(GUIDEseqAnalysis, getUniqueCleavageEvents, getPeaks,
+export(GUIDEseqAnalysis, getUniqueCleavageEvents, getPeaks,combineOfftargets,
     mergePlusMinusPeaks, offTargetAnalysisOfPeakRegions)

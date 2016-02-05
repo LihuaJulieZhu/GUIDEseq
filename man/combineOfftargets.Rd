@@ -15,13 +15,13 @@ combineOfftargets(offtarget.folder, sample.name,
         "offTarget_End", "gRNAPlusPAM", "offTarget_sequence",
          "n.mismatch", "guideAlignment2OffTarget", 
          "predicted_cleavage_score"), 
-    exclude.col = 2, 
+    exclude.col = = "name", 
     outputFileName)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{offtarget.folder}{
-   offtarget summary output folder created in GUIDEseqAnalysis function
+   offtarget summary output folders created in GUIDEseqAnalysis function
 }
   \item{sample.name}{
    Sample names to be used as part of the column names
@@ -40,7 +40,7 @@ combineOfftargets(offtarget.folder, sample.name,
        "predicted_cleavage_score")
 }
   \item{exclude.col}{
-  columns to be excluded before merging. Default to 2 (second column of 
+  columns to be excluded before merging. Default to name (second column of 
   offTargetsInPeakRegions.xls). Please check offTargetsInPeakRegions.xls
   to choose the desired columns to exclude
 }

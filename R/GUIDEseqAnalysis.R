@@ -144,8 +144,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
             window.size = window.size, bg.window.size = bg.window.size,
             maxP = maxP, p.adjust.methods = p.adjust.methods,
             min.reads = min.reads.per.lib, min.SNratio = min.SNratio) 
-         #save(peaks1, file="peaks1.RData")
-         #save(peaks2, file="peaks2.RData")
+     #    save(peaks1, file="peaks1.RData")
+     #    save(peaks2, file="peaks2.RData")
   
     }
     if (missing(outputDir))
@@ -155,7 +155,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     write.table(as.data.frame(peaks$peaks),
         file = file.path(outputDir, paste(gRNAName, 
         "peaks.xls", sep = "-" )), sep="\t", row.names=FALSE)
-
+    #save(peaks, file="peaks.RData")
+    #save.image(file.path(outputDir, "testCombine.RData"))
     message("combine plus and minus peaks ... \n")
 
     output.bedfile <- paste(gRNAName, "PlusMinusPeaksMerged.bed",
@@ -163,8 +164,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     merged.gr<- mergePlusMinusPeaks(peaks.gr = peaks$peaks,
         distance.threshold = distance.threshold, step = step,
         output.bedfile = output.bedfile)
-   #save(peaks, file="peaks.RData")
-   #save(merged.gr, file="merged.gr.RData")
+   ##save(merged.gr, file="merged.gr.RData")
 ####### keep peaks not in merged.gr but present in both peaks1 and peaks2
     if (n.files >1)
     {
