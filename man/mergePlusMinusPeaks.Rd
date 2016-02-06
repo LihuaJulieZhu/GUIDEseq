@@ -8,7 +8,8 @@ Merge peaks from plus strand and minus strand with required orientation and
     within certain distance apart}
 \usage{
 mergePlusMinusPeaks(peaks.gr, peak.height.mcol = "count", 
-    bg.height.mcol = "bg", distance.threshold = 40, step = 20, 
+    bg.height.mcol = "bg", distance.threshold = 40L, 
+    max.overlap.plusSig.minusSig = 10L,
     plus.strand.start.gt.minus.strand.end = TRUE, output.bedfile)
 }
 \arguments{
@@ -28,10 +29,10 @@ Specify the maximum gap allowed between the plus stranded and
     the negative stranded peak, default 40. Suggest set it to twice of
     window.size used for peak calling.
 }
-  \item{step}{
-Specify the cushion distance if plus.strand.start.gt.minus.strand.end 
-    is set to TRUE. Default 20. Suggest set it to be the step size used for 
-    the peak calling.
+\item{max.overlap.plusSig.minusSig}{
+Specify the cushion distance (maximum overlap between plus strand peak and minus strand peak).
+Default to 10L to allow sequence error and inprecise integration. Only applicable
+if plus.strand.start.gt.minus.strand.end is set to TRUE.
 }
   \item{plus.strand.start.gt.minus.strand.end}{
 Specify whether plus strand peak start greater than

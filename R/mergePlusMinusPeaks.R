@@ -1,6 +1,7 @@
 mergePlusMinusPeaks <-
     function(peaks.gr, peak.height.mcol ="count",
-    bg.height.mcol = "bg", distance.threshold = 40, step = 20,
+    bg.height.mcol = "bg", distance.threshold = 40L,
+    max.overlap.plusSig.minusSig = 10L,
     plus.strand.start.gt.minus.strand.end = TRUE, output.bedfile)
 {
     if (missing(peaks.gr)) {
@@ -27,7 +28,8 @@ mergePlusMinusPeaks <-
 	mergedPeaks <- .annotate(from.gr = peaks.gr, to.gr = peaks.gr,
             peak.height.mcol = peak.height.mcol, 
             bg.height.mcol = bg.height.mcol,
-            distance.threshold = distance.threshold, step = step,
+            distance.threshold = distance.threshold, 
+            max.overlap.plusSig.minusSig = max.overlap.plusSig.minusSig,
             plus.strand.start.gt.minus.strand.end = FALSE,
             to.strand = "-",
             PeakLocForDistance = "middle", FeatureLocForDistance = "middle")
@@ -37,7 +39,8 @@ mergePlusMinusPeaks <-
         mergedPeaks <- .annotate(from.gr = pos.gr, to.gr = neg.gr,
            peak.height.mcol = peak.height.mcol, 
            bg.height.mcol = bg.height.mcol,
-           distance.threshold = distance.threshold, step = step,
+           distance.threshold = distance.threshold,
+           max.overlap.plusSig.minusSig = max.overlap.plusSig.minusSig, 
            plus.strand.start.gt.minus.strand.end = 
            plus.strand.start.gt.minus.strand.end,
            to.strand = "-")

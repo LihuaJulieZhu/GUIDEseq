@@ -1,6 +1,5 @@
 \name{combineOfftargets}
 \alias{combineOfftargets}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Combine Offtargets
 }
@@ -15,10 +14,9 @@ combineOfftargets(offtarget.folder, sample.name,
         "offTarget_End", "gRNAPlusPAM", "offTarget_sequence",
          "n.mismatch", "guideAlignment2OffTarget", 
          "predicted_cleavage_score"), 
-    exclude.col = = "name", 
+    exclude.col = "name", 
     outputFileName)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{offtarget.folder}{
    offtarget summary output folders created in GUIDEseqAnalysis function

@@ -1,6 +1,7 @@
 .annotate <-
     function(from.gr, to.gr, peak.height.mcol ="count",
-    bg.height.mcol = "bg", distance.threshold = 40, step = 20,
+    bg.height.mcol = "bg", distance.threshold = 40, 
+    max.overlap.plusSig.minusSig = 10L,
     plus.strand.start.gt.minus.strand.end = TRUE, to.strand = "-",
     PeakLocForDistance = "start", FeatureLocForDistance = "TSS")
 {
@@ -19,7 +20,7 @@
     {
         ann.peaks <- as.data.frame(gr[!is.na(gr$distancetoFeature) &
             gr$shortestDistance <=  distance.threshold &
-            (abs(gr$distancetoFeature) <= step & gr$insideFeature == "inside" | 
+            (abs(gr$distancetoFeature) <= max.overlap.plusSig.minusSig |
             gr$insideFeature == "upstream"), ])
     }
     else

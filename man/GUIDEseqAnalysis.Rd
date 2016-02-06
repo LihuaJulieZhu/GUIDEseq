@@ -34,7 +34,8 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
     stats = c("poisson", "nbinom"),
     p.adjust.methods =
     c( "none", "BH", "holm", "hochberg", "hommel", "bonferroni", "BY", "fdr"),
-    distance.threshold = 40,
+    distance.threshold = 40L,
+    max.overlap.plusSig.minusSig = 10L,
     plus.strand.start.gt.minus.strand.end = TRUE,
     gRNA.format = "fasta",
     overlap.gRNA.positions = c(17,18),
@@ -198,9 +199,14 @@ Statistical test, default poisson
 Adjustment method for multiple comparisons, default none
 }
  \item{distance.threshold}{
-Specify the maximum gap allowed between the plus stranded and
-    the negative stranded peak, default 40. Suggest set it to twice of
+Specify the maximum gap allowed between the plus strand and
+    the negative strand peak, default 40. Suggest set it to twice of
     window.size used for peak calling.
+}
+\item{max.overlap.plusSig.minusSig}{
+Specify the maximum overlap (cushion distance) between plus strand peak and minus strand peak.
+Default to 10L to allow sequence error and inprecise integration. Only applicable
+if plus.strand.start.gt.minus.strand.end is set to TRUE.
 }
   \item{plus.strand.start.gt.minus.strand.end}{
 Specify whether plus strand peak start greater than

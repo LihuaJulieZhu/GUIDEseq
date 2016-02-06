@@ -36,7 +36,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     p.adjust.methods = 
         c( "none", "BH", "holm", "hochberg", "hommel", "bonferroni",
         "BY", "fdr"),
-    distance.threshold = 40,
+    distance.threshold = 40L,
+    max.overlap.plusSig.minusSig = 10L,
     plus.strand.start.gt.minus.strand.end = TRUE,
     gRNA.format = "fasta",
     overlap.gRNA.positions = c(17,18),
@@ -162,7 +163,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     output.bedfile <- paste(gRNAName, "PlusMinusPeaksMerged.bed",
         sep = "-" )
     merged.gr<- mergePlusMinusPeaks(peaks.gr = peaks$peaks,
-        distance.threshold = distance.threshold, step = step,
+        distance.threshold = distance.threshold, 
+        max.overlap.plusSig.minusSig = max.overlap.plusSig.minusSig,
         output.bedfile = output.bedfile)
    ##save(merged.gr, file="merged.gr.RData")
 ####### keep peaks not in merged.gr but present in both peaks1 and peaks2
