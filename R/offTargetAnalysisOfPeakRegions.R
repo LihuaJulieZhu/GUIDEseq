@@ -145,7 +145,31 @@ offTargetAnalysisOfPeakRegions <-
                     }
                     offtargets <- merge(offtargets, temp)       
                  }
-             }   
+             } 
+             offtargets$offTarget <- 
+                 paste(as.character(offtargets$chromosome), 
+                     as.character(offtargets$offTargetStrand), 
+                     as.character(offtargets$offTarget_Start),
+                     as.character(offtargets$offTarget_End), sep=":")
+             temp <- aggregate(peak_score ~ offTarget, offtargets, max)  
+             offtargets <- merge(offtargets, temp)
+             if (dim(offtargets)[1] > dim(temp)[1])
+             {
+	         temp <- as.data.frame(table(offtargets$offTarget))
+                 offtargets.notUnique <- subset(offtargets, 
+                     offtargets$offTarget %in% temp[temp[,2] > 1, 1])
+                 offtargets <- subset(offtargets, 
+                     offtargets$offTarget %in% temp[temp[,2] ==1, 1])
+                 for (ot in temp[temp[,2] >1, 1])
+                 {
+                     notUnique <- subset(offtargets.notUnique, offTarget == ot)
+                     this.ot <- IRanges(start = notUnique$offTarget_Start[1],
+                          end = notUnique$offTarget_End[1])
+                     nu.peaks <- IRanges(start = notUnique$peak_start, end = notUnique$peak_end) 
+		     offtargets <- rbind( offtargets, 
+                        notUnique[nearest(this.ot, nu.peaks),])
+                 }
+             } 
              offtargets <- rbind(offtargets, peaks.without.offtargets)
         }
         write.table(offtargets, 
