@@ -152,15 +152,18 @@ offTargetAnalysisOfPeakRegions <-
                   offtargets$names %in% temp[temp[,2] > 1, 1])
              offtargets <- subset(offtargets,
                   offtargets$names %in% temp[temp[,2] ==1, 1])
-             for (nu.name in temp[temp[,2] >1, 1])    
+             if (dim(temp[temp[,2] > 1, ])[1] > 0)
              {
-                  notUnique <- subset(namess.notUnique, names == nu.name)
-                  this.peak <- IRanges(start = notUnique$peak_start[1],
-                      end = notUnique$peak_end[1])
-                  nu.ots <- IRanges(start = notUnique$offTargt_Start,
-                      end = notUnique$offTarget_End)
-                  offtargets <- rbind( offtargets,
-                      notUnique[nearest(this.peak, nu.ots),])
+                 for (nu.name in temp[temp[,2] >1, 1])    
+                 {
+                      notUnique <- subset(names.notUnique, names == nu.name)
+                      this.peak <- IRanges(start = notUnique$peak_start[1],
+                          end = notUnique$peak_end[1])
+                      nu.ots <- IRanges(start = notUnique$offTarget_Start,
+                          end = notUnique$offTarget_End)
+                      offtargets <- rbind( offtargets,
+                          notUnique[nearest(this.peak, nu.ots),])
+                 }
              }
            ###### keep only one nearest peak for each offtarget
              offtargets$offTarget <- 
