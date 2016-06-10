@@ -54,7 +54,30 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     0.445, 0.508, 0.613, 0.851, 0.732, 0.828, 0.615,0.804, 0.685, 0.583),
     orderOfftargetsBy = c("predicted_cleavage_score", "n.mismatch"),
     descending = c(TRUE, FALSE),
-    keepTopOfftargetsOnly = TRUE)
+    keepTopOfftargetsOnly = TRUE,
+     scoring.method = c("Hsu-Zhang", "CFDscore"),
+        subPAM.activity = hash( AA =0,
+          AC =   0,
+          AG = 0.259259259,
+          AT = 0,
+          CA = 0,
+          CC = 0,
+          CG = 0.107142857,
+          CT = 0,
+          GA = 0.069444444,
+          GC = 0.022222222,
+          GG = 1,
+          GT = 0.016129032,
+          TA = 0,
+          TC = 0,
+          TG = 0.038961039,
+          TT = 0),
+     subPAM.position = c(22, 23),
+     mismatch.activity.file = system.file("extdata", 
+         "NatureBiot2016SuppTable19DoenchRoot.csv", 
+         package = "CRISPRseek"),
+     txdb, orgAnn
+)
 {
     alignment.format <- match.arg(alignment.format)
     message("Remove duplicate reads ...\n")
@@ -243,9 +266,17 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         weights = weights,
         orderOfftargetsBy = orderOfftargetsBy,
         descending = descending,
-        keepTopOfftargetsOnly = keepTopOfftargetsOnly
+        keepTopOfftargetsOnly = keepTopOfftargetsOnly,
+        scoring.method = scoring.method,
+        subPAM.activity = subPAM.activity,
+        subPAM.position = subPAM.position,
+        mismatch.activity.file = mismatch.activity.file
     )
 
+    #### add gene and exon information to offTargets ....
+    if (!missing(txdb) && (class(txdb) == "TxDb" || 
+        class(txdb) == "TranscriptDb"))
+        offTargets <- annotateOffTargets(offTargets, txdb, orgAnn)
     message("Please check output file in directory ", outputDir , "\n")
     if (n.files > 1)
         list(offTargets = offTargets, merged.peaks = merged.gr$mergedPeaks.gr,

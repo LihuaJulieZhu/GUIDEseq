@@ -19,7 +19,28 @@ offTargetAnalysisOfPeakRegions(gRNA, peaks,
     0.804, 0.685, 0.583),
     orderOfftargetsBy = c("predicted_cleavage_score", "n.mismatch"),
     descending = c(TRUE, FALSE),
-    keepTopOfftargetsOnly = TRUE
+    keepTopOfftargetsOnly = TRUE,
+    scoring.method = c("Hsu-Zhang", "CFDscore"),
+        subPAM.activity = hash( AA =0,
+          AC =   0,
+          AG = 0.259259259,
+          AT = 0,
+          CA = 0,
+          CC = 0,
+          CG = 0.107142857,
+          CT = 0,
+          GA = 0.069444444,
+          GC = 0.022222222,
+          GG = 1,
+          GT = 0.016129032,
+          TA = 0,
+          TC = 0,
+          TG = 0.038961039,
+          TT = 0),
+     subPAM.position = c(22, 23),
+     mismatch.activity.file = system.file("extdata", 
+         "NatureBiot2016SuppTable19DoenchRoot.csv", 
+         package = "CRISPRseek")
     )
 }
 \arguments{
@@ -104,6 +125,24 @@ a numeric vector size of gRNA length, default c(0, 0, 0.014, 0, 0, 0.395,
  \item{keepTopOfftargetsOnly}{
   Output all offtargets or the top offtarget using the orderOfftargetsBy criteria,
   default to the top offtarget
+}
+ \item{scoring.method}{
+   Indicates which method to use for offtarget cleavage rate estimation, currently
+two methods are supported,  Hsu-Zhang and CFDscore
+}
+\item{subPAM.activity}{
+   Applicable only when scoring.method is set to CFDscore
+   A hash to represent the cleavage rate for each alternative sub PAM sequence relative
+to preferred PAM sequence
+}
+\item{subPAM.position}{
+   Applicable only when scoring.method is set to CFDscore
+The start and end positions of the sub PAM. Default to 22 and 23 for SP with 20bp gRNA and NGG as preferred PAM
+}
+\item{mismatch.activity.file}{
+Applicable only when scoring.method is set to CFDscore
+A comma separated (csv) file containing the cleavage rates for all possible types of
+single nucleotide mismatche at each position of the gRNA. By default, using the supplemental Table 19 from Doench et al., Nature Biotechnology 2016
 }
 }
 \value{

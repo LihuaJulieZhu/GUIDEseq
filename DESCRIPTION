@@ -1,8 +1,8 @@
 Package: GUIDEseq
 Type: Package
 Title: GUIDE-seq analysis pipeline
-Version: 1.3.2
-Date: 2015-02-10
+Version: 1.3.3
+Date: 2016-06-09
 Author: Lihua Julie Zhu, Michael Lawrence, Ankit Gupta,
         Alper Kucukural, Manuel Garber, Scot A. Wolfe
 Maintainer: Lihua Julie Zhu <julie.zhu@umassmed.edu>
@@ -10,7 +10,7 @@ Depends: R (>= 3.2.0), GenomicRanges, BiocGenerics
 Imports: BiocParallel, Biostrings, CRISPRseek, ChIPpeakAnno,
          data.table, matrixStats, BSgenome, parallel,
 	 IRanges (>= 2.5.5), S4Vectors (>= 0.9.6),
-	 GenomicAlignments (>= 1.7.3), GenomeInfoDb, Rsamtools
+	 GenomicAlignments (>= 1.7.3), GenomeInfoDb, Rsamtools, hash
 biocViews: GeneRegulation, Sequencing, WorkflowStep
 Suggests: knitr, RUnit, BiocStyle, BSgenome.Hsapiens.UCSC.hg19
 VignetteBuilder: knitr

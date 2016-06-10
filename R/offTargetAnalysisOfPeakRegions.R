@@ -19,7 +19,25 @@ offTargetAnalysisOfPeakRegions <-
     0.804, 0.685, 0.583),
     orderOfftargetsBy = c("predicted_cleavage_score", "n.mismatch"),
     descending = c(TRUE, FALSE),
-    keepTopOfftargetsOnly = TRUE
+    keepTopOfftargetsOnly = TRUE, 
+    scoring.method = c("Hsu-Zhang", "CFDscore"),
+        subPAM.activity = hash( AA =0, AC =   0, AG = 0.259259259, AT = 0,
+          CA = 0,
+          CC = 0,
+          CG = 0.107142857,
+          CT = 0,
+          GA = 0.069444444,
+          GC = 0.022222222,
+          GG = 1,
+          GT = 0.016129032,
+          TA = 0,
+          TC = 0,
+          TG = 0.038961039,
+          TT = 0),
+     subPAM.position = c(22, 23),
+     mismatch.activity.file = system.file("extdata", 
+         "NatureBiot2016SuppTable19DoenchRoot.csv", 
+         package = "CRISPRseek")
    )
 {
     thePeaks <- read.table(peaks, sep="\t", header = peaks.withHeader,
@@ -60,7 +78,12 @@ offTargetAnalysisOfPeakRegions <-
         max.mismatch = max.mismatch,
         outputDir = outputDir, foldgRNAs = FALSE,
         allowed.mismatch.PAM = allowed.mismatch.PAM, overwrite = overwrite,
-        weights = weights)),
+        weights = weights,
+        scoring.method = scoring.method,
+        subPAM.activity = subPAM.activity,
+        subPAM.position = subPAM.position,
+        mismatch.activity.file = mismatch.activity.file 
+        )),
         error = function(e) {
             message(e)
             return(NA)
