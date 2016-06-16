@@ -261,7 +261,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         upstream = upstream, downstream = downstream,
         PAM.size = PAM.size, gRNA.size = gRNA.size,
         PAM =  PAM, PAM.pattern = PAM.pattern, max.mismatch = max.mismatch,
-        outputDir = outputDir,overlap.gRNA.positions  = overlap.gRNA.positions,
+        outputDir = outputDir, overlap.gRNA.positions  = overlap.gRNA.positions,
         allowed.mismatch.PAM = allowed.mismatch.PAM, overwrite = overwrite,
         weights = weights,
         orderOfftargetsBy = orderOfftargetsBy,
@@ -276,7 +276,12 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     #### add gene and exon information to offTargets ....
     if (!missing(txdb) && (class(txdb) == "TxDb" || 
         class(txdb) == "TranscriptDb"))
+    {
         offTargets <- annotateOffTargets(offTargets, txdb, orgAnn)
+        write.table(offTargets, 
+            file = file.path(outputDir,"offTargetsInPeakRegions.xls"),
+            sep="\t", row.names = FALSE)
+    }
     message("Please check output file in directory ", outputDir , "\n")
     if (n.files > 1)
         list(offTargets = offTargets, merged.peaks = merged.gr$mergedPeaks.gr,
