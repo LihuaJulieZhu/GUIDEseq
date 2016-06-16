@@ -73,6 +73,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
           TG = 0.038961039,
           TT = 0),
      subPAM.position = c(22, 23),
+     PAM.location = "3prime",
      mismatch.activity.file = system.file("extdata", 
          "NatureBiot2016SuppTable19DoenchRoot.csv", 
          package = "CRISPRseek"),
@@ -270,6 +271,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         scoring.method = scoring.method,
         subPAM.activity = subPAM.activity,
         subPAM.position = subPAM.position,
+        PAM.location = PAM.location,
         mismatch.activity.file = mismatch.activity.file
     )
 

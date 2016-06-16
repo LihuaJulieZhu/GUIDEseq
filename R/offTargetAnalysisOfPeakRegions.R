@@ -21,7 +21,7 @@ offTargetAnalysisOfPeakRegions <-
     descending = c(TRUE, FALSE),
     keepTopOfftargetsOnly = TRUE, 
     scoring.method = c("Hsu-Zhang", "CFDscore"),
-        subPAM.activity = hash( AA =0, AC =   0, AG = 0.259259259, AT = 0,
+        subPAM.activity = hash( AA = 0, AC = 0, AG = 0.259259259, AT = 0,
           CA = 0,
           CC = 0,
           CG = 0.107142857,
@@ -35,6 +35,7 @@ offTargetAnalysisOfPeakRegions <-
           TG = 0.038961039,
           TT = 0),
      subPAM.position = c(22, 23),
+     PAM.location = "3prime",
      mismatch.activity.file = system.file("extdata", 
          "NatureBiot2016SuppTable19DoenchRoot.csv", 
          package = "CRISPRseek")
@@ -82,6 +83,7 @@ offTargetAnalysisOfPeakRegions <-
         scoring.method = scoring.method,
         subPAM.activity = subPAM.activity,
         subPAM.position = subPAM.position,
+        PAM.location = PAM.location,
         mismatch.activity.file = mismatch.activity.file 
         )),
         error = function(e) {

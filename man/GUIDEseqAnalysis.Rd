@@ -65,6 +65,7 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
           TG = 0.038961039,
           TT = 0),
      subPAM.position = c(22, 23),
+     PAM.location = "3prime",
      mismatch.activity.file = system.file("extdata", 
          "NatureBiot2016SuppTable19DoenchRoot.csv", 
          package = "CRISPRseek"),
@@ -307,6 +308,10 @@ to preferred PAM sequence
 \item{subPAM.position}{
    Applicable only when scoring.method is set to CFDscore
 The start and end positions of the sub PAM. Default to 22 and 23 for SP with 20bp gRNA and NGG as preferred PAM
+}
+\item{PAM.location}{
+PAM location relative to gRNA. For example, default to 3prime for spCas9 PAM. 
+Please set to 5prime for cpf1 PAM since it's PAM is located on the 5 prime end
 }
 \item{mismatch.activity.file}{
 Applicable only when scoring.method is set to CFDscore
