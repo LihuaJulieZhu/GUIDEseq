@@ -1,5 +1,6 @@
 combineOfftargets <- function(offtarget.folder, 
-    sample.name, 
+    sample.name, remove.common.offtargets = FALSE,
+    control.sample.name,
     offtarget.filename = "offTargetsInPeakRegions.xls",
     common.col = c("targetSeqName", "chromosome", "offTargetStrand",
         "offTarget_Start", "offTarget_End","gRNAPlusPAM", 
@@ -35,6 +36,27 @@ combineOfftargets <- function(offtarget.folder,
         all <- merge(all, off, by = common.col, all = TRUE)
     }
 
+    offtarget.columns <- paste(sample.name, "offTarget", sep = "." )
+    temp <- do.call(cbind, 
+        lapply(offtarget.columns, function(i) {
+            temp1 <- all[, i]
+            !is.na(temp1)
+        }))
+    colnames(temp) <- sample.name
+    venn_cnt <- vennCounts(temp)
+    vennDiagram(venn_cnt)
+    if (remove.common.offtargets)
+    {
+        all <- subset(all, rowSums(temp) < dim(temp)[2])
+    }
+    if (!missing(control.sample.name))
+    {
+        if (control.sample.name %in%  sample.name)
+            all <- subset(all, !temp[, control.sample.name])
+        else
+            warning("Please note that control.sample.name is not on the sample.name list, filtering skipped!")
+    }
     write.table(all, file = outputFileName, sep="\t", row.names=FALSE)
+    
     all
 }

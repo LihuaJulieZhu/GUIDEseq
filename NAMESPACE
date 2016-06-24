@@ -1,3 +1,4 @@
+importFrom("limma", "vennCounts", "vennDiagram")
 import(S4Vectors, except=values)
 import(IRanges, except=values)
 import(Biostrings)

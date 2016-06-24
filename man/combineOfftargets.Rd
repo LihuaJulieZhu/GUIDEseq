@@ -8,6 +8,7 @@ Merge offtargets from different samples
 }
 \usage{
 combineOfftargets(offtarget.folder, sample.name, 
+    remove.common.offtargets = FALSE,control.sample.name,
     offtarget.filename = "offTargetsInPeakRegions.xls", 
     common.col = c("targetSeqName", "chromosome", 
         "offTargetStrand", "offTarget_Start", 
@@ -24,6 +25,12 @@ combineOfftargets(offtarget.folder, sample.name,
   \item{sample.name}{
    Sample names to be used as part of the column names
    in the final output file
+}
+\item{remove.common.offtargets}{
+If set to TRUE, off-targets common to all samples will be removed.
+}
+\item{control.sample.name}{
+ The name of the control sample for filtering off-targets present in the control sample
 }
   \item{offtarget.filename}{
    Default to offTargetsInPeakRegions.xls, generated in GUIDEseqAnalysis
@@ -62,15 +69,12 @@ Lihua Julie Zhu
 }
 
 \examples{
-if(interactive())
-{
-    offtarget.folder 
-    sample.name
-    outputFileName
+    offtarget.folder <- system.file("extdata", 
+        c("sample2-18", "sample3-19", "sample4-20"),
+        package = "GUIDEseq")
     mergedOfftargets <- 
-        combineOfftargets(offtarget.folder = offtarget.folder, 
-        sample.name = sample.name, 
-        outputFileName = outputFileName) 
-}
+       combineOfftargets(offtarget.folder = offtarget.folder, 
+       sample.name = c("Wild-type SpCas9", "SpCas9-MT3-ZFP", "Split-SpCas9 dual NLS"), 
+       outputFileName = "TS2offtargets3Constructs.xls")
 }
 \keyword{ misc }
