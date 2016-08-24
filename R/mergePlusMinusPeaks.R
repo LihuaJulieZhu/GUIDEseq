@@ -1,7 +1,7 @@
 mergePlusMinusPeaks <-
     function(peaks.gr, peak.height.mcol ="count",
     bg.height.mcol = "bg", distance.threshold = 40L,
-    max.overlap.plusSig.minusSig = 10L,
+    max.overlap.plusSig.minusSig = 30L,
     plus.strand.start.gt.minus.strand.end = TRUE, output.bedfile)
 {
     if (missing(peaks.gr)) {

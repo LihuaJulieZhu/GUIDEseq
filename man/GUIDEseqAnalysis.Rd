@@ -30,13 +30,16 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
     max.duplicate.distance = 0,
     umi.plus.R1start.unique = TRUE, umi.plus.R2start.unique = TRUE,
     window.size = 20L, step = 20L, bg.window.size = 5000L,
-    min.reads = 5L, min.reads.per.lib = 1L, min.SNratio = 2, maxP = 0.05,
+    min.reads = 5L, min.reads.per.lib = 1L, 
+    min.peak.score.1strandOnly = 5L,
+    min.SNratio = 2, maxP = 0.05,
     stats = c("poisson", "nbinom"),
     p.adjust.methods =
     c( "none", "BH", "holm", "hochberg", "hommel", "bonferroni", "BY", "fdr"),
     distance.threshold = 40L,
-    max.overlap.plusSig.minusSig = 10L,
+    max.overlap.plusSig.minusSig = 30L,
     plus.strand.start.gt.minus.strand.end = TRUE,
+    keepPeaksInBothStrandsOnly = TRUE, 
     gRNA.format = "fasta",
     overlap.gRNA.positions = c(17,18),
     upstream = 50, downstream = 50, PAM.size = 3, gRNA.size = 20,
@@ -211,15 +214,19 @@ minimum number of reads to be considered as a peak
 minimum number of reads in each library (usually two libraries)
 to be considered as a peak
 }
+\item{min.peak.score.1strandOnly}{
+Specify the minimum number of reads for a one-strand only peak to be included in the output.
+Applicable when set keepPeaksInBothStrandsOnly to FALSE
+}
   \item{min.SNratio}{
-minimum signal noise ratio, which is the coverage normalized by local
-    background
+Specify the minimum signal noise ratio to be called as peaks, 
+which is the coverage normalized by local background.
 }
   \item{maxP}{
-Maximum p-value to be considered as significant
+Specify the maximum p-value to be considered as significant
 }
   \item{stats}{
-Statistical test, default poisson
+Statistical test, currently only poisson is implemented
 }
   \item{p.adjust.methods}{
 Adjustment method for multiple comparisons, default none
@@ -230,13 +237,19 @@ Specify the maximum gap allowed between the plus strand and
     window.size used for peak calling.
 }
 \item{max.overlap.plusSig.minusSig}{
-Specify the maximum overlap (cushion distance) between plus strand peak and minus strand peak.
-Default to 10L to allow sequence error and inprecise integration. Only applicable
+Specify the cushion distance to allow sequence error and inprecise integration
+Default to 30 to allow at most 10 (30-window.size 20) bp (half window) of 
+minus-strand peaks on the right side of plus-strand peaks. Only applicable
 if plus.strand.start.gt.minus.strand.end is set to TRUE.
 }
   \item{plus.strand.start.gt.minus.strand.end}{
 Specify whether plus strand peak start greater than
     the paired negative strand peak end. Default to TRUE
+}
+  \item{keepPeaksInBothStrandsOnly}{
+Indicate whether only keep peaks present in both strands as specified
+by plus.strand.start.gt.minus.strand.end, max.overlap.plusSig.minusSig and 
+distance.threshold.
 }
   \item{gRNA.format}{
 Format of the gRNA input file. Currently, fasta is supported

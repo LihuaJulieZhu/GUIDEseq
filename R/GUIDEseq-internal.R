@@ -19,7 +19,7 @@
     if (plus.strand.start.gt.minus.strand.end) 
     {
         ann.peaks <- as.data.frame(gr[!is.na(gr$distancetoFeature) &
-            gr$shortestDistance <=  distance.threshold &
+            gr$shortestDistance  <=  distance.threshold &
             (abs(gr$distancetoFeature) <= max.overlap.plusSig.minusSig |
             gr$insideFeature == "upstream"), ])
     }

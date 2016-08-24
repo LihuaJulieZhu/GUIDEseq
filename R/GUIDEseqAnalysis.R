@@ -30,6 +30,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     bg.window.size = 5000L,
     min.reads = 5L,
     min.reads.per.lib = 1L,
+    min.peak.score.1strandOnly = 5L,
     min.SNratio = 2,
     maxP = 0.05, 
     stats = c("poisson", "nbinom"),
@@ -37,8 +38,9 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         c( "none", "BH", "holm", "hochberg", "hommel", "bonferroni",
         "BY", "fdr"),
     distance.threshold = 40L,
-    max.overlap.plusSig.minusSig = 10L,
+    max.overlap.plusSig.minusSig = 30L,
     plus.strand.start.gt.minus.strand.end = TRUE,
+    keepPeaksInBothStrandsOnly = TRUE,
     gRNA.format = "fasta",
     overlap.gRNA.positions = c(17,18),
     upstream = 50,
@@ -227,6 +229,18 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
        
         write.table(bed.temp, file = output.bedfile, sep = "\t", 
             row.names = FALSE, col.names = FALSE, quote = FALSE, append = TRUE)
+    }
+    else if (!keepPeaksInBothStrandsOnly)
+    {
+       peaks.1strandOnly.bed <- cbind(as.character(seqnames(merged.gr$peaks.1strandOnly)),
+            start(merged.gr$peaks.1strandOnly),
+            end(merged.gr$peaks.1strandOnly), names(merged.gr$peaks.1strandOnly),
+            merged.gr$peaks.1strandOnly$count, as.character(strand(merged.gr$peaks.1strandOnly)))
+
+       peaks.1strandOnly.bed <- peaks.1strandOnly.bed[peaks.1strandOnly.bed[,5] > 
+           min.peak.score.1strandOnly,] 
+        write.table(peaks.1strandOnly.bed, file = output.bedfile, sep = "\t",
+            row.names = FALSE, col.names = FALSE, quote = FALSE, append = TRUE) 
     }
     write.table(cbind(name = names(merged.gr$mergedPeaks.gr),
         as.data.frame(merged.gr$mergedPeaks.gr)),
