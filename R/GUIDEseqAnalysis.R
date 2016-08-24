@@ -8,7 +8,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     BSgenomeName,
     gRNA.file,
     outputDir,
-    n.cores.max = 6,
+    n.cores.max = 3,
     keep.R1only = TRUE,
     keep.R2only = TRUE,
     concordant.strand = TRUE,
@@ -52,8 +52,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     overwrite = TRUE,
     weights = c(0, 0, 0.014, 0, 0, 0.395, 0.317, 0, 0.389, 0.079,
     0.445, 0.508, 0.613, 0.851, 0.732, 0.828, 0.615,0.804, 0.685, 0.583),
-    orderOfftargetsBy = c("predicted_cleavage_score", "n.mismatch"),
-    descending = c(TRUE, FALSE),
+    orderOfftargetsBy = c("peak_score", "predicted_cleavage_score", "n.mismatch"),
+    descending = TRUE,
     keepTopOfftargetsOnly = TRUE,
      scoring.method = c("Hsu-Zhang", "CFDscore"),
         subPAM.activity = hash( AA =0,
@@ -81,6 +81,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
 )
 {
     alignment.format <- match.arg(alignment.format)
+    orderOfftargetsBy <- match.arg(orderOfftargetsBy)
     message("Remove duplicate reads ...\n")
     if (missing(BSgenomeName))
     {
@@ -274,16 +275,60 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         PAM.location = PAM.location,
         mismatch.activity.file = mismatch.activity.file
     )
-
+    
+    offTargets <- subset(offTargets, !is.na(offTargets$offTarget))
     #### add gene and exon information to offTargets ....
     if (!missing(txdb) && (class(txdb) == "TxDb" || 
         class(txdb) == "TranscriptDb"))
     {
         offTargets <- annotateOffTargets(offTargets, txdb, orgAnn)
-        write.table(offTargets, 
-            file = file.path(outputDir,"offTargetsInPeakRegions.xls"),
-            sep="\t", row.names = FALSE)
     }
+
+    colnames(offTargets)[colnames(offTargets) == "n.mismatch"] <- "n.guide.mismatch"
+    colnames(offTargets)[colnames(offTargets) == "name"] <- "gRNA.name"
+    if (PAM.location == "3prime") 
+    {
+        PAM.sequence <- substr(offTargets$offTarget_sequence, 
+            gRNA.size + 1, gRNA.size + PAM.size)
+    } 
+    else
+    {
+        PAM.sequence <- reverse(substr(offTargets$offTarget_sequence,
+            1,  PAM.size))
+    }
+    
+    n.PAM.mismatch <- unlist(lapply(DNAStringSet(PAM.sequence), function(i) {
+        neditAt(i, DNAString(PAM), fixed=FALSE)
+    }))
+    exclude.col <- which(colnames(offTargets) %in% 
+        c("names", "targetSeqName", "peak_start", "peak_end", "peak_strand")) 
+    offTargets <- offTargets[, -exclude.col]
+    ind1 <- which(colnames(offTargets) == "n.guide.mismatch")
+    ind3 <- which(colnames(offTargets) == "mismatch.distance2PAM")
+    ind.start1 <- min(ind1, ind3)
+    ind2 <- ind.start1 + 1
+    ind.start2 <- max(ind1, ind3) 
+    ind4 <- ind.start2 + 1
+    if (ind.start2 > ind2) 
+    {
+        offTargets <- cbind(offTargets[,1:ind.start1], n.PAM.mismatch = n.PAM.mismatch,
+            offTargets[,ind2:ind.start2], PAM.sequence = PAM.sequence, 
+            offTargets[,ind4:dim(offTargets)[2]])
+    }
+    else
+    {
+        name.ind2 <- colnames(offTargets)[ind2]
+        offTargets <- cbind(offTargets[,1:ind.start1], n.PAM.mismatch = n.PAM.mismatch,
+            offTargets[,ind2], PAM.sequence = PAM.sequence, 
+            offTargets[,ind4:dim(offTargets)[2]])
+        colnames(offTargets)[ind2+1] <- name.ind2 
+    }
+    offTargets <- offTargets[order(offTargets[,which(colnames(offTargets) ==orderOfftargetsBy)],
+        decreasing = descending), ]
+    write.table(offTargets,
+        file = file.path(outputDir,"offTargetsInPeakRegions.xls"),
+        sep="\t", row.names = FALSE) 
+
     message("Please check output file in directory ", outputDir , "\n")
     if (n.files > 1)
         list(offTargets = offTargets, merged.peaks = merged.gr$mergedPeaks.gr,

@@ -19,7 +19,7 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
     BSgenomeName, 
     gRNA.file,
     outputDir,
-    n.cores.max = 6,
+    n.cores.max = 3,
     keep.R1only = TRUE, keep.R2only = TRUE,
     concordant.strand = TRUE,
     max.paired.distance = 1000, min.mapping.quality = 30,
@@ -44,8 +44,8 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
     allowed.mismatch.PAM = 2, overwrite = TRUE,
     weights = c(0, 0, 0.014, 0, 0, 0.395, 0.317, 0, 0.389, 0.079,
     0.445, 0.508, 0.613, 0.851, 0.732, 0.828, 0.615,0.804, 0.685, 0.583),
-    orderOfftargetsBy = c("predicted_cleavage_score", "n.mismatch"),
-    descending = c(TRUE, FALSE),
+    orderOfftargetsBy = c("peak_score", "predicted_cleavage_score", "n.mismatch"),
+    descending = TRUE,
     keepTopOfftargetsOnly = TRUE,
     scoring.method = c("Hsu-Zhang", "CFDscore"),
         subPAM.activity = hash( AA =0,
@@ -124,7 +124,7 @@ the directory where the off target analysis and reports will be written to
 }
 \item{n.cores.max}{
 Indicating maximum number of cores to use in multi core mode, 
-    i.e., parallel processing, default 6. Please set it to 1 to disable
+    i.e., parallel processing, default 3. Please set it to 1 to disable
     multicore processing for small dataset.
 }
   \item{keep.R1only}{
@@ -372,6 +372,8 @@ if(interactive())
         guideSeqRes <- GUIDEseqAnalysis(
             alignment.inputfile = alignFile,
             umi.inputfile = umiFile, gRNA.file = gRNA.file,
+            orderOfftargetsBy = "peak_score",
+            descending = TRUE,
             BSgenomeName = Hsapiens, min.reads = 80, n.cores.max = 1)
         names(guideSeqRes)
    }

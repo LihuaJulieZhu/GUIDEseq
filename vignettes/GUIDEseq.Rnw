@@ -143,7 +143,7 @@ please type help(getUniqueCleavageEvents).
 
 \begin{scriptsize}
 <<>>=
-uniqueCleavageEvents <- getUniqueCleavageEvents(bamfile, umifile)
+uniqueCleavageEvents <- getUniqueCleavageEvents(bamfile, umifile, n.cores.max =1)
 #uniqueCleavageEventsOld <- getUniqueCleavageEvents(bedfile, umifile)
 uniqueCleavageEvents$cleavage.gr
 @
@@ -208,6 +208,8 @@ offTargets <- offTargetAnalysisOfPeakRegions(gRNA = gRNAs, peaks = peaks,
     upstream = 50, downstream =50, PAM.size = 3, gRNA.size = 20,
     PAM = "NGG", PAM.pattern = "(NAG|NGG|NGA)$", max.mismatch = 2,
     outputDir = outputDir,
+    orderOfftargetsBy = "peak_score",
+    descending = TRUE,
     allowed.mismatch.PAM = 2, overwrite = TRUE
    )
 @
@@ -229,6 +231,8 @@ gRNA.file <- system.file("extdata","gRNA.fa", package = "GUIDEseq")
 system.time(guideSeqRes <- GUIDEseqAnalysis(
     alignment.inputfile = bamfile, 
     umi.inputfile = umifile, gRNA.file = gRNA.file, 
+    orderOfftargetsBy = "peak_score",
+    descending = TRUE, n.cores.max = 1,
     BSgenomeName = Hsapiens, min.reads = 1))
 names(guideSeqRes)
 @
