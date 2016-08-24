@@ -55,7 +55,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     orderOfftargetsBy = c("peak_score", "predicted_cleavage_score", "n.mismatch"),
     descending = TRUE,
     keepTopOfftargetsOnly = TRUE,
-     scoring.method = c("Hsu-Zhang", "CFDscore"),
+    keepTopOfftargetsBy = c("predicted_cleavage_score", "n.mismatch"),
+    scoring.method = c("Hsu-Zhang", "CFDscore"),
         subPAM.activity = hash( AA =0,
           AC =   0,
           AG = 0.259259259,
@@ -82,6 +83,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
 {
     alignment.format <- match.arg(alignment.format)
     orderOfftargetsBy <- match.arg(orderOfftargetsBy)
+    keepTopOfftargetsBy <- match.arg(keepTopOfftargetsBy)
     message("Remove duplicate reads ...\n")
     if (missing(BSgenomeName))
     {
@@ -266,8 +268,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         outputDir = outputDir, overlap.gRNA.positions  = overlap.gRNA.positions,
         allowed.mismatch.PAM = allowed.mismatch.PAM, overwrite = overwrite,
         weights = weights,
-        orderOfftargetsBy = orderOfftargetsBy,
-        descending = descending,
+        orderOfftargetsBy = keepTopOfftargetsBy,
         keepTopOfftargetsOnly = keepTopOfftargetsOnly,
         scoring.method = scoring.method,
         subPAM.activity = subPAM.activity,

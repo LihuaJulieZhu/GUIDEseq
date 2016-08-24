@@ -17,7 +17,7 @@ offTargetAnalysisOfPeakRegions(gRNA, peaks,
     weights = c(0, 0, 0.014, 0, 0, 0.395,
     0.317, 0, 0.389, 0.079, 0.445, 0.508, 0.613, 0.851, 0.732, 0.828, 0.615,
     0.804, 0.685, 0.583),
-    orderOfftargetsBy = c("peak_score", "predicted_cleavage_score", "n.mismatch"),
+    orderOfftargetsBy = c("predicted_cleavage_score", "n.mismatch"),
     descending = TURE,
     keepTopOfftargetsOnly = TRUE,
     scoring.method = c("Hsu-Zhang", "CFDscore"),
@@ -112,19 +112,21 @@ a numeric vector size of gRNA length, default c(0, 0, 0.014, 0, 0, 0.395,
     beginning of the vector.
 }
 \item{orderOfftargetsBy}{
- criteria to order the offtargets by. By default, order by
- predicted_cleavage_score (descending order)
- followed by n.mismatch (ascending order)
- User can change the order of these two criteria and
- change descending order accordingly
+ criteria to order the offtargets by and the top one will be kept if keepTopOfftargetsOnly
+ is set to TRUE.
+ If set to predicted_cleavage_score (descending order), the offtarget with the highest
+ predicted cleavage score for each peak will be kept.
+ If set to n.mismatch (ascending order), the offtarget with the smallest number of mismatch
+ to the target sequence for each peak will be kept.
 }
 \item{descending}{
- In the descending or ascending order. Default to order by predicted cleavage score
+ No longer used. In the descending or ascending order. 
+ Default to order by predicted cleavage score
  in descending order and number of mismatch in ascending order
  When altering orderOfftargetsBy order, please also modify descending accordingly
 }
  \item{keepTopOfftargetsOnly}{
-  Output all offtargets or the top offtarget using the orderOfftargetsBy criteria,
+  Output all offtargets or the top offtarget per peak using the orderOfftargetsBy criteria,
   default to the top offtarget
 }
  \item{scoring.method}{
@@ -175,7 +177,7 @@ Lihua Julie Zhu
 GUIDEseq
 }
 \examples{
-if (interactive()) {
+if (!interactive()) {
     library("BSgenome.Hsapiens.UCSC.hg19")
     peaks <- system.file("extdata", "T2plus100OffTargets.bed",
         package = "CRISPRseek")
@@ -186,8 +188,7 @@ if (interactive()) {
         format=c("fasta", "bed"),
         peaks.withHeader = TRUE, BSgenomeName = Hsapiens,
         upstream = 50, downstream =50, PAM.size = 3, gRNA.size = 20,
-        orderOfftargetsBy = "peak_score", 
-        descending = TRUE, 
+        orderOfftargetsBy = "predicted_cleavage_score", 
         PAM = "NGG", PAM.pattern = "NNN$", max.mismatch = 2,
         outputDir = outputDir,
         allowed.mismatch.PAM = 3, overwrite = TRUE

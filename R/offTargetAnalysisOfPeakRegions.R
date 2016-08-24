@@ -17,7 +17,7 @@ offTargetAnalysisOfPeakRegions <-
     weights = c(0, 0, 0.014, 0, 0, 0.395,
     0.317, 0, 0.389, 0.079, 0.445, 0.508, 0.613, 0.851, 0.732, 0.828, 0.615,
     0.804, 0.685, 0.583),
-    orderOfftargetsBy = c("peak_score", "predicted_cleavage_score", "n.mismatch"),
+    orderOfftargetsBy = c("predicted_cleavage_score", "n.mismatch"),
     descending = TRUE,
     keepTopOfftargetsOnly = TRUE, 
     scoring.method = c("Hsu-Zhang", "CFDscore"),
@@ -152,26 +152,10 @@ offTargetAnalysisOfPeakRegions <-
                 offtargets$predicted_cleavage_score <- 
                     as.numeric(as.character(offtargets$predicted_cleavage_score))
                 offtargets$n.mismatch <- as.numeric(as.character(offtargets$n.mismatch))
-                offtargets$peak_score <- as.numeric(as.character(offtargets$peak_score)) 
-                if (descending)
-                    { 
-                        if (orderOfftargetsBy == "predicted_cleavage_score")
-                            temp <- aggregate(predicted_cleavage_score ~ names, offtargets, max)
-                        if (orderOfftargetsBy == "n.mismatch")
-                            temp <- aggregate(n.mismatch ~ names, offtargets, max)
-                        if (orderOfftargetsBy == "peak_score")
-                            temp <- aggregate(peak_score ~ names, offtargets, max)
-                    }
-                 else
-                    {
-                        if (orderOfftargetsBy == "predicted_cleavage_score")
-                            temp <- aggregate(predicted_cleavage_score ~ names, offtargets, min)
-                        if (orderOfftargetsBy == "n.mismatch")
-                            temp <- aggregate(n.mismatch ~ names, offtargets, min)
-                        if (orderOfftargetsBy == "peak_score")
-                            temp <- aggregate(peak_score ~ names, offtargets, min)
-                     }
-                     offtargets <- merge(offtargets, temp)   
+                temp <- aggregate(predicted_cleavage_score ~ names, offtargets, max)
+                if (orderOfftargetsBy == "n.mismatch")
+                     temp <- aggregate(n.mismatch ~ names, offtargets, min)
+                offtargets <- merge(offtargets, temp)   
              } 
             ###### keep only one nearest offtarget for each peak
              temp <- as.data.frame(table(offtargets$names))

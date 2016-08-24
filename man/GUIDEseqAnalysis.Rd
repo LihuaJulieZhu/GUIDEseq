@@ -47,6 +47,7 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
     orderOfftargetsBy = c("peak_score", "predicted_cleavage_score", "n.mismatch"),
     descending = TRUE,
     keepTopOfftargetsOnly = TRUE,
+    keepTopOfftargetsBy = c("predicted_cleavage_score", "n.mismatch"),
     scoring.method = c("Hsu-Zhang", "CFDscore"),
         subPAM.activity = hash( AA =0,
           AC =   0,
@@ -281,20 +282,22 @@ a numeric vector size of gRNA length, default c(0, 0, 0.014, 0, 0, 0.395,
     beginning of the vector.
 }
 \item{orderOfftargetsBy}{
- criteria to order the offtargets by. By default, order by
- predicted_cleavage_score (descending order)
- followed by n.mismatch (ascending order)
- User can change the order of these two criteria and
- change descending order accordingly
+ Criteria to order the offtargets, which 
+ works together with the descending parameter 
 }
 \item{descending}{
- In the descending or ascending order. Default to order by predicted cleavage score
- in descending order and number of mismatch in ascending order
- When altering orderOfftargetsBy order, please also modify descending accordingly
+ Indicate the output order of the offtargets, i.e., in the descending or ascending order. 
 }
  \item{keepTopOfftargetsOnly}{
-  Output all offtargets or the top offtarget using the orderOfftargetsBy criteria,
+  Output all offtargets or the top offtarget using the keepOfftargetsBy criteria,
   default to the top offtarget
+}
+ \item{keepTopOfftargetsBy}{
+  Output the top offtarget for each called peak using the keepTopOfftargetsBy criteria,
+  If set to predicted_cleavage_score, then the offtargets with the highest predicted
+  cleavage score will be retained 
+  If set to n.mismatch, then the offtarget with the lowest number of mismatch to
+  the target sequence will be retained 
 }
  \item{scoring.method}{
    Indicates which method to use for offtarget cleavage rate estimation, currently
@@ -361,7 +364,7 @@ Lihua Julie Zhu
 getPeaks
 }
 \examples{
-if(interactive())
+if(!interactive())
     {
         library("BSgenome.Hsapiens.UCSC.hg19")
         umiFile <- system.file("extdata", "UMI-HEK293_site4_R1.txt",
@@ -374,6 +377,8 @@ if(interactive())
             umi.inputfile = umiFile, gRNA.file = gRNA.file,
             orderOfftargetsBy = "peak_score",
             descending = TRUE,
+            keepTopOfftargetsBy = "predicted_cleavage_score",
+            scoring.method = "CFDscore",
             BSgenomeName = Hsapiens, min.reads = 80, n.cores.max = 1)
         names(guideSeqRes)
    }

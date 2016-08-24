@@ -208,8 +208,7 @@ offTargets <- offTargetAnalysisOfPeakRegions(gRNA = gRNAs, peaks = peaks,
     upstream = 50, downstream =50, PAM.size = 3, gRNA.size = 20,
     PAM = "NGG", PAM.pattern = "(NAG|NGG|NGA)$", max.mismatch = 2,
     outputDir = outputDir,
-    orderOfftargetsBy = "peak_score",
-    descending = TRUE,
+    orderOfftargetsBy = "predicted_cleavage_score",
     allowed.mismatch.PAM = 2, overwrite = TRUE
    )
 @
