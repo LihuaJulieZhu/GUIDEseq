@@ -215,9 +215,9 @@ getPeaks
 \examples{
     if(interactive())
     {
-        umiFile <- system.file("extdata", "UMI-HEK293_site4_R1.txt", 
-            package = "GUIDEseq")       
-        alignFile <- system.file("extdata","bowtie2.HEK293_site4.sort.bed",
+        umiFile <- system.file("extdata", "UMI-HEK293_site4_chr13.txt",
+           package = "GUIDEseq")
+        alignFile <- system.file("extdata","bowtie2.HEK293_site4_chr13.sort.bam" ,
             package = "GUIDEseq")
         cleavages <- getUniqueCleavageEvents(
             alignment.inputfile = alignFile , umi.inputfile = umiFile,

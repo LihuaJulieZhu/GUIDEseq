@@ -89,7 +89,7 @@ Regular expression of protospacer-adjacent motif (PAM), default (NAG|NGG|NGA)$
     for off target search
 }
 \item{allowed.mismatch.PAM}{
-Number of degenerative bases in the PAM sequence, default to 2 for N[A|G]G PAM
+Number of degenerative bases in the PAM.pattern sequence, default to 2
 }
   \item{outputDir}{
 the directory where the off target analysis and reports will be written to

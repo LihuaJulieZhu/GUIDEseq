@@ -7,8 +7,8 @@ Analysis of GUIDE-seq}
 \description{
 The package includes functions to retain one read per unique molecular 
     identifier (UMI), filter reads lacking integration oligo sequence, identify 
-peak locations (cleavage sites) and heights, perform target and off target 
-search of the input gRNA. This package leverages CRISPRseek and ChIPpeakAnno
+peak locations (cleavage sites) and heights, merge peaks, perform off-target 
+search using the input gRNA. This package leverages CRISPRseek and ChIPpeakAnno
 packages.
 }
 \details{
@@ -38,14 +38,20 @@ GUIDEseqAnalysis
 \examples{
     if(interactive())
     {
-        umiFile <- system.file("extdata", "UMI-HEK293_site4_R1.txt", 
-            package = "GUIDEseq")
-        alignFile <- system.file("extdata","bowtie2.HEK293_site4.sort.bed" , 
+        library("BSgenome.Hsapiens.UCSC.hg19")
+        umiFile <- system.file("extdata", "UMI-HEK293_site4_chr13.txt",
+           package = "GUIDEseq")
+        alignFile <- system.file("extdata","bowtie2.HEK293_site4_chr13.sort.bam" ,
             package = "GUIDEseq")
         gRNA.file <- system.file("extdata","gRNA.fa", package = "GUIDEseq")
-        guideRes <- GUIDEseqAnalysis(
-            alignment.inputfile = alignFile ,
-            umi.inputfile = umiFile, gRNA.file = gRNA.file)
-        names(cleavages)
+        guideSeqRes <- GUIDEseqAnalysis(
+            alignment.inputfile = alignFile,
+            umi.inputfile = umiFile, gRNA.file = gRNA.file,
+            orderOfftargetsBy = "peak_score",
+            descending = TRUE,
+            keepTopOfftargetsBy = "predicted_cleavage_score",
+            scoring.method = "CFDscore",
+            BSgenomeName = Hsapiens, min.reads = 80, n.cores.max = 1)
+        guideSeqRes$offTargets
    }
 }

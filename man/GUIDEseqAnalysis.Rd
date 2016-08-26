@@ -120,8 +120,8 @@ BSgenome object. Please refer to available.genomes in BSgenome package. For
     BSgenome.Dmelanogaster.UCSC.dm3 for dm3
 }
  \item{gRNA.file}{
-gRNA input file path or a DNAStringSet object that contains gRNA plus PAM
-    sequences used for genome editing
+gRNA input file path or a DNAStringSet object that contains the target sequence
+(gRNA plus PAM)
 }
   \item{outputDir}{
 the directory where the off target analysis and reports will be written to
@@ -268,14 +268,17 @@ The required overlap positions of gRNA and restriction enzyme cut site,
     default 17 and 18 for SpCas9.
 }
   \item{max.mismatch}{
-Maximum mismatch allowed in off target search, default 6
+Maximum mismatch to the gRNA (not including mismatch to the PAM)
+allowed in off target search, default 6
 }
   \item{PAM.pattern}{
 Regular expression of protospacer-adjacent motif (PAM), default
     (NAG|NGG|NGA)$ for off target search
 }
 \item{allowed.mismatch.PAM}{
-Number of degenerative bases in the PAM sequence, default to 2 for N[A|G]G PAM
+Maximum number of mismatches allowed for the PAM sequence plus
+the number of degenerate sequence in the PAM sequence, 
+    default to 2 for N[A|G]G PAM
 }
   \item{upstream}{
 upstream offset from the peak start to search for off targets, default 50
@@ -380,9 +383,9 @@ getPeaks
 if(!interactive())
     {
         library("BSgenome.Hsapiens.UCSC.hg19")
-        umiFile <- system.file("extdata", "UMI-HEK293_site4_R1.txt",
+        umiFile <- system.file("extdata", "UMI-HEK293_site4_chr13.txt",
            package = "GUIDEseq")
-        alignFile <- system.file("extdata","bowtie2.HEK293_site4.sort.bed" ,
+        alignFile <- system.file("extdata","bowtie2.HEK293_site4_chr13.sort.bam" ,
             package = "GUIDEseq")
         gRNA.file <- system.file("extdata","gRNA.fa", package = "GUIDEseq")
         guideSeqRes <- GUIDEseqAnalysis(
@@ -393,6 +396,7 @@ if(!interactive())
             keepTopOfftargetsBy = "predicted_cleavage_score",
             scoring.method = "CFDscore",
             BSgenomeName = Hsapiens, min.reads = 80, n.cores.max = 1)
+        guideSeqRes$offTargets
         names(guideSeqRes)
    }
 }
