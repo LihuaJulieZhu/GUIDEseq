@@ -182,9 +182,9 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     {
         outputDir <- getwd()
     }
-    write.table(as.data.frame(peaks$peaks),
-        file = file.path(outputDir, paste(gRNAName, 
-        "peaks.xls", sep = "-" )), sep="\t", row.names=FALSE)
+    #write.table(as.data.frame(peaks$peaks),
+        #file = file.path(outputDir, paste(gRNAName, 
+        #"peaks.xls", sep = "-" )), sep="\t", row.names=FALSE)
     #save(peaks, file="peaks.RData")
     #save.image(file.path(outputDir, "testCombine.RData"))
     message("combine plus and minus peaks ... \n")

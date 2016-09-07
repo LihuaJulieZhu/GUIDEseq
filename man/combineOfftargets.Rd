@@ -10,12 +10,13 @@ Merge offtargets from different samples
 combineOfftargets(offtarget.folder, sample.name, 
     remove.common.offtargets = FALSE,control.sample.name,
     offtarget.filename = "offTargetsInPeakRegions.xls", 
-    common.col = c("targetSeqName", "chromosome", 
-        "offTargetStrand", "offTarget_Start", 
-        "offTarget_End", "gRNAPlusPAM", "offTarget_sequence",
-         "n.mismatch", "guideAlignment2OffTarget", 
-         "predicted_cleavage_score"), 
-    exclude.col = "name", 
+    common.col = c("offTarget","predicted_cleavage_score", 
+        "gRNA.name", "gRNAPlusPAM", "offTarget_sequence", 
+        "guideAlignment2OffTarget", "offTargetStrand", 
+        "mismatch.distance2PAM", "n.PAM.mismatch", 
+        "n.guide.mismatch", "PAM.sequence", "offTarget_Start",
+         "offTarget_End", "chromosome"),
+    exclude.col, 
     outputFileName)
 }
 \arguments{
@@ -27,6 +28,7 @@ combineOfftargets(offtarget.folder, sample.name,
    in the final output file
 }
 \item{remove.common.offtargets}{
+Default to FALSE
 If set to TRUE, off-targets common to all samples will be removed.
 }
 \item{control.sample.name}{
@@ -38,15 +40,16 @@ If set to TRUE, off-targets common to all samples will be removed.
 }
   \item{common.col}{
    common column names used for merge files. Default to 
-       c("targetSeqName", "chromosome",
-       "offTargetStrand", "offTarget_Start",
-       "offTarget_End", "gRNAPlusPAM", "offTarget_sequence",
-       "n.mismatch", "guideAlignment2OffTarget",
-       "predicted_cleavage_score")
+   c("offTarget","predicted_cleavage_score",
+        "gRNA.name", "gRNAPlusPAM", "offTarget_sequence",
+        "guideAlignment2OffTarget", "offTargetStrand",
+        "mismatch.distance2PAM", "n.PAM.mismatch",
+        "n.guide.mismatch", "PAM.sequence", "offTarget_Start",
+         "offTarget_End", "chromosome")
 }
   \item{exclude.col}{
-  columns to be excluded before merging. Default to name (second column of 
-  offTargetsInPeakRegions.xls). Please check offTargetsInPeakRegions.xls
+  columns to be excluded before merging.
+  Please check offTargetsInPeakRegions.xls
   to choose the desired columns to exclude
 }
   \item{outputFileName}{
@@ -70,11 +73,11 @@ Lihua Julie Zhu
 
 \examples{
     offtarget.folder <- system.file("extdata", 
-        c("sample2-18", "sample3-19", "sample4-20"),
+        c("sample1-17", "sample2-18", "sample3-19"),
         package = "GUIDEseq")
     mergedOfftargets <- 
        combineOfftargets(offtarget.folder = offtarget.folder, 
-       sample.name = c("Wild-type SpCas9", "SpCas9-MT3-ZFP", "Split-SpCas9 dual NLS"), 
+       sample.name = c("cas9Only", "WT SpCas9", "SpCas9-MT3-ZFP"), 
        outputFileName = "TS2offtargets3Constructs.xls")
 }
 \keyword{ misc }
