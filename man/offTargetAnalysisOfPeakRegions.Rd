@@ -11,9 +11,9 @@ regions
 offTargetAnalysisOfPeakRegions(gRNA, peaks,
     format=c("fasta", "bed"),
     peaks.withHeader = FALSE, BSgenomeName, overlap.gRNA.positions = c(17,18),
-    upstream = 50, downstream =50, PAM.size = 3, gRNA.size = 20,
-    PAM = "NGG", PAM.pattern = "(NAG|NGG|NGA)$", max.mismatch = 6,
-    outputDir, allowed.mismatch.PAM = 2, overwrite = TRUE,
+    upstream = 20L, downstream = 20L, PAM.size = 3L, gRNA.size = 20L,
+    PAM = "NGG", PAM.pattern = "NNN$", max.mismatch = 6L,
+    outputDir, allowed.mismatch.PAM = 2L, overwrite = TRUE,
     weights = c(0, 0, 0.014, 0, 0, 0.395,
     0.317, 0, 0.389, 0.079, 0.445, 0.508, 0.613, 0.851, 0.732, 0.828, 0.615,
     0.804, 0.685, 0.583),
@@ -85,8 +85,8 @@ The required overlap positions of gRNA and restriction enzyme cut site,
 Maximum mismatch allowed in off target search, default 6
 }
   \item{PAM.pattern}{
-Regular expression of protospacer-adjacent motif (PAM), default (NAG|NGG|NGA)$
-    for off target search
+Regular expression of protospacer-adjacent motif (PAM), default to any
+NNN$. Set it to (NAG|NGG|NGA)$ if only outputs offtargets with NAG, NGA or NGG PAM
 }
 \item{allowed.mismatch.PAM}{
 Number of degenerative bases in the PAM.pattern sequence, default to 2
@@ -95,10 +95,10 @@ Number of degenerative bases in the PAM.pattern sequence, default to 2
 the directory where the off target analysis and reports will be written to
 }
   \item{upstream}{
-upstream offset from the peak start to search for off targets, default 50
+upstream offset from the peak start to search for off targets, default 20
 }
   \item{downstream}{
-downstream offset from the peak end to search for off targets, default 50
+downstream offset from the peak end to search for off targets, default 20
 }
 \item{overwrite}{
 overwrite the existing files in the output directory or not, default FALSE
@@ -187,9 +187,9 @@ if (!interactive()) {
     offTargets <- offTargetAnalysisOfPeakRegions(gRNA = gRNAs, peaks = peaks,
         format=c("fasta", "bed"),
         peaks.withHeader = TRUE, BSgenomeName = Hsapiens,
-        upstream = 50, downstream =50, PAM.size = 3, gRNA.size = 20,
+        upstream = 20L, downstream = 20L, PAM.size = 3L, gRNA.size = 20L,
         orderOfftargetsBy = "predicted_cleavage_score", 
-        PAM = "NGG", PAM.pattern = "NNN$", max.mismatch = 2,
+        PAM = "NGG", PAM.pattern = "(NGG|NAG|NGA)$", max.mismatch = 2L,
         outputDir = outputDir,
         allowed.mismatch.PAM = 3, overwrite = TRUE
    )

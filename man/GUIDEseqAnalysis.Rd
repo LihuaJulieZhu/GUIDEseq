@@ -32,7 +32,7 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
     window.size = 20L, step = 20L, bg.window.size = 5000L,
     min.reads = 5L, min.reads.per.lib = 1L, 
     min.peak.score.1strandOnly = 5L,
-    min.SNratio = 2, maxP = 0.05,
+    min.SNratio = 2, maxP = 0.01,
     stats = c("poisson", "nbinom"),
     p.adjust.methods =
     c( "none", "BH", "holm", "hochberg", "hommel", "bonferroni", "BY", "fdr"),
@@ -42,8 +42,8 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
     keepPeaksInBothStrandsOnly = TRUE, 
     gRNA.format = "fasta",
     overlap.gRNA.positions = c(17,18),
-    upstream = 50L, downstream = 50L, PAM.size = 3L, gRNA.size = 20L,
-    PAM = "NGG", PAM.pattern = "(NAG|NGG|NGA)$", max.mismatch = 6L,
+    upstream = 20L, downstream = 20L, PAM.size = 3L, gRNA.size = 20L,
+    PAM = "NGG", PAM.pattern = "NNN$", max.mismatch = 6L,
     allowed.mismatch.PAM = 2L, overwrite = TRUE,
     weights = c(0, 0, 0.014, 0, 0, 0.395, 0.317, 0, 0.389, 0.079,
     0.445, 0.508, 0.613, 0.851, 0.732, 0.828, 0.615,0.804, 0.685, 0.583),
@@ -273,18 +273,20 @@ allowed in off target search, default 6
 }
   \item{PAM.pattern}{
 Regular expression of protospacer-adjacent motif (PAM), default
-    (NAG|NGG|NGA)$ for off target search
+    NNN$. Alternatively set it to (NAG|NGG|NGA)$ for off target search
 }
 \item{allowed.mismatch.PAM}{
 Maximum number of mismatches allowed for the PAM sequence plus
 the number of degenerate sequence in the PAM sequence, 
-    default to 2 for N[A|G]G PAM
+    default to 2 for NGG PAM
 }
   \item{upstream}{
-upstream offset from the peak start to search for off targets, default 50
+upstream offset from the peak start to search for off targets, default 20
+suggest set it to window size
 }
   \item{downstream}{
-downstream offset from the peak end to search for off targets, default 50
+downstream offset from the peak end to search for off targets, default 20
+suggest set it to window size
 }
 \item{overwrite}{
   overwrite the existing files in the output directory or not, default FALSE
