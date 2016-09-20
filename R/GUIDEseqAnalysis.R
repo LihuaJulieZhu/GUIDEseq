@@ -115,7 +115,15 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     n.files <- min(length(alignment.inputfile), 
         length(umi.inputfile))
     n.files <- min(n.files, 2)
-    gRNAName <- gsub(".fa", "", basename(gRNA.file))
+    if (class(gRNA.file) != "DNAStringSet")
+        gRNAName <- gsub(".fa", "", basename(gRNA.file))
+    else
+        gRNAName <- names(gRNA.file)
+    for (i in 1:length(gRNA.file))
+    {
+        if (is.na(nchar(names(gRNA.file))[i]) || nchar(names(gRNA.file))[i]  == 0)
+            gRNAName[i] <- paste("gRNAName", i, sep="")
+    }
     cleavages.gr <- do.call(c, lapply(1:n.files, function(i)
     {
         cleavages <-
@@ -290,9 +298,12 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         PAM.location = PAM.location,
         mismatch.activity.file = mismatch.activity.file
     )
+    cat("Done with offtarget search!\n") 
     
     offTargets <- subset(offTargets, !is.na(offTargets$offTarget))
-    #### add gene and exon information to offTargets ....
+    if (dim(offTargets)[1] == 0)
+        stop("No offtargets found with the searching criteria!")
+    cat("Add gene and exon information to offTargets ....\n")
     if (!missing(txdb) && (class(txdb) == "TxDb" || 
         class(txdb) == "TranscriptDb"))
     {
@@ -301,6 +312,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
 
     colnames(offTargets)[colnames(offTargets) == "n.mismatch"] <- "n.guide.mismatch"
     colnames(offTargets)[colnames(offTargets) == "name"] <- "gRNA.name"
+
+    cat("Extract PAM sequence and n.PAM.mismatch. \n")
     if (PAM.location == "3prime") 
     {
         PAM.sequence <- substr(offTargets$offTarget_sequence, 

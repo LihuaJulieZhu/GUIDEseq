@@ -145,8 +145,8 @@ offTargetAnalysisOfPeakRegions <-
             offtargets.minus.minus, offtargets.minus.plus)
         if (keepTopOfftargetsOnly)
         {
-            peaks.without.offtargets <- subset(offtargets, is.na(gRNAPlusPAM))
-            offtargets <- subset(offtargets, !is.na(gRNAPlusPAM))
+            peaks.without.offtargets <- subset(offtargets, is.na(gRNAPlusPAM) | gRNAPlusPAM == "")
+            offtargets <- subset(offtargets, !is.na(gRNAPlusPAM) & gRNAPlusPAM != "")
             if (dim(offtargets)[1] > 1)
             {
                 offtargets$predicted_cleavage_score <- 
@@ -202,7 +202,7 @@ offTargetAnalysisOfPeakRegions <-
                  }
              } 
             
-             offtargets <- rbind(offtargets, peaks.without.offtargets)
+             #offtargets <- rbind(offtargets, peaks.without.offtargets)
         }
         write.table(offtargets, 
             file = file.path(outputDir,"offTargetsInPeakRegions.xls"),

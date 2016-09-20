@@ -16,12 +16,14 @@ combineOfftargets <- function(offtarget.folder,
         sep="\t", header = TRUE)
     all <- subset(all, !is.na(all$offTarget))
     if (!missing(exclude.col) && exclude.col != "")
-        all <- all[, -which(colnames(all) == exclude.col)]
+        all <- all[, -which(colnames(all) %in% exclude.col)]
     if(length(setdiff(common.col, colnames(all))) > 0)
     {
         stop(paste(setdiff(common.col, colnames(all)), 
             "are not valid column names! Please make sure to 
-            specify the correct column names for common.col!"))
+            specify the correct column names for common.col! If 
+            you have specified the column names in exclued.col, please
+            do not specify in the common.col!"))
     }
 
     colnames(all)[!colnames(all) %in% common.col] <- paste(sample.name[1], 
@@ -33,7 +35,7 @@ combineOfftargets <- function(offtarget.folder,
             fsep = .Platform$file.sep), sep="\t", header = TRUE)
         off <- subset(off, !is.na(off$offTarget))
         if (!missing(exclude.col) && exclude.col != "")
-            off <- off[,-which(colnames(off) == exclude.col)]
+            off <- off[,-which(colnames(off) %in% exclude.col)]
         colnames(off)[!colnames(off) %in% common.col] <- paste(sample.name[i], 
             colnames(off)[!colnames(off) %in% common.col], sep=".")
 

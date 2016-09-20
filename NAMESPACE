@@ -20,4 +20,4 @@ importFrom(Rsamtools, ScanBamParam, BamFile, bamFlagTest)
 importFrom(GenomicAlignments, readGAlignmentsList, first, last)
 importFrom(GenomeInfoDb, seqlevels, seqinfo, "seqinfo<-", "seqlevels<-", seqlevelsStyle)
 export(GUIDEseqAnalysis, getUniqueCleavageEvents, getPeaks,combineOfftargets,
-    mergePlusMinusPeaks, offTargetAnalysisOfPeakRegions)
+    mergePlusMinusPeaks, offTargetAnalysisOfPeakRegions, annotateOffTargets)

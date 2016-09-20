@@ -177,7 +177,8 @@ Lihua Julie Zhu
 GUIDEseq
 }
 \examples{
-if (!interactive()) {
+#### the following example is also part of annotateOffTargets.Rd
+if (interactive()) {
     library("BSgenome.Hsapiens.UCSC.hg19")
     peaks <- system.file("extdata", "T2plus100OffTargets.bed",
         package = "CRISPRseek")
