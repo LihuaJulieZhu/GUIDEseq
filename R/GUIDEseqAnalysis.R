@@ -121,7 +121,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         gRNAName <- names(gRNA.file)
     for (i in 1:length(gRNA.file))
     {
-        if (is.na(nchar(names(gRNA.file))[i]) || nchar(names(gRNA.file))[i]  == 0)
+        if (is.na(gRNAName[i]) || nchar(gRNAName)[i]  == 0)
             gRNAName[i] <- paste("gRNAName", i, sep="")
     }
     cleavages.gr <- do.call(c, lapply(1:n.files, function(i)
@@ -191,8 +191,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         outputDir <- getwd()
     }
     #write.table(as.data.frame(peaks$peaks),
-        #file = file.path(outputDir, paste(gRNAName, 
-        #"peaks.xls", sep = "-" )), sep="\t", row.names=FALSE)
+        #file = "testPeaks.xls", sep="\t", row.names=FALSE)
     #save(peaks, file="peaks.RData")
     #save.image(file.path(outputDir, "testCombine.RData"))
     message("combine plus and minus peaks ... \n")
@@ -207,6 +206,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
 ####### keep peaks not in merged.gr but present in both peaks1 and peaks2
     if (n.files >1)
     {
+        cat("Find unmerged peaks with reads representation in both libraries\n")
         peaks.1strandOnly <- merged.gr$peaks.1strandOnly 
         peaks.1strandOnly <- 
             peaks.1strandOnly[peaks.1strandOnly$count >= (min.reads + 1)]
@@ -240,13 +240,14 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     }
     else if (!keepPeaksInBothStrandsOnly)
     {
+       cat("Find unmerged peaks with very high reads one-library protocol\n")
        peaks.1strandOnly.bed <- cbind(as.character(seqnames(merged.gr$peaks.1strandOnly)),
             start(merged.gr$peaks.1strandOnly),
             end(merged.gr$peaks.1strandOnly), names(merged.gr$peaks.1strandOnly),
             merged.gr$peaks.1strandOnly$count, as.character(strand(merged.gr$peaks.1strandOnly)))
 
-       peaks.1strandOnly.bed <- peaks.1strandOnly.bed[peaks.1strandOnly.bed[,5] > 
-           min.peak.score.1strandOnly,] 
+       peaks.1strandOnly.bed <- peaks.1strandOnly.bed[as.numeric(as.character(
+           peaks.1strandOnly.bed[,5])) >= min.peak.score.1strandOnly, ] 
         write.table(peaks.1strandOnly.bed, file = output.bedfile, sep = "\t",
             row.names = FALSE, col.names = FALSE, quote = FALSE, append = TRUE) 
     }

@@ -26,6 +26,7 @@ combineOfftargets <- function(offtarget.folder,
             do not specify in the common.col!"))
     }
 
+    common.col <- setdiff(common.col, "peak_score")
     colnames(all)[!colnames(all) %in% common.col] <- paste(sample.name[1], 
         colnames(all)[!colnames(all) %in% common.col], sep=".")
 
