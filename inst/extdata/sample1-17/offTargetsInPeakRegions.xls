@@ -1,0 +1,4 @@
+"offTarget"	"peak_score"	"predicted_cleavage_score"	"gRNA.name"	"gRNAPlusPAM"	"offTarget_sequence"	"guideAlignment2OffTarget"	"offTargetStrand"	"mismatch.distance2PAM"	"n.PAM.mismatch"	"n.guide.mismatch"	"PAM.sequence"	"offTarget_Start"	"offTarget_End"	"chromosome"
+"chr11:+:116811440:116811462"	6	"0"	"T2"	"GACCCCCTCCACCCCGCCTCCGG"	"CACCCCCGCCAGCTCCCCTCCTT"	"C......G...G.T.C...."	"+"	"20,13,9,7,5"	2	"5"	"CTT"	116811440	116811462	"chr11"
+"chr2:-:33141464:33141486"	3	"0.1"	"T2"	"GACCCCCTCCACCCCGCCTCCGG"	"CCCCCCCCCCCCCCCCCCTCCCC"	"CC.....C..C....C...."	"-"	"20,19,13,10,5"	2	"5"	"CCC"	33141464	33141486	"chr2"
+"chr6:+:149886152:149886174"	2	"0"	"T2"	"GACCCCCTCCACCCCGCCTCCGG"	"GAGCCACTGCACCCGGCTTCTAG"	"..G..A..G.....G..T.."	"+"	"18,15,12,6,3"	1	"5"	"TAG"	149886152	149886174	"chr6"
