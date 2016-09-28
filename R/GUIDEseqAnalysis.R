@@ -182,8 +182,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
             window.size = window.size, bg.window.size = bg.window.size,
             maxP = maxP, p.adjust.methods = p.adjust.methods,
             min.reads = min.reads.per.lib, min.SNratio = min.SNratio) 
-     #    save(peaks1, file="peaks1.RData")
-     #    save(peaks2, file="peaks2.RData")
+    #     save(peaks1, file="peaks1.RData")
+    #     save(peaks2, file="peaks2.RData")
   
     }
     if (missing(outputDir))
@@ -191,9 +191,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         outputDir <- getwd()
     }
     #write.table(as.data.frame(peaks$peaks),
-        #file = "testPeaks.xls", sep="\t", row.names=FALSE)
+    #    file = "testPeaks.xls", sep="\t", row.names=FALSE)
     #save(peaks, file="peaks.RData")
-    #save.image(file.path(outputDir, "testCombine.RData"))
     message("combine plus and minus peaks ... \n")
 
     output.bedfile <- paste(gRNAName, "PlusMinusPeaksMerged.bed",
@@ -202,9 +201,10 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         distance.threshold = distance.threshold, 
         max.overlap.plusSig.minusSig = max.overlap.plusSig.minusSig,
         output.bedfile = output.bedfile)
-   ##save(merged.gr, file="merged.gr.RData")
-####### keep peaks not in merged.gr but present in both peaks1 and peaks2
-    if (n.files >1)
+   #save(merged.gr, file="merged.gr.RData")
+   message("keep peaks not in merged.gr but present in both peaks1 and peaks2\n")
+   peaks.inboth1and2.gr <- GRanges() 
+    if (n.files >1 && length(peaks1$peaks) > 0 && length(peaks2$peaks) > 0)
     {
         cat("Find unmerged peaks with reads representation in both libraries\n")
         peaks.1strandOnly <- merged.gr$peaks.1strandOnly 
@@ -240,7 +240,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     }
     else if (!keepPeaksInBothStrandsOnly)
     {
-       cat("Find unmerged peaks with very high reads one-library protocol\n")
+       message("Find unmerged peaks with very high reads one-library protocol\n")
        peaks.1strandOnly.bed <- cbind(as.character(seqnames(merged.gr$peaks.1strandOnly)),
             start(merged.gr$peaks.1strandOnly),
             end(merged.gr$peaks.1strandOnly), names(merged.gr$peaks.1strandOnly),
@@ -255,7 +255,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         as.data.frame(merged.gr$mergedPeaks.gr)),
         file = paste(gRNAName, "PlusMinusPeaksMerged.xls",
         sep = "-" ), sep="\t", quote = FALSE, row.names=FALSE)
-    if (n.files > 1)
+    if (n.files > 1 && length(peaks1$peaks) > 0 && length(peaks2$peaks) > 0)
     {
         write.table(cbind(name = names(peaks.inboth1and2.gr),
             as.data.frame(peaks.inboth1and2.gr)),
@@ -264,8 +264,6 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
             col.names = FALSE, append = TRUE)
     } 
     message("offtarget analysis ...\n")
-    inputFile1Path <- gRNA.file
-    inputFile2Path <- output.bedfile
 
     if (missing(outputDir) || outputDir == getwd())
     {
@@ -300,7 +298,6 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         mismatch.activity.file = mismatch.activity.file
     )
     cat("Done with offtarget search!\n") 
-    
     offTargets <- subset(offTargets, !is.na(offTargets$offTarget))
     if (dim(offTargets)[1] == 0)
         stop("No offtargets found with the searching criteria!")
@@ -359,7 +356,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         sep="\t", row.names = FALSE) 
 
     message("Please check output file in directory ", outputDir , "\n")
-    if (n.files > 1)
+    if (n.files > 1) 
         list(offTargets = offTargets, merged.peaks = merged.gr$mergedPeaks.gr,
             peaks = peaks$peaks, uniqueCleavages = combined.gr,
             read.summary = list(s1 = cleavages.gr[[2]], s2 = cleavages.gr[[4]]),
