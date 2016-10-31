@@ -19,7 +19,7 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
     BSgenomeName, 
     gRNA.file,
     outputDir,
-    n.cores.max = 3L,
+    n.cores.max = 1L,
     keep.R1only = TRUE, keep.R2only = TRUE,
     concordant.strand = TRUE,
     max.paired.distance = 1000L, min.mapping.quality = 30L,
@@ -128,7 +128,7 @@ the directory where the off target analysis and reports will be written to
 }
 \item{n.cores.max}{
 Indicating maximum number of cores to use in multi core mode, 
-    i.e., parallel processing, default 3. Please set it to 1 to disable
+    i.e., parallel processing, default 1 to disable
     multicore processing for small dataset.
 }
   \item{keep.R1only}{
@@ -216,7 +216,7 @@ to be considered as a peak
 }
 \item{min.peak.score.1strandOnly}{
 Specify the minimum number of reads for a one-strand only peak to be included in the output.
-Applicable when set keepPeaksInBothStrandsOnly to FALSE
+Applicable when set keepPeaksInBothStrandsOnly to FALSE and there is only one library per sample
 }
   \item{min.SNratio}{
 Specify the minimum signal noise ratio to be called as peaks, 
