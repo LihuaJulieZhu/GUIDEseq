@@ -182,8 +182,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
             window.size = window.size, bg.window.size = bg.window.size,
             maxP = maxP, p.adjust.methods = p.adjust.methods,
             min.reads = min.reads.per.lib, min.SNratio = min.SNratio) 
-    #     save(peaks1, file="peaks1.RData")
-    #     save(peaks2, file="peaks2.RData")
+         save(peaks1, file="peaks1.RData")
+         save(peaks2, file="peaks2.RData")
   
     }
     if (missing(outputDir))
@@ -201,7 +201,9 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         distance.threshold = distance.threshold, 
         max.overlap.plusSig.minusSig = max.overlap.plusSig.minusSig,
         output.bedfile = output.bedfile)
-   #save(merged.gr, file="merged.gr.RData")
+   ##save(merged.gr, file="merged.gr.RData")
+   if (length(merged.gr) == 0)
+       merged.gr <- list(peaks.1strandOnly = peaks$peaks)
    message("keep peaks not in merged.gr but present in both peaks1 and peaks2\n")
    peaks.inboth1and2.gr <- GRanges() 
     if (n.files >1 && length(peaks1$peaks) > 0 && length(peaks2$peaks) > 0)
@@ -235,8 +237,9 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
             end(peaks.inboth1and2.gr), names(peaks.inboth1and2.gr),
             peaks.inboth1and2.gr$count, as.character(strand(peaks.inboth1and2.gr)))
        
+        append <- ifelse(merged.gr$mergedPeaks.bed != "", TRUE, FALSE)
         write.table(bed.temp, file = output.bedfile, sep = "\t", 
-            row.names = FALSE, col.names = FALSE, quote = FALSE, append = TRUE)
+            row.names = FALSE, col.names = FALSE, quote = FALSE, append = append)
     }
     else if (!keepPeaksInBothStrandsOnly)
     {
@@ -248,13 +251,14 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
 
        peaks.1strandOnly.bed <- peaks.1strandOnly.bed[as.numeric(as.character(
            peaks.1strandOnly.bed[,5])) >= min.peak.score.1strandOnly, ] 
-        write.table(peaks.1strandOnly.bed, file = output.bedfile, sep = "\t",
+       write.table(peaks.1strandOnly.bed, file = output.bedfile, sep = "\t",
             row.names = FALSE, col.names = FALSE, quote = FALSE, append = TRUE) 
     }
-    write.table(cbind(name = names(merged.gr$mergedPeaks.gr),
-        as.data.frame(merged.gr$mergedPeaks.gr)),
-        file = paste(gRNAName, "PlusMinusPeaksMerged.xls",
-        sep = "-" ), sep="\t", quote = FALSE, row.names=FALSE)
+    if (length(merged.gr$mergedPeaks.gr) > 1)
+        write.table(cbind(name = names(merged.gr$mergedPeaks.gr),
+            as.data.frame(merged.gr$mergedPeaks.gr)),
+            file = paste(gRNAName, "PlusMinusPeaksMerged.xls",
+            sep = "-" ), sep="\t", quote = FALSE, row.names=FALSE)
     if (n.files > 1 && length(peaks1$peaks) > 0 && length(peaks2$peaks) > 0)
     {
         write.table(cbind(name = names(peaks.inboth1and2.gr),
@@ -273,11 +277,12 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     }
     if(!file.exists(outputDir))
         dir.create(outputDir)
-    write.table(cbind(name = names(merged.gr$mergedPeaks.gr),
-        as.data.frame(merged.gr$mergedPeaks.gr)),
-        file = file.path(outputDir, paste(gRNAName, 
-        "PlusMinusPeaksMerged.xls", sep = "-" )),
-        sep="\t", row.names=FALSE)
+    if (length(merged.gr$mergedPeaks.gr) > 1)
+        write.table(cbind(name = names(merged.gr$mergedPeaks.gr),
+            as.data.frame(merged.gr$mergedPeaks.gr)),
+            file = file.path(outputDir, paste(gRNAName, 
+            "PlusMinusPeaksMerged.xls", sep = "-" )),
+            sep="\t", row.names=FALSE)
 
     offTargets <- offTargetAnalysisOfPeakRegions(gRNA = gRNA.file,
         peaks = output.bedfile,
