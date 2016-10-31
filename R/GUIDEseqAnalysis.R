@@ -197,6 +197,15 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
 
     output.bedfile <- paste(gRNAName, "PlusMinusPeaksMerged.bed",
         sep = "-" )
+    if (missing(outputDir) || outputDir == getwd())
+    {
+        outputDir <- paste(gRNAName,  "min", min.reads,
+            "window", window.size, "step", step, "distance",
+            distance.threshold, sep = "" )
+    }
+    if(!file.exists(outputDir))
+        dir.create(outputDir)
+ 
     merged.gr<- mergePlusMinusPeaks(peaks.gr = peaks$peaks,
         distance.threshold = distance.threshold, 
         max.overlap.plusSig.minusSig = max.overlap.plusSig.minusSig,
@@ -275,12 +284,6 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
  
     message("offtarget analysis ...\n")
 
-    if (missing(outputDir) || outputDir == getwd())
-    {
-        outputDir <- paste(gRNAName,  "min", min.reads,
-            "window", window.size, "step", step, "distance",
-            distance.threshold, sep = "" )
-    }
     if(!file.exists(outputDir))
         dir.create(outputDir)
 
