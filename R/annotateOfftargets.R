@@ -14,7 +14,8 @@ function (thePeaks, txdb, orgAnn)
     inExon <- overlapsAny(peaks.RD, allExons, minoverlap = 1L, 
         type = "any", ignore.strand = TRUE)
     inExon[inExon== FALSE] <- ""
-    allGenes <- genes(txdb, vals = NULL, columns = "gene_id", 
+#    allGenes <- genes(txdb, vals = NULL, columns = "gene_id", 
+     allGenes <- genes(txdb, columns = "gene_id",
         single.strand.genes.only =  TRUE)
     if (seqlevelsStyle(allGenes) != seqlevelsStyle(peaks.RD)) {
         seqlevelsStyle(allGenes) <-  seqlevelsStyle(peaks.RD)

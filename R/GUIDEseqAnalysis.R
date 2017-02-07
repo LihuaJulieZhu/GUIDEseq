@@ -182,8 +182,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
             window.size = window.size, bg.window.size = bg.window.size,
             maxP = maxP, p.adjust.methods = p.adjust.methods,
             min.reads = min.reads.per.lib, min.SNratio = min.SNratio) 
-         save(peaks1, file="peaks1.RData")
-         save(peaks2, file="peaks2.RData")
+         #save(peaks1, file="peaks1.RData")
+         #save(peaks2, file="peaks2.RData")
   
     }
     if (missing(outputDir))
