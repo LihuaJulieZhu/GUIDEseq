@@ -1,10 +1,10 @@
 Package: GUIDEseq
 Type: Package
 Title: GUIDE-seq analysis pipeline
-Version: 1.7.0
-Date: 2017-03-22
+Version: 1.7.1
+Date: 2017-05-23
 Author: Lihua Julie Zhu, Michael Lawrence, Ankit Gupta,
-        Alper Kucukural, Manuel Garber, Scot A. Wolfe
+        Hervé Pagès, Alper Kucukural, Manuel Garber, Scot A. Wolfe
 Maintainer: Lihua Julie Zhu <julie.zhu@umassmed.edu>
 Depends: R (>= 3.2.0), GenomicRanges, BiocGenerics
 Imports: BiocParallel, Biostrings, CRISPRseek, ChIPpeakAnno,

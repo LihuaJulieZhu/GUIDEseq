@@ -14,7 +14,7 @@ BiocStyle::latex()
 \usepackage{graphicx}
 \usepackage[section]{placeins}
 \bibliographystyle{plainnat}
-\author{Lihua Julie Zhu, Michael Lawrence, Ankit Gupta, \\ Alper Kucukural, Manuel Garber, Scot Wolfe}
+\author{Lihua Julie Zhu, Michael Lawrence, Ankit Gupta, Herve Pages,\\ Alper Kucukural, Manuel Garber, Scot Wolfe}
 \begin{document}
 \SweaveOpts{concordance=TRUE}
 
@@ -263,6 +263,7 @@ BMC Bioinformatics 2010, 11:237doi:10.1186/1471-2105-11-237.
 and Michael Brodsky. CRISPRseek: a Bioconductor package to identify 
 target-specific guide RNAs for CRISPR-Cas9 genome-editing systems. Plos One 
 Sept 23rd 2014
+\bibitem{Zhu et al., 2017}Lihua Julie Zhu, Michael Lawrence, Ankit Gupta, Herve Pages, Alper Kucukural, Manuel Garber and Scot A. Wolfe. GUIDEseq: a bioconductor package to analyze GUIDE-Seq datasets for CRISPR-Cas nucleases. BMC Genomics. 2017. 18:379
 \end{thebibliography}
 
 \section{Session Info}

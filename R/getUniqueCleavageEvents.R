@@ -6,6 +6,7 @@ getUniqueCleavageEvents <-
     read.ID.col = 1,
     umi.col = 2,
     umi.sep = "\t",
+    keep.chrM = FALSE,
     keep.R1only = TRUE,
     keep.R2only = TRUE, 
     concordant.strand = TRUE,
@@ -41,7 +42,7 @@ getUniqueCleavageEvents <-
     if (alignment.format == "bed") {
         warning("BED alignment input is deprecated, please provide the BAM file")
         align <- importBEDAlignments(alignment.inputfile,
-                                     min.mapping.quality,
+                                     min.mapping.quality, keep.chrM,
                                      keep.R1only, keep.R2only,
                                      min.R1.mapped, min.R2.mapped,
                                      apply.both.min.mapped,
@@ -52,7 +53,7 @@ getUniqueCleavageEvents <-
                                      n.cores.max)
     } else {
         align <- importBAMAlignments(alignment.inputfile,
-                                     min.mapping.quality,
+                                     min.mapping.quality, keep.chrM,
                                      keep.R1only, keep.R2only,
                                      min.R1.mapped, min.R2.mapped,
                                      apply.both.min.mapped,
@@ -167,6 +168,7 @@ rbind_dodge <- function(x, y,
 
 importBAMAlignments <- function(file,
                                 min.mapping.quality = 30L,
+                                keep.chrM = FALSE,
                                 keep.R1only = TRUE,
                                 keep.R2only = TRUE, 
                                 min.R1.mapped = 30L, 
@@ -182,7 +184,8 @@ importBAMAlignments <- function(file,
     gal <- readGAlignmentsList(BamFile(file, asMates=TRUE), param=param,
                                use.names=TRUE)
     pairs <- as(gal, "GAlignmentPairs")
-
+    if (!keep.chrM)
+        pairs <- pairs[!seqnames(pairs) %in% c("chrM", "chrMT", "M"),]
     if (apply.both.min.mapped) {
         pairs <- pairs[width(first(pairs)) >= min.R1.mapped &
                        width(last(pairs)) >= min.R2.mapped]
@@ -236,6 +239,7 @@ importBAMAlignments <- function(file,
 
 importBEDAlignments <- function(file,
                                 min.mapping.quality = 30L,
+                                keep.chrM = FALSE,
                                 keep.R1only = TRUE,
                                 keep.R2only = TRUE, 
                                 min.R1.mapped = 30L, 
@@ -256,6 +260,8 @@ importBEDAlignments <- function(file,
     colnames(align) <- c("seqnames", "start", "end", "name", "mapq",
                          "strand", "cigar")
     align <- align[align$mapq >= min.mapping.quality,]
+    if (!keep.chrM)
+        align <- align[!align$seqnames %in% c("chrM", "chrMT", "M"),]
     sidePos <- nchar(align$name)
     readSide <- as.integer(substring(align$name, sidePos, sidePos))
     align$readName <- substring(align$name, 1L, sidePos - 2L)

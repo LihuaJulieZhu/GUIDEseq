@@ -20,6 +20,7 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
     gRNA.file,
     outputDir,
     n.cores.max = 1L,
+    keep.chrM = FALSE,
     keep.R1only = TRUE, keep.R2only = TRUE,
     concordant.strand = TRUE,
     max.paired.distance = 1000L, min.mapping.quality = 30L,
@@ -130,6 +131,10 @@ the directory where the off target analysis and reports will be written to
 Indicating maximum number of cores to use in multi core mode, 
     i.e., parallel processing, default 1 to disable
     multicore processing for small dataset.
+}
+  \item{keep.chrM}{
+Specify whether to include alignment from chrM.
+Default FALSE
 }
   \item{keep.R1only}{
 Specify whether to include alignment with only R1 without paired R2.

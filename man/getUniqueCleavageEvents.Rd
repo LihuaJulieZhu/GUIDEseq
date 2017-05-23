@@ -14,7 +14,8 @@ sequence from R1 reads to obtain the starting sequence library.
 getUniqueCleavageEvents(alignment.inputfile, umi.inputfile, 
  alignment.format = c("auto", "bam", "bed"),
  umi.header = FALSE, read.ID.col = 1, 
-umi.col = 2, umi.sep = "\t", keep.R1only = TRUE, keep.R2only = TRUE, 
+umi.col = 2, umi.sep = "\t", keep.chrM = FALSE,
+keep.R1only = TRUE, keep.R2only = TRUE, 
 concordant.strand = TRUE, max.paired.distance = 1000, 
 min.mapping.quality = 30, max.R1.len = 130, max.R2.len = 130, 
 apply.both.max.len = FALSE, same.chromosome = TRUE, 
@@ -55,6 +56,10 @@ of sequence from the R1 reads, default to 2
 }
   \item{umi.sep}{
 column separator in the umi input file, default to tab
+}
+\item{keep.chrM}{
+Specify whether to include alignment from chrM.
+Default FALSE 
 }
   \item{keep.R1only}{
 Specify whether to include alignment with only R1 without paired R2. 
