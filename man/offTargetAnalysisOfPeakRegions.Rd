@@ -41,7 +41,8 @@ offTargetAnalysisOfPeakRegions(gRNA, peaks,
      PAM.location = "3prime",
      mismatch.activity.file = system.file("extdata", 
          "NatureBiot2016SuppTable19DoenchRoot.csv", 
-         package = "CRISPRseek")
+         package = "CRISPRseek"),
+     n.cores.max = 1
     )
 }
 \arguments{
@@ -150,6 +151,11 @@ Please set to 5prime for cpf1 PAM since it's PAM is located on the 5 prime end
 Applicable only when scoring.method is set to CFDscore
 A comma separated (csv) file containing the cleavage rates for all possible types of
 single nucleotide mismatche at each position of the gRNA. By default, using the supplemental Table 19 from Doench et al., Nature Biotechnology 2016
+}
+\item{n.cores.max}{
+Indicating maximum number of cores to use in multi core mode,
+    i.e., parallel processing, default 1 to disable
+    multicore processing for small dataset.
 }
 }
 \value{

@@ -38,7 +38,8 @@ offTargetAnalysisOfPeakRegions <-
      PAM.location = "3prime",
      mismatch.activity.file = system.file("extdata", 
          "NatureBiot2016SuppTable19DoenchRoot.csv", 
-         package = "CRISPRseek")
+         package = "CRISPRseek"),
+     n.cores.max = 1
    )
 {
     orderOfftargetsBy <- match.arg(orderOfftargetsBy)
@@ -94,29 +95,54 @@ offTargetAnalysisOfPeakRegions <-
 
     if ( !is.na(TS2))
     {
-        n.cores <- detectCores() - 1
-        cl <- makeCluster(n.cores)
+        n.cores <- min(n.cores.max, detectCores() - 1)
+        if (n.cores > 1)
+        {
+            cl <- makeCluster(n.cores)
    
-        names <- as.character(unlist(parLapply(cl, as.character(TS2$offTarget),
-           function(temp) {
-           temp1 <- strsplit(temp,":")[[1]]
-           end.ind <- length(temp1) - 1
-           paste(temp1[1:end.ind], collapse=":")
-        })))
-        TS2 <- cbind(names = names, TS2)
-        excluding.columns = which(colnames(TS2) %in% 
-            c("scoreForSeq1", "targetInSeq1", "gRNAefficacy", "scoreDiff"))
-        TS2 <- TS2[, -excluding.columns]
-        colnames(TS2)[colnames(TS2) == "scoreForSeq2"] = "predicted_cleavage_score"
-        colnames(TS2)[colnames(TS2) == "targetInSeq2"] = "offTarget_sequence"
-        offTargetOffset <- do.call(rbind, parLapply(cl, as.character(TS2$offTarget),
-           function(temp) 
-           { 
-            temp1 <- strsplit(temp,":")[[1]]
-            start.ind <- length(temp1)
-            as.numeric(strsplit(temp1[start.ind], "-")[[1]][1:2])
-        }))
-        stopCluster(cl)
+            names <- as.character(unlist(parLapply(cl, as.character(TS2$offTarget),
+                function(temp) {
+                    temp1 <- strsplit(temp,":")[[1]]
+                    end.ind <- length(temp1) - 1
+                    paste(temp1[1:end.ind], collapse=":")
+            })))
+           TS2 <- cbind(names = names, TS2)
+           excluding.columns = which(colnames(TS2) %in% 
+               c("scoreForSeq1", "targetInSeq1", "gRNAefficacy", "scoreDiff"))
+           TS2 <- TS2[, -excluding.columns]
+           colnames(TS2)[colnames(TS2) == "scoreForSeq2"] = "predicted_cleavage_score"
+           colnames(TS2)[colnames(TS2) == "targetInSeq2"] = "offTarget_sequence"
+           offTargetOffset <- do.call(rbind, parLapply(cl, as.character(TS2$offTarget),
+               function(temp) 
+               { 
+               temp1 <- strsplit(temp,":")[[1]]
+               start.ind <- length(temp1)
+               as.numeric(strsplit(temp1[start.ind], "-")[[1]][1:2])
+             }))
+            stopCluster(cl)
+        }
+        else
+        {
+            names <- as.character(unlist(lapply(as.character(TS2$offTarget),
+                function(temp) {
+                    temp1 <- strsplit(temp,":")[[1]]
+                    end.ind <- length(temp1) - 1
+                    paste(temp1[1:end.ind], collapse=":")
+            })))
+            TS2 <- cbind(names = names, TS2)
+            excluding.columns = which(colnames(TS2) %in%
+               c("scoreForSeq1", "targetInSeq1", "gRNAefficacy", "scoreDiff"))
+            TS2 <- TS2[, -excluding.columns]
+            colnames(TS2)[colnames(TS2) == "scoreForSeq2"] = "predicted_cleavage_score"
+            colnames(TS2)[colnames(TS2) == "targetInSeq2"] = "offTarget_sequence"
+            offTargetOffset <- do.call(rbind, lapply(as.character(TS2$offTarget),
+               function(temp)
+               {
+               temp1 <- strsplit(temp,":")[[1]]
+               start.ind <- length(temp1)
+               as.numeric(strsplit(temp1[start.ind], "-")[[1]][1:2])
+             }))
+        }
         TS2 <- cbind(TS2, offTarget_Start = offTargetOffset[,1], 
            offTarget_End = offTargetOffset[,2])
         offtargets <- merge(TS2, thePeaks, by = "names", all = TRUE)
