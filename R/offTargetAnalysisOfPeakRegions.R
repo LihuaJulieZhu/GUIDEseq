@@ -93,9 +93,12 @@ offTargetAnalysisOfPeakRegions <-
             return(NA)
         })
 
-    if ( !is.na(TS2))
+    if ( exists("TS2") && length(TS2) > 1)
     {
-        n.cores <- min(n.cores.max, detectCores() - 1)
+        if (dim(TS2)[1] > 200)
+            n.cores <- min(n.cores.max, floor(detectCores() /3) + 1)
+        else
+            n.cores <- 1
         if (n.cores > 1)
         {
             cl <- makeCluster(n.cores)
