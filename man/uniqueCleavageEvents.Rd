@@ -94,6 +94,8 @@ http://trace.ncbi.nlm.nih.gov/Traces/sra/?run=SRR1695644
 \examples{
     data(uniqueCleavageEvents)
     names(uniqueCleavageEvents)
-    str(uniqueCleavageEvents) 
+    sapply(uniqueCleavageEvents, class)
+    uniqueCleavageEvents[[1]]  # GRanges object
+    lapply(uniqueCleavageEvents, dim)
 }
 \keyword{datasets}
