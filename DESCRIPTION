@@ -1,7 +1,7 @@
 Package: GUIDEseq
 Type: Package
 Title: GUIDE-seq analysis pipeline
-Version: 1.13.0
+Version: 1.13.1
 Date: 2018-03-28
 Encoding: UTF-8
 Author: Lihua Julie Zhu, Michael Lawrence, Ankit Gupta,
@@ -13,7 +13,7 @@ Imports: BiocParallel, Biostrings, CRISPRseek, ChIPpeakAnno,
 	 IRanges (>= 2.5.5), S4Vectors (>= 0.9.6),
 	 GenomicAlignments (>= 1.7.3), GenomeInfoDb, Rsamtools, 
          hash, limma
-biocViews: GeneRegulation, Sequencing, WorkflowStep, CRISPR
+biocViews: ImmunoOncology, GeneRegulation, Sequencing, WorkflowStep, CRISPR
 Suggests: knitr, RUnit, BiocStyle, BSgenome.Hsapiens.UCSC.hg19, TxDb.Hsapiens.UCSC.hg19.knownGene, org.Hs.eg.db
 VignetteBuilder: knitr
 Description: The package implements GUIDE-seq analysis workflow
