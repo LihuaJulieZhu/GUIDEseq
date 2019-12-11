@@ -47,11 +47,33 @@ offTargetAnalysisOfPeakRegions <-
         stringsAsFactors = FALSE)
     if (format[2] == "bed")
     {
-       if (dim(thePeaks)[2] >= 4 )
+       if (dim(thePeaks)[2] == 3)
+       {
+	  pnames <- paste(thePeaks[,1], thePeaks[,2], sep = ":")
+	  thePeaks <- cbind(thePeaks, pnames, pnames, pnames)
+          thePeaks[, 5] <-  0
+          thePeaks[, 6] <- "+" 
+       }
+       if (dim(thePeaks)[2] >= 4)
+       {
            colnames(thePeaks)[1:4] <- c("chromosome", "peak_start", "peak_end",
                 "names")
+           if (dim(thePeaks)[2] == 4)
+           {
+		thePeaks <- cbind(thePeaks, thePeaks[, 4], thePeak[, 5])
+                thePeaks[, 5] <-  0 
+                thePeaks[, 6] <- "+" 
+	   }
+       }
         if(dim(thePeaks)[2] >= 5)
-            colnames(thePeaks)[5] = "peak_score"
+        {
+           colnames(thePeaks)[5] = "peak_score"
+           if (dim(thePeaks)[2] == 5)
+           {
+                thePeaks <- cbind(thePeaks, thePeaks[, 5])
+                thePeaks[, 6] <- "+"
+           }
+        }
         if(dim(thePeaks)[2] >= 6)
             colnames(thePeaks)[6] = "peak_strand"
     }
