@@ -163,6 +163,11 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         write.table(read.summary, file = paste(gRNAName, fileName,
             "ReadSummary.xls", sep = ""),
             sep = "\t", row.names = FALSE)
+        seq.depth <- as.data.frame(table(cleavages$umi.count.summary$n))
+        colnames(seq.depth)[1] <- c("UMIduplicateLevels") 
+        write.table(seq.depth, file = paste(gRNAName, fileName,
+            "UMIsummary.xls", sep = ""),
+            sep = "\t", row.names = FALSE) 
 	list(cleavages.gr = cleavages$cleavage.gr, read.summary = read.summary) 
     }))
     message("Peak calling ...\n")

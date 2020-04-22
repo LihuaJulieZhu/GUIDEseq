@@ -131,6 +131,30 @@ getUniqueCleavageEvents <-
         colnames(plus.cleavage) <- c("seqnames", "start", "strand")
         colnames(minus.cleavage) <- c("seqnames", "start", "strand")
         unique.umi.both <- rbind(plus.cleavage, minus.cleavage)
+
+        R1.umi.plus <- R1.umi.plus[, c("seqnames.first",
+                                   "strand.first",
+                                   "start.first", "UMI")]
+        R1.umi.minus <- R1.umi.minus[, c("seqnames.first",
+                                    "strand.first",
+                                    "end.first", "UMI")]
+        R2.umi.plus <- R2.umi.plus[, c("seqnames.last",
+                                    "strand.last",
+                                    "start.last", "UMI")] 
+        R2.umi.minus <- R2.umi.minus[, c("seqnames.last",
+                                    "strand.last", 
+                                    "end.last", "UMI")]
+
+        colnames(R1.umi.plus) <- c("seqnames", "strand", "start", "UMI")
+        colnames(R1.umi.minus) <- c("seqnames", "strand", "start", "UMI")
+        colnames(R2.umi.plus) <- c("seqnames", "strand", "start", "UMI")
+        colnames(R2.umi.minus) <- c("seqnames", "strand", "start", "UMI")
+
+	R1.umi.plus.summary <- unique(add_count(R1.umi.plus, seqnames, strand, start, UMI))
+        R1.umi.minus.summary <- unique(add_count(R1.umi.minus, seqnames, strand, start, UMI))
+        R2.umi.plus.summary <- unique(add_count(R2.umi.plus, seqnames, strand, start, UMI))
+        R2.umi.minus.summary <- unique(add_count(R2.umi.minus, seqnames, strand, start, UMI))
+         
         list(cleavage.gr = GRanges(IRanges(start=unique.umi.both[,2], width=1),
             seqnames=unique.umi.both[,1], strand = unique.umi.both[,3], 
             total=rep(1, dim(unique.umi.both)[1])), 
@@ -138,7 +162,12 @@ getUniqueCleavageEvents <-
             unique.umi.minus.R2 = unique.umi.minus.R2,
             unique.umi.plus.R1 = unique.umi.plus.R1, 
             unique.umi.minus.R1 = unique.umi.minus.R1, 
-            align.umi = align.umi) 
+            align.umi = align.umi,
+            umi.count.summary = rbind(R1.umi.plus.summary, 
+              R1.umi.minus.summary,
+              R2.umi.plus.summary,
+              R2.umi.minus.summary)
+	) 
     }
 }
 

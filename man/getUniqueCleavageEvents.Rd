@@ -228,6 +228,8 @@ getPeaks
             alignment.inputfile = alignFile , umi.inputfile = umiFile,
             n.cores.max = 1)
         names(cleavages)
+        #output a summary of duplicate counts for sequencing saturation assessment
+        table(cleavages$umi.count.summary$n)
     }
 }
 \keyword{ misc }
