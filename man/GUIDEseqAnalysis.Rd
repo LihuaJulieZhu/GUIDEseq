@@ -180,11 +180,11 @@ Specify the distance value to assign to the paired reads that are aligned to
     different chromosome, default -1
 }
   \item{min.R1.mapped}{
-The maximum mapped R1 length to be considered for downstream analysis,
+The minimum mapped R1 length to be considered for downstream analysis,
     default 30 bp.
 }
   \item{min.R2.mapped}{
-The maximum mapped R2 length to be considered for downstream analysis,
+The minimum mapped R2 length to be considered for downstream analysis,
     default 30 bp.
 }
   \item{apply.both.min.mapped}{
