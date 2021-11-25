@@ -212,7 +212,9 @@ importBAMAlignments <- function(file,
     param <- ScanBamParam(mapqFilter=min.mapping.quality, what=c("flag", "mapq"))
     gal <- readGAlignmentsList(BamFile(file, asMates=TRUE), param=param,
                                use.names=TRUE)
-    pairs <- as(gal, "GAlignmentPairs")
+    #pairs <- as(gal, "GAlignmentPairs")
+    pairs <- readGAlignmentPairs(BamFile(file), use.names = TRUE, 
+         param = param, strandMode = 1)
     if (!keep.chrM)
         pairs <- pairs[!seqnames(pairs) %in% c("chrM", "chrMT", "M"),]
     if (apply.both.min.mapped) {
