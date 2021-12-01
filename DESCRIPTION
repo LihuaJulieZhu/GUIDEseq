@@ -1,22 +1,22 @@
 Package: GUIDEseq
 Type: Package
 Title: GUIDE-seq analysis pipeline
-Version: 1.25.2
-Date: 2021-11-18
+Version: 1.25.3
+Date: 2021-11-30
 Encoding: UTF-8
 Author: Lihua Julie Zhu, Michael Lawrence, Ankit Gupta,
        Hervé Pagès , Alper Kucukural, Manuel Garber, Scot A. Wolfe
 Maintainer: Lihua Julie Zhu <julie.zhu@umassmed.edu>
-Depends: R (>= 3.2.0), GenomicRanges, BiocGenerics
+Depends: R (>= 3.5.0), GenomicRanges, BiocGenerics
 Imports: BiocParallel, Biostrings, CRISPRseek, ChIPpeakAnno,
          data.table, matrixStats, BSgenome, parallel,
 	 IRanges (>= 2.5.5), S4Vectors (>= 0.9.6),
 	 GenomicAlignments (>= 1.7.3), GenomeInfoDb, Rsamtools, 
-         hash, limma,dplyr
+         hash, limma,dplyr, GenomicFeatures
 biocViews: ImmunoOncology, GeneRegulation, Sequencing, WorkflowStep, CRISPR
 Suggests: knitr, RUnit, BiocStyle, BSgenome.Hsapiens.UCSC.hg19, TxDb.Hsapiens.UCSC.hg19.knownGene, org.Hs.eg.db
 VignetteBuilder: knitr
-Description: The package implements GUIDE-seq analysis workflow
+Description: The package implements GUIDE-seq and PEtag-seq analysis workflow
         including functions for obtaining unique insertion 
         sites (proxy of cleavage sites), estimating the locations 
         of the insertion sites, aka, peaks, merging estimated insertion

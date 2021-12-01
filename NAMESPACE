@@ -17,9 +17,12 @@ importFrom(matrixStats, rowMins)
 importFrom(matrixStats, rowMaxs)
 importFrom(hash, values, hash)
 importFrom(dplyr, add_count)
+importFrom(GenomicFeatures, exons, genes)
 importFrom(Rsamtools, ScanBamParam, BamFile, bamFlagTest)
 importFrom(GenomicAlignments, readGAlignmentsList, first, last, readGAlignmentPairs)
-importFrom(GenomeInfoDb, seqlevels, seqinfo, "seqinfo<-", "seqlevels<-", seqlevelsStyle)
-export(GUIDEseqAnalysis, getUniqueCleavageEvents, getPeaks,combineOfftargets,
+importFrom(GenomeInfoDb, seqlengths, seqlevels, seqinfo, "seqinfo<-", "seqlevels<-", seqlevelsStyle)
+importFrom("grDevices", "dev.off", "pdf")
+importFrom("graphics", "hist", "par")
+export(GUIDEseqAnalysis, PEtagAnalysis, getUniqueCleavageEvents, getPeaks,combineOfftargets,
     mergePlusMinusPeaks, offTargetAnalysisOfPeakRegions, annotateOffTargets,
     createBarcodeFasta, getUsedBarcodes)

@@ -63,6 +63,12 @@ getUniqueCleavageEvents <-
                                      distance.inter.chrom
                                      )
     }
+    pdf(paste0(gsub(".sorted", "", gsub(".bam", "", basename(alignment.inputfile))),
+        "AlignmentWidthDistribution.pdf"))
+    par(mfrow = c(1,2))
+    hist(align$qwidth.first, xlab = "R1 aligned read width", main = "")
+    hist(align$qwidth.last, xlab = "R2 aligned read width", main = "")
+    dev.off() 
     if (length(umi) < read.ID.col || length(umi) < umi.col)
     {
         stop("umi input file must contain at least two columns, 
@@ -212,34 +218,36 @@ importBAMAlignments <- function(file,
     param <- ScanBamParam(mapqFilter=min.mapping.quality, what=c("flag", "mapq"))
     gal <- readGAlignmentsList(BamFile(file, asMates=TRUE), param=param,
                                use.names=TRUE)
-    #pairs <- as(gal, "GAlignmentPairs")
-    pairs <- readGAlignmentPairs(BamFile(file), use.names = TRUE, 
-         param = param, strandMode = 1)
+    my.pairs <- tryCatch(( as(gal, "GAlignmentPairs")),
+          error=function(e) { 
+             readGAlignmentPairs(BamFile(file), use.names = TRUE, 
+                param = param, strandMode = 1)})
+
     if (!keep.chrM)
-        pairs <- pairs[!seqnames(pairs) %in% c("chrM", "chrMT", "M"),]
+        my.pairs <- my.pairs[!seqnames(my.pairs) %in% c("chrM", "chrMT", "M"),]
     if (apply.both.min.mapped) {
-        pairs <- pairs[width(first(pairs)) >= min.R1.mapped &
-                       width(last(pairs)) >= min.R2.mapped]
+        my.pairs <- my.pairs[width(first(my.pairs)) >= min.R1.mapped &
+                       width(last(my.pairs)) >= min.R2.mapped]
     } else {
-        pairs <- pairs[width(first(pairs)) >= min.R1.mapped |
-                       width(last(pairs)) >= min.R2.mapped]
+        my.pairs <- my.pairs[width(first(my.pairs)) >= min.R1.mapped |
+                       width(last(my.pairs)) >= min.R2.mapped]
     }
 
     if (concordant.strand) {
-        pairs <- pairs[strand(pairs) != "*"]
+        my.pairs <- my.pairs[strand(my.pairs) != "*"]
     }
 
     if (same.chromosome) {
-        pairs <- pairs[!is.na(seqnames(pairs))]
+        my.pairs <- my.pairs[!is.na(seqnames(my.pairs))]
     }
     
-    distance <- ifelse(is.na(seqnames(pairs)), distance.inter.chrom,
+    distance <- ifelse(is.na(seqnames(my.pairs)), distance.inter.chrom,
                        ## does not yield negative
-                       ## width(pgap(ranges(first(pairs)), ranges(last(pairs))))
-                       ifelse(strand(pairs) == "+",
-                              (start(last(pairs)) - end(first(pairs))), 
-                              (start(first(pairs)) - end(last(pairs)))))
-    mcols(pairs)$distance <- distance
+                       ## width(pgap(ranges(first(my.pairs)), ranges(last(my.pairs))))
+                       ifelse(strand(my.pairs) == "+",
+                              (start(last(my.pairs)) - end(first(my.pairs))), 
+                              (start(first(my.pairs)) - end(last(my.pairs)))))
+    mcols(my.pairs)$distance <- distance
 
     unpaired <- unlist(gal[mcols(gal)$mate_status == "unmated"])
 
@@ -258,7 +266,7 @@ importBAMAlignments <- function(file,
                               ".first", ".last", "readName")
     unpairedDF$distance <- NA_integer_
     
-    pairedDF <- as.data.frame(pairs)
+    pairedDF <- as.data.frame(my.pairs)
     pairedDF$readName <- rownames(pairedDF)
     rownames(pairedDF) <- NULL
     
