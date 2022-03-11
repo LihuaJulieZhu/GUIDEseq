@@ -22,6 +22,8 @@ apply.both.max.len = FALSE, same.chromosome = TRUE,
 distance.inter.chrom = -1, min.R1.mapped = 20, min.R2.mapped = 20, 
 apply.both.min.mapped = FALSE, max.duplicate.distance = 0, 
 umi.plus.R1start.unique = TRUE, umi.plus.R2start.unique = TRUE,
+min.umi.count = 5L,
+max.umi.count = 10000L,
 n.cores.max = 6)
 }
 \arguments{
@@ -127,6 +129,14 @@ containing the same UMI and same alignment start for R1 read, default TRUE.
   \item{umi.plus.R2start.unique}{
 To specify whether two mapped reads are considered as unique if both 
 containing the same UMI and same alignment start for R2 read, default TRUE.
+}
+\item{min.umi.count}{
+ To specify the minimum count for a umi to be included in the subsequent analysis.
+ Please adjust it to a higher number for deeply sequenced library and vice versa.
+}
+\item{max.umi.count}{
+ To specify the maximum count for a umi to be included in the subsequent analysis.
+ Please adjust it to a higher number for deeply sequenced library and vice versa.
 }
 \item{n.cores.max}{Indicating maximum number of cores to use in multi core mode, 
     i.e., parallel processing, default 6. Please set it to 1 to disable multicore

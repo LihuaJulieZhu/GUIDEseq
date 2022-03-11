@@ -25,6 +25,8 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
     concordant.strand = TRUE,
     max.paired.distance = 1000L, min.mapping.quality = 30L,
     max.R1.len = 130L, max.R2.len = 130L,
+    min.umi.count = 5L, 
+    max.umi.count = 10000L,
     apply.both.max.len = FALSE, same.chromosome = TRUE,
     distance.inter.chrom = -1L, min.R1.mapped = 20L,
     min.R2.mapped = 20L, apply.both.min.mapped = FALSE,
@@ -166,6 +168,14 @@ The maximum retained R2 length to be considered for downstream analysis,
     default 130 bp. Please note that default of 130 works well when the read
     length 150 bp. Please also note that retained R2 length is not necessarily
     equal to the mapped R2 length
+}
+\item{min.umi.count}{
+ To specify the minimum count for a umi to be included in the subsequent analysis.
+ Please adjust it to a higher number for deeply sequenced library and vice versa.
+}
+\item{max.umi.count}{
+ To specify the maximum count for a umi to be included in the subsequent analysis.
+ Please adjust it to a higher number for deeply sequenced library and vice versa.
 }
   \item{apply.both.max.len}{
 Specify whether to apply maximum length requirement to both R1 and R2 reads,

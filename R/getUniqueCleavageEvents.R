@@ -20,9 +20,11 @@ getUniqueCleavageEvents <-
     min.R1.mapped = 20, 
     min.R2.mapped = 20,
     apply.both.min.mapped = FALSE, 
-    max.duplicate.distance = 0,
+    max.duplicate.distance = 0L,
     umi.plus.R1start.unique = TRUE,
     umi.plus.R2start.unique = TRUE,
+    min.umi.count = 5L,
+    max.umi.count = 10000L,
     n.cores.max = 6)
 { 
     if(!file.exists(alignment.inputfile))
@@ -66,8 +68,8 @@ getUniqueCleavageEvents <-
     pdf(paste0(gsub(".sorted", "", gsub(".bam", "", basename(alignment.inputfile))),
         "AlignmentWidthDistribution.pdf"))
     par(mfrow = c(1,2))
-    hist(align$qwidth.first, xlab = "R1 aligned read width", main = "")
-    hist(align$qwidth.last, xlab = "R2 aligned read width", main = "")
+    hist(align$width.first, xlab = "R1 aligned read width", main = "")
+    hist(align$width.last, xlab = "R2 aligned read width", main = "")
     dev.off() 
     if (length(umi) < read.ID.col || length(umi) < umi.col)
     {
@@ -81,14 +83,24 @@ getUniqueCleavageEvents <-
         colnames(umi) <- c("readName", "UMI")
         umi$readName <- gsub("^@", "", umi$readName)
         if (apply.both.max.len)
-            align <- subset(align, qwidth.first <= max.R1.len &
-                qwidth.last <= max.R2.len)
+            align <- subset(align, width.first <= max.R1.len &
+                width.last <= max.R2.len)
         else
             align <- subset(align,
-                            (qwidth.first > 0L & qwidth.first <= max.R1.len) |
-                                (qwidth.last > 0L & qwidth.last <= max.R2.len))
+                            (width.first > 0L & width.first <= max.R1.len) |
+                                (width.last > 0L & width.last <= max.R2.len))
         align.umi <- merge(align, umi)
-
+        all.ind <- seq(dim(align.umi)[1])
+        align.umi <- align.umi[setdiff(all.ind, grep("N", align.umi$UMI)), ]
+        temp <- as.data.frame(table(align.umi$UMI))
+	align.umi <- align.umi[align.umi$UMI %in% temp[temp[,2] >= min.umi.count &
+                   temp[,2] <= max.umi.count,1],]
+        pdf(paste0(gsub(".sorted", "", gsub(".bam", "", basename(alignment.inputfile))),
+              "AlignmentWidthDistributionUmiWithoutN.pdf"))
+              par(mfrow = c(1,2))
+              hist(align.umi$width.first, xlab = "R1 aligned read width", main = "")
+              hist(align.umi$width.last, xlab = "R2 aligned read width", main = "")
+        dev.off()
 ### plus means R2 on plus strand
         R2.good.len <- subset(align.umi, qwidth.last <= max.R2.len & 
                                   qwidth.last >= min.R2.mapped)
@@ -161,7 +173,7 @@ getUniqueCleavageEvents <-
         R2.umi.plus.summary <- unique(add_count(R2.umi.plus, seqnames, strand, start, UMI))
         R2.umi.minus.summary <- unique(add_count(R2.umi.minus, seqnames, strand, start, UMI))
          
-        list(cleavage.gr = GRanges(IRanges(start=unique.umi.both[,2], width=1),
+        res <- list(cleavage.gr = GRanges(IRanges(start=unique.umi.both[,2], width=1),
             seqnames=unique.umi.both[,1], strand = unique.umi.both[,3], 
             total=rep(1, dim(unique.umi.both)[1])), 
             unique.umi.plus.R2 = unique.umi.plus.R2, 
@@ -174,6 +186,10 @@ getUniqueCleavageEvents <-
               R2.umi.plus.summary,
               R2.umi.minus.summary)
 	) 
+        #saveRDS(res, file = paste0(gsub(".sorted", "", 
+        #      gsub(".bam", "", basename(alignment.inputfile))),
+        #      "CleavageSitesWithUMI.RDS"))
+        res
     }
 }
 
