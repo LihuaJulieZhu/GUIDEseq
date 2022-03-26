@@ -23,7 +23,8 @@ distance.inter.chrom = -1, min.R1.mapped = 20, min.R2.mapped = 20,
 apply.both.min.mapped = FALSE, max.duplicate.distance = 0, 
 umi.plus.R1start.unique = TRUE, umi.plus.R2start.unique = TRUE,
 min.umi.count = 5L,
-max.umi.count = 10000L,
+max.umi.count = 100000L,
+min.read.coverage = 1L,
 n.cores.max = 6)
 }
 \arguments{
@@ -138,6 +139,11 @@ containing the same UMI and same alignment start for R2 read, default TRUE.
  To specify the maximum count for a umi to be included in the subsequent analysis.
  Please adjust it to a higher number for deeply sequenced library and vice versa.
 }
+\item{min.read.coverage}{
+ To specify the minimum coverage for a read UMI combination to be included
+ in the subsequent analysis.
+ Please note that this is different from min.umi.count which is less stringent.
+}
 \item{n.cores.max}{Indicating maximum number of cores to use in multi core mode, 
     i.e., parallel processing, default 6. Please set it to 1 to disable multicore
     processing for small dataset.
@@ -149,52 +155,27 @@ metadata column total set to 1 for each range}
 \item{unique.umi.plus.R2}{a data frame containing unique cleavage site 
 from R2 reads mapped to plus strand with
    the following columns
-   chr.y (chromosome of readSide.y/R2 read)   
-   chr.x (chromosome of readSide.x/R1 read)
-   strand.y (strand of readSide.y/R2 read)
-   strand.x (strand of readSide.x/R1 read)
-   start.y (start of readSide.y/R2 read)
-   end.x (start of readSide.x/R1 read)
+   seqnames (chromosome)   
+   start (cleavage site)
+   strand
    UMI (unique molecular identifier (umi) or umi with the first few bases 
    of R1 read)
+   UMI read duplication level (min.read.coverage can be used to remove UMI-read with very
+   low coverage)
 }
 \item{unique.umi.minus.R2}{a data frame containing unique cleavage site 
 from R2 reads mapped to minus strand
-   with the following columns
-   chr.y (chromosome of readSide.y/R2 read)   
-   chr.x (chromosome of readSide.x/R1 read)
-   strand.y (strand of readSide.y/R2 read)
-   strand.x (strand of readSide.x/R1 read)
-   end.y (end of readSide.y/R2 read)
-   start.x (start of readSide.x/R1 read)
-   UMI (unique molecular identifier (umi) or umi with the first few bases 
-   of R1 read)
+   with the same columns as unique.umi.plus.R2
 }
 \item{unique.umi.plus.R1}{a data frame containing unique cleavage site from 
 R1 reads mapped to minus strand
    without corresponding R2 reads mapped to the plus strand, with the 
-   following columns
-   chr.y (chromosome of readSide.y/R2 read)   
-   chr.x (chromosome of readSide.x/R1 read)
-   strand.y (strand of readSide.y/R2 read)
-   strand.x (strand of readSide.x/R1 read)
-   start.x (start of readSide.x/R1 read)
-   start.y (start of readSide.y/R2 read)
-   UMI (unique molecular identifier (umi) or umi with the first few bases 
-   of R1 read)
+   same columns as unique.umi.plus.R2
 }
 \item{unique.umi.minus.R1}{a data frame containing unique cleavage site from 
 R1 reads mapped to plus strand
    without corresponding R2 reads mapped to the minus strand, with the 
-   following columns
-   chr.y (chromosome of readSide.y/R2 read)   
-   chr.x (chromosome of readSide.x/R1 read)
-   strand.y (strand of readSide.y/R2 read)
-   strand.x (strand of readSide.x/R1 read)
-   end.x (end of readSide.x/R1 read)
-   end.y (end of readSide.y/R2 read)
-   UMI (unique molecular identifier (umi) or umi with the first few bases 
-   of R1 read)
+   same columns as unique.umi.plus.R2
 }
 \item{all.umi}{a data frame containing all the mapped reads with the following 
 columns. 

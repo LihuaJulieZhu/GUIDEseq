@@ -26,7 +26,8 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
     max.paired.distance = 1000L, min.mapping.quality = 30L,
     max.R1.len = 130L, max.R2.len = 130L,
     min.umi.count = 5L, 
-    max.umi.count = 10000L,
+    max.umi.count = 100000L,
+    min.read.coverage = 1L,
     apply.both.max.len = FALSE, same.chromosome = TRUE,
     distance.inter.chrom = -1L, min.R1.mapped = 20L,
     min.R2.mapped = 20L, apply.both.min.mapped = FALSE,
@@ -170,12 +171,20 @@ The maximum retained R2 length to be considered for downstream analysis,
     equal to the mapped R2 length
 }
 \item{min.umi.count}{
- To specify the minimum count for a umi to be included in the subsequent analysis.
+ To specify the minimum total count for a umi at the genome level to be included 
+ in the subsequent analysis. For example, with min.umi.count set to 2, 
+ if a umi only has 1 read in the entire genome, then that umi will be excluded
+ for the subsequent analysis.
  Please adjust it to a higher number for deeply sequenced library and vice versa.
 }
 \item{max.umi.count}{
  To specify the maximum count for a umi to be included in the subsequent analysis.
  Please adjust it to a higher number for deeply sequenced library and vice versa.
+}
+\item{min.read.coverage}{
+ To specify the minimum coverage for a read UMI combination to be included 
+ in the subsequent analysis.
+ Please note that this is different from min.umi.count which is less stringent.
 }
   \item{apply.both.max.len}{
 Specify whether to apply maximum length requirement to both R1 and R2 reads,
