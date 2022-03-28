@@ -14,7 +14,14 @@ Imports: BiocParallel, Biostrings, CRISPRseek, ChIPpeakAnno,
 	 GenomicAlignments (>= 1.7.3), GenomeInfoDb, Rsamtools, 
          hash, limma,dplyr, GenomicFeatures
 biocViews: ImmunoOncology, GeneRegulation, Sequencing, WorkflowStep, CRISPR
-Suggests: knitr, RUnit, BiocStyle, BSgenome.Hsapiens.UCSC.hg19, TxDb.Hsapiens.UCSC.hg19.knownGene, org.Hs.eg.db
+Suggests: 
+    knitr,
+    RUnit,
+    BiocStyle,
+    BSgenome.Hsapiens.UCSC.hg19,
+    TxDb.Hsapiens.UCSC.hg19.knownGene,
+    org.Hs.eg.db,
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Description: The package implements GUIDE-seq and PEtag-seq analysis workflow
         including functions for filtering UMI and reads with low coverage, obtaining unique insertion 
@@ -25,3 +32,4 @@ Description: The package implements GUIDE-seq and PEtag-seq analysis workflow
 License: GPL (>= 2)
 LazyLoad: yes
 NeedsCompilation: no
+Config/testthat/edition: 3
