@@ -11,7 +11,7 @@ regions
 offTargetAnalysisOfPeakRegions(gRNA, peaks,
     format=c("fasta", "bed"),
     peaks.withHeader = FALSE, BSgenomeName, overlap.gRNA.positions = c(17,18),
-    upstream = 20L, downstream = 20L, PAM.size = 3L, gRNA.size = 20L,
+    upstream = 25L, downstream = 25L, PAM.size = 3L, gRNA.size = 20L,
     PAM = "NGG", PAM.pattern = "NNN$", max.mismatch = 6L,
     outputDir, allowed.mismatch.PAM = 2L, overwrite = TRUE,
     weights = c(0, 0, 0.014, 0, 0, 0.395,
@@ -184,7 +184,8 @@ GUIDEseq
 }
 \examples{
 #### the following example is also part of annotateOffTargets.Rd
-if (interactive()) {
+if (interactive())
+{
     library("BSgenome.Hsapiens.UCSC.hg19")
     peaks <- system.file("extdata", "T2plus100OffTargets.bed",
         package = "CRISPRseek")
@@ -194,7 +195,7 @@ if (interactive()) {
     offTargets <- offTargetAnalysisOfPeakRegions(gRNA = gRNAs, peaks = peaks,
         format=c("fasta", "bed"),
         peaks.withHeader = TRUE, BSgenomeName = Hsapiens,
-        upstream = 20L, downstream = 20L, PAM.size = 3L, gRNA.size = 20L,
+        upstream = 25L, downstream = 25L, PAM.size = 3L, gRNA.size = 20L,
         orderOfftargetsBy = "predicted_cleavage_score", 
         PAM = "NGG", PAM.pattern = "(NGG|NAG|NGA)$", max.mismatch = 2L,
         outputDir = outputDir,

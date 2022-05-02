@@ -17,7 +17,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     min.mapping.quality = 30L,
     max.R1.len = 130L,
     max.R2.len = 130L,
-    min.umi.count = 5L,
+    min.umi.count = 1L,
     max.umi.count = 100000L,
     min.read.coverage = 1L,
     apply.both.max.len = FALSE,
@@ -224,7 +224,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         max.overlap.plusSig.minusSig = max.overlap.plusSig.minusSig,
         output.bedfile = output.bedfile)
     append = FALSE
-    if (length(merged.gr$mergedPeaks.gr) > 1)
+    if (length(merged.gr$mergedPeaks.gr) >= 1)
     {
         write.table(cbind(name = names(merged.gr$mergedPeaks.gr),
             as.data.frame(merged.gr$mergedPeaks.gr)),

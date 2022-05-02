@@ -46,7 +46,7 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
     keepPeaksInBothStrandsOnly = TRUE, 
     gRNA.format = "fasta",
     overlap.gRNA.positions = c(17,18),
-    upstream = 20L, downstream = 20L, PAM.size = 3L, gRNA.size = 20L,
+    upstream = 25L, downstream = 25L, PAM.size = 3L, gRNA.size = 20L,
     PAM = "NGG", PAM.pattern = "NNN$", max.mismatch = 6L,
     allowed.mismatch.PAM = 2L, overwrite = TRUE,
     weights = c(0, 0, 0.014, 0, 0, 0.395, 0.317, 0, 0.389, 0.079,
@@ -305,11 +305,11 @@ the number of degenerate sequence in the PAM sequence,
     default to 2 for NGG PAM
 }
   \item{upstream}{
-upstream offset from the peak start to search for off targets, default 20
+upstream offset from the peak start to search for off targets, default 25
 suggest set it to window size
 }
   \item{downstream}{
-downstream offset from the peak end to search for off targets, default 20
+downstream offset from the peak end to search for off targets, default 25
 suggest set it to window size
 }
 \item{overwrite}{
@@ -406,7 +406,7 @@ Lihua Julie Zhu
 getPeaks
 }
 \examples{
-if(!interactive())
+if(interactive())
     {
         library("BSgenome.Hsapiens.UCSC.hg19")
         umiFile <- system.file("extdata", "UMI-HEK293_site4_chr13.txt",
