@@ -224,7 +224,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         max.overlap.plusSig.minusSig = max.overlap.plusSig.minusSig,
         output.bedfile = output.bedfile)
     append = FALSE
-    if (length(merged.gr$mergedPeaks.gr) >= 1 & merged.gr$mergedPeaks.gr != "")
+    if (length(merged.gr$mergedPeaks.gr) >= 1 && class(merged.gr$mergedPeaks.gr) == "GRanges")
     {
         write.table(cbind(name = names(merged.gr$mergedPeaks.gr),
             as.data.frame(merged.gr$mergedPeaks.gr)),
