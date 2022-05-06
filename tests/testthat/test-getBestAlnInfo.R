@@ -11,7 +11,7 @@ subjects2 <- readRDS(file = "~/Dropbox (UMass Medical School)/Bioconductor/Trunk
 
 test_that("getBestAlnInfo plus strand bulge in gRNA works", {
   i = 123
-  temp <- getBestAlnInfo(subjects2[i], pa.f[i], pa.r[i])
+  temp <- getBestAlnInfo(subjects2[i], pa.f[[i]], pa.r[[i]])
   testthat::expect_equal(
     as.character(substr(as.character(subjects2[i]),
                         temp$offTarget_Start, temp$offTarget_End)),
@@ -37,7 +37,7 @@ test_that("getBestAlnInfo plus strand bulge in gRNA works", {
 
 test_that("getBestAlnInfo minus strand bulge in gRNA works", {
   i = 66
-  temp <- getBestAlnInfo(subjects2[i], pa.f[i], pa.r[i])
+  temp <- getBestAlnInfo(subjects2[i], pa.f[[i]], pa.r[[i]])
   testthat::expect_equal(
     as.character(substr(subjects2[i],
                         temp$offTarget_Start, temp$offTarget_End)),
@@ -68,7 +68,7 @@ test_that("getBestAlnInfo plus strand without indel works", {
   i = 1
   #pattern:      TTGCTTTTATCACAGGCTCC
   #subject: [84] GTGTGTTTGGAAACTGCTCC
-  temp <- getBestAlnInfo(subjects2[i], pa.f[i], pa.r[i])
+  temp <- getBestAlnInfo(subjects2[i], pa.f[[i]], pa.r[[i]])
   expected_mismatch_pos <- c(1, 4,5, 9, 10, 11, 13, 14, 15)
 
   testthat::expect_equal(temp$pos.mismatch, expected_mismatch_pos)
@@ -101,7 +101,7 @@ test_that("getBestAlnInfo minus strand without indel works", {
   i = 96
   #pattern:      GGAGCCTGTGATAAAAGCAA
   #subject: [48] GAAGCCTATGCTAGAAATGG
-  temp <- getBestAlnInfo(subjects2[i], pa.f[i], pa.r[i])
+  temp <- getBestAlnInfo(subjects2[i], pa.f[[i]], pa.r[[i]])
   expected_mismatch_pos <- c(19, 13, 10,  7,  4,  3,  2,  1)
    testthat::expect_equal(temp$n.insertion, 0)
   testthat::expect_equal(temp$n.deletion, 0)
@@ -154,7 +154,7 @@ test_that("getBestAlnInfo plus strand with bulge in offtargets works", {
   pa.r <- chr14OT[[2]]
   i <- 1
 
-  temp <- getBestAlnInfo(subjects2[i], pa.f[i], pa.r[i])
+  temp <- getBestAlnInfo(subjects2[i], pa.f[[i]], pa.r[[i]])
 
   testthat::expect_equal(as.numeric(temp$pos.deletion), 12)
   testthat::expect_equal(temp$pos.mismatch, c(1,8,19))
@@ -205,7 +205,7 @@ test_that("getBestAlnInfo minus strand with perfect match in offtargets works", 
   pa.r <- chr14OT[[2]]
   i <- 2
 
-  temp <- getBestAlnInfo(subjects2[i], pa.f[i], pa.r[i])
+  temp <- getBestAlnInfo(subjects2[i], pa.f[[i]], pa.r[[i]])
 
   testthat::expect_equal(temp$offTarget_End, 47)
   testthat::expect_equal(temp$offTarget_Start, 25)

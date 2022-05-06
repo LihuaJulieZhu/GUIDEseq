@@ -1,6 +1,4 @@
-require(Biostrings)
-require(GUIDEseq)
-#' Title
+#' Parse pairwise alignment
 #'
 #' @param offtargetSeq DNAStringSet object of length 1
 #' @param pa.f Global-Local PairwiseAlignmentsSingleSubject, results of
@@ -49,7 +47,9 @@ require(GUIDEseq)
 #' bulged DNA base
 #' n.deletion: Number of deletions in the RNA. Deletions in gRNA creates
 #' bulged DNA base
-#'
+#' @importFrom Biostrings score start alignedPattern alignedSubject reverseComplement
+#' DNAString subject
+#' @importFrom Base names substr which class missing is.na strsplit length is.na
 #' @export
 #'
 #' @examples
@@ -61,35 +61,41 @@ getBestAlnInfo <- function(offtargetSeq, pa.f, pa.r, gRNA.size = 20,
   if (is.na(pa.f) && is.na(pa.r))
     stop("At least one of pairwise alignment objects pa.f or pa.r is not NA!")
 
-  if (!is.na(pa.f) && !is.na(pa.r))
+  if (!is.na(pa.f) && !is.na(pa.r) &&
+      class(pa.f) == "PairwiseAlignmentsSingleSubject" &&
+      class(pa.r) == "PairwiseAlignmentsSingleSubject")
   {
-    scores <- c(score(pa.f[[1]]),
-                score(pa.r[[1]]))
-    match.starts <- c(start(subject(pa.f[[1]])),
-                      start(subject(pa.r[[1]])))
+    scores <- c(score(pa.f),
+                score(pa.r))
+    match.starts <- c(start(subject(pa.f)),
+                      start(subject(pa.r)))
     best.start <- match.starts[scores == max(scores)][1]
     best.pos <- which(scores == max(scores))[1]
     best.aln <- switch(best.pos,
-                       pa.f[[1]],
-                       pa.r[[1]]
+                       pa.f,
+                       pa.r
     )
   }
-  else if (!is.na(pa.f))
+  else if (!is.na(pa.f) && class(pa.f) == "PairwiseAlignmentsSingleSubject")
   {
-    best.aln <- pa.f[[1]]
-    scores <- score(pa.f[[1]])
-    match.starts <- start(subject(pa.f[[1]]))
+    best.aln <- pa.f
+    scores <- score(pa.f)
+    match.starts <- start(subject(pa.f))
     best.start <- match.starts[scores == max(scores)][1]
     best.pos <- which(scores == max(scores))[1]
   }
-  else
+  else if (!is.na(pa.r) && class(pa.r) == "PairwiseAlignmentsSingleSubject")
   {
-    best.aln <- pa.r[[1]]
-    scores <- score(pa.r[[1]])
-    match.starts <- start(subject(pa.r[[1]]))
+    best.aln <- pa.r
+    scores <- score(pa.r)
+    match.starts <- start(subject(pa.r))
     best.start <- match.starts[scores == max(scores)][1]
     best.pos <- which(scores == max(scores))[1]
   }
+ else
+ {
+   stop("pa.f or pa.r is a required input as PairwiseAlignmentsSingleSubject")
+ }
 
   seq <- c(alignedPattern(best.aln), alignedSubject(best.aln))
 
@@ -101,8 +107,8 @@ getBestAlnInfo <- function(offtargetSeq, pa.f, pa.r, gRNA.size = 20,
            reverseComplement(DNAString(as.character(seq[2])))))
 
   pos.mismatch <- switch(best.pos,
-                         pa.f[[1]]@subject@mismatch[[1]] - best.start + 1,
-                         nchar(seq[1]) - (pa.r[[1]]@subject@mismatch[[1]] -
+                         pa.f@subject@mismatch[[1]] - best.start + 1,
+                         nchar(seq[1]) - (pa.r@subject@mismatch[[1]] -
                                         best.start[1]))
 
   guide.print <- as.character(seq[1])
@@ -164,9 +170,9 @@ getBestAlnInfo <- function(offtargetSeq, pa.f, pa.r, gRNA.size = 20,
   }
 
   seq.aligned <- switch(best.pos,
-                        as.character(pa.f[[1]]@subject),
+                        as.character(pa.f@subject),
                         as.character(reverseComplement(DNAString(as.character(
-                          pa.r[[1]]@subject)))))
+                          pa.r@subject)))))
   strand.aligned <- switch(best.pos,
                            "+", "-")
 
