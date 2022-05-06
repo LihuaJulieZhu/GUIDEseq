@@ -37,17 +37,18 @@ require(GUIDEseq)
 #' indexed form distal to proximal of PAM
 #' pos.indel: indel positions starting with deletions in the gRNA followed
 #' by those in the offtarget
-#' pos.insertion: Bulge positions in the offtarget (deletions in the gRNA)
+#' pos.insertion: Insertion positions in the gRNA
 #' Insertion positions are counted from distal to proximal of PAM
-#' For example, 5 means the 5th position is an insertion for
-#' offtargets
-#' pos.deletion: Bulge positions in the gRNA (deletions in the offtarget)
+#' For example, 5 means the 5th position is an insertion in
+#' gRNA
+#' pos.deletion: Deletion in the gRNA
 #' Deletion positions are counted from distal to proximal of PAM
-#' For example, 5 means the 5th position is a deletion for
-#' offtargets
-#' n.indels:  Total number of indels including insertion and deletion
-#' n.insertion: Number of insertions in the offtarget (bulge in the offtarget)
-#' n.deletion: number of deletions in the offtarget (bulge in the gRNA)
+#' For example, 5 means the 5th position is a deletion in
+#' gRNA
+#' n.insertion: Number of insertions in the RNA. Insertions in gRNA creates
+#' bulged DNA base
+#' n.deletion: Number of deletions in the RNA. Deletions in gRNA creates
+#' bulged DNA base
 #'
 #' @export
 #'
@@ -110,53 +111,52 @@ getBestAlnInfo <- function(offtargetSeq, pa.f, pa.r, gRNA.size = 20,
   guide.print.v <- strsplit(guide.print, "")[[1]]
   if(best.pos == 2)
   {
-      pos.indel.guide <- gRNA.size - (which(guide.print.v == "-") - 1) + 1
+      pos.deletion.guide <- gRNA.size - (which(guide.print.v == "-") - 1) + 1
    }
   else
   {
-      pos.indel.guide <- which(guide.print.v == "-")
+      pos.deletion.guide <- which(guide.print.v == "-")
   }
-  pos.indel.off <- which(seq.print == "-")
+  pos.deletion.off <- which(seq.print == "-")
   if(insertion.symbol == "lowerCase")
-    seq.print[pos.indel.guide] <- tolower(seq.print[pos.indel.guide])
+    seq.print[pos.deletion.guide] <- tolower(seq.print[pos.deletion.guide])
   else
-    seq.print[pos.indel.guide] <- insertion.symbol
+    seq.print[pos.deletion.guide] <- insertion.symbol
 
-  if (length(pos.indel.off) > 0  )
+  if (length(pos.deletion.off) > 0  )
   {
-    for (i in 1:length(pos.indel.off))
+    for (i in 1:length(pos.deletion.off))
     {
       if (best.pos == 1)
-        pos.mismatch[(pos.mismatch - pos.indel.off[i]) > 0] <-
-          pos.mismatch[(pos.mismatch - pos.indel.off[i]) > 0] + 1
+        pos.mismatch[(pos.mismatch - pos.deletion.off[i]) > 0] <-
+          pos.mismatch[(pos.mismatch - pos.deletion.off[i]) > 0] + 1
       else
-        pos.mismatch[(pos.mismatch - pos.indel.off[i]) < 0] <-
-           pos.mismatch[(pos.mismatch - pos.indel.off[i]) < 0] - 1
+        pos.mismatch[(pos.mismatch - pos.deletion.off[i]) < 0] <-
+           pos.mismatch[(pos.mismatch - pos.deletion.off[i]) < 0] - 1
     }
   }
  # It is important to set seq.print before reset pos.mismatch using
- # pos.indel.guide information
+ # pos.deletion.guide information
 
-  n.insertion <- length(which(guide.print.v == "-"))
-  n.deletion <- length(which(seq.print == "-"))
-  n.indels <- n.insertion + n.deletion
+  n.deletion <- length(which(guide.print.v == "-"))
+  n.insertion <- length(which(seq.print == "-"))
 
-  seq.print[setdiff(1:width(seq[2]),c(pos.indel.guide,
-                                      pos.indel.off,
+  seq.print[setdiff(1:width(seq[2]),c(pos.deletion.guide,
+                                      pos.deletion.off,
                                       pos.mismatch))] <- "."
 
 
-  if (length(pos.indel.guide) > 0  )
+  if (length(pos.deletion.guide) > 0  )
   {
-    for (i in 1:length(pos.indel.guide))
+    for (i in 1:length(pos.deletion.guide))
     {
       if (best.pos == 1)
-        pos.mismatch[(pos.mismatch - pos.indel.guide[i]) > 0] <-
-          pos.mismatch[(pos.mismatch - pos.indel.guide[i]) > 0] - 1
+        pos.mismatch[(pos.mismatch - pos.deletion.guide[i]) > 0] <-
+          pos.mismatch[(pos.mismatch - pos.deletion.guide[i]) > 0] - 1
       else
       {
-        pos.mismatch[(pos.mismatch - pos.indel.guide[i]) < 0] <-
-          pos.mismatch[(pos.mismatch - pos.indel.guide[i]) < 0] + 1
+        pos.mismatch[(pos.mismatch - pos.deletion.guide[i]) < 0] <-
+          pos.mismatch[(pos.mismatch - pos.deletion.guide[i]) < 0] + 1
         # need to add the following line after seq.print is set
         pos.mismatch <- pos.mismatch - nchar(seq[1]) + gRNA.size
       }
@@ -189,7 +189,7 @@ getBestAlnInfo <- function(offtargetSeq, pa.f, pa.r, gRNA.size = 20,
                            max(1, best.start - PAM.size))
 
   offTarget_End <- offTarget_Start + width(seq[2]) - 1 + PAM.size -
-    n.deletion
+    n.insertion
 
  seq.print<- paste0(seq.print, collapse = "")
 
@@ -211,11 +211,9 @@ getBestAlnInfo <- function(offtargetSeq, pa.f, pa.r, gRNA.size = 20,
       offTarget_End = offTarget_End,
       chromosome = NA,
       pos.mismatch = pos.mismatch,
-      pos.indel = gsub(" ", "",
-                       paste(pos.indel.off,pos.indel.guide, collapse = ",")),
-      pos.insertion = pos.indel.guide,
-      pos.deletion = pos.indel.off,
-      n.indels = n.indels, n.insertion = n.insertion,
+      pos.insertion = pos.deletion.off,
+      pos.deletion = pos.deletion.guide,
+      n.insertion = n.insertion,
       n.deletion = n.deletion)
       #seq.aln = seq)
 }

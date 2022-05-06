@@ -26,14 +26,13 @@ test_that("getBestAlnInfo plus strand bulge in gRNA works", {
   testthat::expect_equal(temp$guideAlignment2OffTarget, "A..G...C.AA..T.-....")
   testthat::expect_equal(temp$n.PAM.mismatch, 2)
   testthat::expect_equal(temp$mismatch.distance2PAM, "20,17,13,11,10,7")
-  testthat::expect_equal(as.numeric(temp$pos.indel), 16)
+  testthat::expect_equal(as.numeric(temp$pos.insertion), 16)
   testthat::expect_equal(temp$pos.mismatch, c(1, 4, 8, 10, 11, 14))
   # n.guide.mismatch = mismatches + indels
   testthat::expect_equal(temp$n.guide.mismatch, 6)
 
-  testthat::expect_equal(temp$n.indel, 1)
-  testthat::expect_equal(temp$n.deletion, 1)
-  testthat::expect_equal(temp$n.insertion, 0)
+  testthat::expect_equal(temp$n.deletion, 0)
+  testthat::expect_equal(temp$n.insertion, 1)
 })
 
 test_that("getBestAlnInfo minus strand bulge in gRNA works", {
@@ -57,12 +56,12 @@ test_that("getBestAlnInfo minus strand bulge in gRNA works", {
   testthat::expect_equal(temp$guideAlignment2OffTarget, "....-A....TT...CA..T")
   testthat::expect_equal(temp$n.PAM.mismatch, 2)
   testthat::expect_equal(temp$mismatch.distance2PAM, "1,4,5,9,10,15") ###
-  testthat::expect_equal(as.numeric(temp$pos.indel), 5)
+  testthat::expect_equal(as.numeric(temp$pos.insertion), 5)
   testthat::expect_equal(temp$pos.mismatch, c(20,17,16,12,11,6))
   # n.guide.mismatch = mismatches + indels
   testthat::expect_equal(temp$n.guide.mismatch, 6)
 
-  testthat::expect_equal(temp$n.indel, 1)
+  testthat::expect_equal(temp$n.insertion, 1)
 })
 
 test_that("getBestAlnInfo plus strand without indel works", {
@@ -71,7 +70,7 @@ test_that("getBestAlnInfo plus strand without indel works", {
   #subject: [84] GTGTGTTTGGAAACTGCTCC
   temp <- getBestAlnInfo(subjects2[i], pa.f[i], pa.r[i])
   expected_mismatch_pos <- c(1, 4,5, 9, 10, 11, 13, 14, 15)
-  testthat::expect_equal(temp$pos.indel, "")
+
   testthat::expect_equal(temp$pos.mismatch, expected_mismatch_pos)
 
   testthat::expect_equal(temp$offTarget_End, 106)
@@ -94,7 +93,8 @@ test_that("getBestAlnInfo plus strand without indel works", {
    # n.guide.mismatch = mismatches + indels
   testthat::expect_equal(temp$n.guide.mismatch, 9)
 
-  testthat::expect_equal(temp$n.indel, 0)
+  testthat::expect_equal(temp$n.insertion, 0)
+  testthat::expect_equal(temp$n.deletion, 0)
 })
 
 test_that("getBestAlnInfo minus strand without indel works", {
@@ -103,7 +103,9 @@ test_that("getBestAlnInfo minus strand without indel works", {
   #subject: [48] GAAGCCTATGCTAGAAATGG
   temp <- getBestAlnInfo(subjects2[i], pa.f[i], pa.r[i])
   expected_mismatch_pos <- c(19, 13, 10,  7,  4,  3,  2,  1)
-  testthat::expect_equal(temp$pos.indel, "")
+   testthat::expect_equal(temp$n.insertion, 0)
+  testthat::expect_equal(temp$n.deletion, 0)
+
   testthat::expect_equal(temp$pos.mismatch, expected_mismatch_pos)
 
   testthat::expect_equal(temp$offTarget_End, 67)
@@ -131,7 +133,8 @@ test_that("getBestAlnInfo minus strand without indel works", {
   # n.guide.mismatch = mismatches + indels
   testthat::expect_equal(temp$n.guide.mismatch, 8)
 
-  testthat::expect_equal(temp$n.indel, 0)
+  testthat::expect_equal(temp$n.deletion, 0)
+  testthat::expect_equal(temp$n.insertion, 0)
 })
 
 #Global-Local PairwiseAlignmentsSingleSubject (1 of 1)
@@ -153,7 +156,7 @@ test_that("getBestAlnInfo plus strand with bulge in offtargets works", {
 
   temp <- getBestAlnInfo(subjects2[i], pa.f[i], pa.r[i])
 
-  testthat::expect_equal(as.numeric(temp$pos.indel), 12)
+  testthat::expect_equal(as.numeric(temp$pos.deletion), 12)
   testthat::expect_equal(temp$pos.mismatch, c(1,8,19))
 
   testthat::expect_equal(temp$offTarget_End, 38)
@@ -174,7 +177,8 @@ test_that("getBestAlnInfo plus strand with bulge in offtargets works", {
     as.character(substr(as.character(subjects2[i]),
                         temp$offTarget_End - PAM.size  + 1, temp$offTarget_End)))
 
-  testthat::expect_equal(temp$pos.insertion, 12)
+  testthat::expect_equal(temp$pos.deletion, 12)
+
   testthat::expect_equal(temp$pos.mismatch, c(1,8,19))
   testthat::expect_equal(temp$guideAlignment2OffTarget, "G......C...^.......T.")
   testthat::expect_equal(temp$mismatch.distance2PAM, "20,13,2")
@@ -183,9 +187,8 @@ test_that("getBestAlnInfo plus strand with bulge in offtargets works", {
   # n.guide.mismatch = mismatches + indels
   testthat::expect_equal(temp$n.guide.mismatch, 3)
 
-  testthat::expect_equal(temp$n.indel, 1)
-  testthat::expect_equal(temp$n.insertion, 1)
-  testthat::expect_equal(temp$n.deletion, 0)
+  testthat::expect_equal(temp$n.insertion, 0)
+  testthat::expect_equal(temp$n.deletion, 1)
 })
 
 test_that("getBestAlnInfo minus strand with perfect match in offtargets works", {
@@ -203,8 +206,6 @@ test_that("getBestAlnInfo minus strand with perfect match in offtargets works", 
   i <- 2
 
   temp <- getBestAlnInfo(subjects2[i], pa.f[i], pa.r[i])
-
-  testthat::expect_equal(temp$pos.indel, "")
 
   testthat::expect_equal(temp$offTarget_End, 47)
   testthat::expect_equal(temp$offTarget_Start, 25)
@@ -232,5 +233,6 @@ test_that("getBestAlnInfo minus strand with perfect match in offtargets works", 
   # n.guide.mismatch = mismatches + indels
   testthat::expect_equal(temp$n.guide.mismatch, 0)
 
-  testthat::expect_equal(temp$n.indel, 0)
+  testthat::expect_equal(temp$n.insertion, 0)
+  testthat::expect_equal(temp$n.deletion, 0)
 })
