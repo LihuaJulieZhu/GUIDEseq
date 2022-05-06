@@ -1,0 +1,221 @@
+require(Biostrings)
+require(GUIDEseq)
+#' Title
+#'
+#' @param offtargetSeq DNAStringSet object of length 1
+#' @param pa.f Global-Local PairwiseAlignmentsSingleSubject, results of
+#' pairwiseAlignment, alignment of pattern to subject
+#' @param pa.r Global-Local PairwiseAlignmentsSingleSubject, results of
+#' pairwiseAlignment, alignment of reverse pattern to subject
+#' @param gRNA.size size of gRNA, default to 20
+#' @param PAM PAM sequence, default to NGG
+#' @param PAM.size PAM size, default to 3
+#' @param insertion.symbol symbol for representing bulge in offtarget,
+#' default to ^. It can also be set to lowerCase to use lower case letter
+#' to represent insertion
+#'
+#' @return a dataframe with the following columns.
+#' offTarget: name of the offtarget
+#' peak_score: place holder for storing peak score
+#' predicted_cleavage_score: place holder for storing cleavage score
+#' gRNA.name: place holder for storing gRNA name
+#' gRNAPlusPAM: place holder for storing gRNAPlusPAM sequence
+#' offTarget_sequence: offTarget sequence with PAM in the right orientation.
+#' For PAM in the 3' prime location, offTarget is the sequence on the plus strand
+#' otherwise, is the sequence on the reverse strand
+#' seq.aligned: the aligned sequence without PAM
+#' guideAlignment2OffTarget: string representation of the alignment
+#' offTargetStrand: the strand of the offtarget
+#' mismatch.distance2PAM: mismatch distance to PAM start
+#' n.PAM.mismatch: number of mismatches in PAM
+#' n.guide.mismatch: number of mismatches in the gRNA not including PAM
+#' PAM.sequence: PAM in the offtarget
+#' offTarget_Start: offtarget start
+#' offTarget_End: offTarget end
+#' chromosome: place holder for storing offtarget chromosome
+#' pos.mismatch: mismatch positions with the correct PAM orientation, i.e.,
+#' indexed form distal to proximal of PAM
+#' pos.indel: indel positions starting with deletions in the gRNA followed
+#' by those in the offtarget
+#' pos.insertion: Bulge positions in the offtarget (deletions in the gRNA)
+#' Insertion positions are counted from distal to proximal of PAM
+#' For example, 5 means the 5th position is an insertion for
+#' offtargets
+#' pos.deletion: Bulge positions in the gRNA (deletions in the offtarget)
+#' Deletion positions are counted from distal to proximal of PAM
+#' For example, 5 means the 5th position is a deletion for
+#' offtargets
+#' n.indels:  Total number of indels including insertion and deletion
+#' n.insertion: Number of insertions in the offtarget (bulge in the offtarget)
+#' n.deletion: number of deletions in the offtarget (bulge in the gRNA)
+#'
+#' @export
+#'
+#' @examples
+getBestAlnInfo <- function(offtargetSeq, pa.f, pa.r, gRNA.size = 20,
+                           PAM = "NGG", PAM.size = 3, insertion.symbol = "^")
+{
+  if (missing(offtargetSeq))
+    stop("offtargetSeq is required!")
+  if (is.na(pa.f) && is.na(pa.r))
+    stop("At least one of pairwise alignment objects pa.f or pa.r is not NA!")
+
+  if (!is.na(pa.f) && !is.na(pa.r))
+  {
+    scores <- c(score(pa.f[[1]]),
+                score(pa.r[[1]]))
+    match.starts <- c(start(subject(pa.f[[1]])),
+                      start(subject(pa.r[[1]])))
+    best.start <- match.starts[scores == max(scores)][1]
+    best.pos <- which(scores == max(scores))[1]
+    best.aln <- switch(best.pos,
+                       pa.f[[1]],
+                       pa.r[[1]]
+    )
+  }
+  else if (!is.na(pa.f))
+  {
+    best.aln <- pa.f[[1]]
+    scores <- score(pa.f[[1]])
+    match.starts <- start(subject(pa.f[[1]]))
+    best.start <- match.starts[scores == max(scores)][1]
+    best.pos <- which(scores == max(scores))[1]
+  }
+  else
+  {
+    best.aln <- pa.r[[1]]
+    scores <- score(pa.r[[1]])
+    match.starts <- start(subject(pa.r[[1]]))
+    best.start <- match.starts[scores == max(scores)][1]
+    best.pos <- which(scores == max(scores))[1]
+  }
+
+  seq <- c(alignedPattern(best.aln), alignedSubject(best.aln))
+
+  name.peak <- names(seq)[2]
+
+  seq.print <- as.character(
+    switch(best.pos[1],
+           seq[2],
+           reverseComplement(DNAString(as.character(seq[2])))))
+
+  pos.mismatch <- switch(best.pos,
+                         pa.f[[1]]@subject@mismatch[[1]] - best.start + 1,
+                         nchar(seq[1]) - (pa.r[[1]]@subject@mismatch[[1]] -
+                                        best.start[1]))
+
+  guide.print <- as.character(seq[1])
+  seq.print<- strsplit(seq.print, "")[[1]]
+
+  guide.print.v <- strsplit(guide.print, "")[[1]]
+  if(best.pos == 2)
+  {
+      pos.indel.guide <- gRNA.size - (which(guide.print.v == "-") - 1) + 1
+   }
+  else
+  {
+      pos.indel.guide <- which(guide.print.v == "-")
+  }
+  pos.indel.off <- which(seq.print == "-")
+  if(insertion.symbol == "lowerCase")
+    seq.print[pos.indel.guide] <- tolower(seq.print[pos.indel.guide])
+  else
+    seq.print[pos.indel.guide] <- insertion.symbol
+
+  if (length(pos.indel.off) > 0  )
+  {
+    for (i in 1:length(pos.indel.off))
+    {
+      if (best.pos == 1)
+        pos.mismatch[(pos.mismatch - pos.indel.off[i]) > 0] <-
+          pos.mismatch[(pos.mismatch - pos.indel.off[i]) > 0] + 1
+      else
+        pos.mismatch[(pos.mismatch - pos.indel.off[i]) < 0] <-
+           pos.mismatch[(pos.mismatch - pos.indel.off[i]) < 0] - 1
+    }
+  }
+ # It is important to set seq.print before reset pos.mismatch using
+ # pos.indel.guide information
+
+  n.insertion <- length(which(guide.print.v == "-"))
+  n.deletion <- length(which(seq.print == "-"))
+  n.indels <- n.insertion + n.deletion
+
+  seq.print[setdiff(1:width(seq[2]),c(pos.indel.guide,
+                                      pos.indel.off,
+                                      pos.mismatch))] <- "."
+
+
+  if (length(pos.indel.guide) > 0  )
+  {
+    for (i in 1:length(pos.indel.guide))
+    {
+      if (best.pos == 1)
+        pos.mismatch[(pos.mismatch - pos.indel.guide[i]) > 0] <-
+          pos.mismatch[(pos.mismatch - pos.indel.guide[i]) > 0] - 1
+      else
+      {
+        pos.mismatch[(pos.mismatch - pos.indel.guide[i]) < 0] <-
+          pos.mismatch[(pos.mismatch - pos.indel.guide[i]) < 0] + 1
+        # need to add the following line after seq.print is set
+        pos.mismatch <- pos.mismatch - nchar(seq[1]) + gRNA.size
+      }
+    }
+  }
+
+  seq.aligned <- switch(best.pos,
+                        as.character(pa.f[[1]]@subject),
+                        as.character(reverseComplement(DNAString(as.character(
+                          pa.r[[1]]@subject)))))
+  strand.aligned <- switch(best.pos,
+                           "+", "-")
+
+  PAM.aligned <- switch(best.pos,
+                        substr(offtargetSeq, best.start + width(seq[2]) -
+                                 length(which(seq.print == "-")) ,
+                               best.start + width(seq[2]) + PAM.size - 1 -
+                                 length(which(seq.print == "-"))),
+                        as.character(reverseComplement(DNAString(
+                          substr(offtargetSeq, best.start - PAM.size,
+                                 best.start - 1))))
+  )
+  seq.aligned <- paste0(seq.aligned, PAM.aligned)
+
+  # only allow A, C, G, T, and N in the PAM sequence for now.
+  # need to add other code types later
+
+  offTarget_Start <- switch(best.pos,
+                           best.start,
+                           max(1, best.start - PAM.size))
+
+  offTarget_End <- offTarget_Start + width(seq[2]) - 1 + PAM.size -
+    n.deletion
+
+ seq.print<- paste0(seq.print, collapse = "")
+
+ list(offTarget = name.peak,
+      peak_score = NA,
+      predicted_cleavage_score = NA,
+      gRNA.name = NA,
+      gRNAPlusPAM = NA,
+      offTarget_sequence = seq.aligned,
+      guideAlignment2OffTarget = seq.print,
+      offTargetStrand = strand.aligned,
+      mismatch.distance2PAM = paste(gRNA.size - pos.mismatch + 1,
+                                    collapse = ","),
+      n.PAM.mismatch	=  neditAt(DNAString(PAM.aligned),
+                                DNAString(PAM), fixed=FALSE),
+      n.guide.mismatch = length(pos.mismatch),
+      PAM.sequence = PAM.aligned,
+      offTarget_Start = offTarget_Start,
+      offTarget_End = offTarget_End,
+      chromosome = NA,
+      pos.mismatch = pos.mismatch,
+      pos.indel = gsub(" ", "",
+                       paste(pos.indel.off,pos.indel.guide, collapse = ",")),
+      pos.insertion = pos.indel.guide,
+      pos.deletion = pos.indel.off,
+      n.indels = n.indels, n.insertion = n.insertion,
+      n.deletion = n.deletion)
+      #seq.aln = seq)
+}
