@@ -1,6 +1,4 @@
-require(CRISPRseek)
-require(GUIDEseq)
-
+# need to remove the source later
 source("~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/R/getAlnWithBulge.R")
 source("~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/R/getBestAlnInfo.R")
 source("~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/R/bulge-internal.R")
@@ -44,13 +42,13 @@ test_that("getAlnWithBulge bulge on gRNA offtarget on minus strand without misma
   temp1 <- getAlnWithBulge(gRNA, gRNA.name = "T2",
                            peaks = peaks, BSgenomeName = Hsapiens)
 
-  testthat::expect_equal(as.character(temp1$aln.all$guideAlignment2OffTarget),
+  expect_equal(as.character(temp1$aln.all$guideAlignment2OffTarget),
                          "...............^.....")
 
-  testthat::expect_true(as.character(temp1$aln.all$offTarget_sequence) ==
+  expect_true(as.character(temp1$aln.all$offTarget_sequence) ==
                           as.character(reverseComplement(peaks)))
 
-  testthat::expect_equal(as.numeric(temp1$aln.all$pos.deletion), 16)
+  expect_equal(as.numeric(temp1$aln.all$pos.deletion), 16)
 })
 
 test_that(" bulge on offtarget with mismacth and on minus strand works", {
@@ -60,20 +58,20 @@ test_that(" bulge on offtarget with mismacth and on minus strand works", {
   temp1 <- getAlnWithBulge(gRNA, gRNA.name = "T2",
                            peaks = peaks, BSgenomeName = Hsapiens)
 
-  testthat::expect_equal(as.character(temp1$aln.all$guideAlignment2OffTarget),
+  expect_equal(as.character(temp1$aln.all$guideAlignment2OffTarget),
                          "AG.............^...A.")
 
-  testthat::expect_true(as.character(reverseComplement(DNAStringSet(substr(peaks,
+  expect_true(as.character(reverseComplement(DNAStringSet(substr(peaks,
            temp1$aln.all$offTarget_Start, temp1$aln.all$offTarget_End)))) ==
                           temp1$aln.all$offTarget_sequence)
 
-  testthat::expect_true(as.character(temp1$aln.all$offTarget_sequence) ==
+  expect_true(as.character(temp1$aln.all$offTarget_sequence) ==
                           as.character(reverseComplement(peaks)))
 
-  testthat::expect_equal(as.numeric(temp1$aln.all$pos.deletion), 16)
+  expect_equal(as.numeric(temp1$aln.all$pos.deletion), 16)
 
-  testthat::expect_equal(as.character(temp1$aln.all$PAM.sequence), "AGG")
-  testthat::expect_equal(
+  expect_equal(as.character(temp1$aln.all$PAM.sequence), "AGG")
+  expect_equal(
     as.numeric(unlist(temp1$aln.all$pos.mismatch)),c(19,2,1))
 })
 
@@ -93,77 +91,77 @@ test_that(" bulge on gRNA offtarget on plus strand works", {
                     header = TRUE)
   merged.bed <- merge(bed, temp$aln.all, by.x = "names", by.y ="offTarget")
   # some sequences do not contain the PAM.pattern
-  #testthat::expect_equal(nrow(merged.bed), nrow(temp))
-  testthat::expect_equal(merged.bed$peak_score,merged.bed$totalCount)
-  testthat::expect_equal(merged.bed$chr.x,merged.bed$chr.y)
+  #expect_equal(nrow(merged.bed), nrow(temp))
+  expect_equal(merged.bed$peak_score,merged.bed$totalCount)
+  expect_equal(merged.bed$chr.x,merged.bed$chr.y)
 
   off.names <- c("chr1+:121373900:121373925 chr1-:121373840:121373865",
                  "chr2+:221535820:221535845 chr2-:221535730:221535755",
                  "chr10+:42529870:42529895 chr10-:42529770:42529795")
-  testthat::expect_equal(
+  expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names == off.names[1],]$pos.insertion))
     , 7)
-  testthat::expect_equal(
+  expect_equal(
     as.character(unlist(merged.bed[merged.bed$names ==
                                      off.names[1],]$guideAlignment2OffTarget)),
     "..G.GG-....AAT.T..A.")
-  testthat::expect_equal(
+  expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
                                    off.names[1],]$n.guide.mismatch)), 8)
-  testthat::expect_equal(
+  expect_equal(
     as.character(unlist(merged.bed[merged.bed$names == off.names[1],]$PAM.sequence)),
     "TTG")
-  testthat::expect_equal(
+  expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
                                    off.names[1],]$pos.mismatch)),
     c(3, 5, 6, 12, 13, 14, 16, 19))
 
-  testthat::expect_equal(
+  expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
                                    off.names[1],]$offTarget_End)),
     121373887)
 
-  testthat::expect_equal(
+  expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
                                    off.names[1],]$offTarget_Start)),
     121373866)
 
-  testthat::expect_equal(
+  expect_equal(
     as.character(unlist(merged.bed[merged.bed$names ==
                                      off.names[1],]$chromosome.y)),
     "chr1")
 
-  testthat::expect_equal(
+  expect_equal(
     as.character(unlist(merged.bed[merged.bed$names ==
                                      off.names[1],]$mismatch.distance2PAM)),
     "18,16,15,9,8,7,5,2")
 
-  testthat::expect_equal(
+  expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
                                      off.names[1],]$n.guide.mismatch)),
     8)
 
-  testthat::expect_equal(
+  expect_equal(
     as.character(unlist(merged.bed[merged.bed$names ==
                                      off.names[1],]$offTarget_sequence)),
     "GAGCGG-TCCAAATCTCCACTTG")
 
-  testthat::expect_equal(
+  expect_equal(
     as.character(unlist(merged.bed[merged.bed$names ==
                                      off.names[1],]$offTargetStrand)),
     "+")
 
-  testthat::expect_equal(
+  expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
                                    off.names[3],]$offTarget_Start)),
     42529795)
 
-  testthat::expect_equal(
+  expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
                                    off.names[3],]$offTarget_End)),
     42529816)
 
-  testthat::expect_equal(
+  expect_equal(
     as.character(unlist(merged.bed[merged.bed$names ==
                                      off.names[3],]$chromosome.y)),
     "chr10")
@@ -173,59 +171,59 @@ test_that("bulge on gRNA and offtarget on the minus strand  works", {
 
   cat("Start testing offtarget on the minus strand ...")
 
-  testthat::expect_equal(
+  expect_equal(
     as.character(unlist(merged.bed[merged.bed$names ==
                                      off.names[2],]$offTarget_sequence)),
     "CACCCCC-CCACCCCACCCCAGG")
-  testthat::expect_equal(
+  expect_equal(
     as.character(unlist(merged.bed[merged.bed$names ==
                                      off.names[2],]$offTargetStrand)),
     "-")
 
-  testthat::expect_equal(
+  expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
                                      off.names[2],]$n.guide.mismatch)),
     3)
 
-  testthat::expect_equal(
+  expect_equal(
     as.character(unlist(merged.bed[merged.bed$names ==
                                      off.names[2],]$mismatch.distance2PAM)),
     "2,5,20")
 
 
-    testthat::expect_equal(
+    expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names == off.names[2],]$pos.insertion))
     , 8)
 
-  testthat::expect_equal(
+  expect_equal(
     as.character(unlist(merged.bed[merged.bed$names ==
                                      off.names[2],]$guideAlignment2OffTarget)),
          "C......-.......A..C.")
 
-  testthat::expect_equal(
+  expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
                                    off.names[2],]$n.guide.mismatch)), 3)
-  testthat::expect_equal(
+  expect_equal(
     as.character(unlist(merged.bed[merged.bed$names == off.names[2],]$PAM.sequence)),
      "AGG")
-  testthat::expect_equal(
+  expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
                                    off.names[2],]$pos.mismatch)),
        c(19, 16, 1))
 
 
 
-  testthat::expect_equal(
+  expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
                                    off.names[2],]$offTarget_Start)),
     221535826)
 
-  testthat::expect_equal(
+  expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
                                    off.names[2],]$offTarget_End)),
     221535847)
 
-  testthat::expect_equal(
+  expect_equal(
     as.character(unlist(merged.bed[merged.bed$names ==
                                    off.names[2],]$chromosome.y)),
     "chr2")

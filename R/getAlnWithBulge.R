@@ -192,6 +192,6 @@ getAlnWithBulge <- function(gRNA, gRNA.name,
        aln.indel = best.aln.info[best.aln.info$pos.indel != "" &
                     best.aln.info$n.PAM.mismatch <= allowed.mismatch.PAM &
                     (unlist(best.aln.info$n.indel) +
-                       unlist(best.aln.info$n.guide.mismatch)) <=
+                       unlist(best.aln.info$n.mismatch)) <=
                     max.mismatch,])
 }
