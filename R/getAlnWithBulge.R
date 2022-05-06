@@ -114,12 +114,12 @@ getAlnWithBulge <- function(gRNA, gRNA.name,
     # need to change subjects2 to multiple of fragments if choosing multiple
     # fragments instead of masking as an alternative strategy
     best.aln.info <- do.call(rbind, lapply(1:length(seq.f.DSS), function(i) {
-      getBestAlnInfo(seq.f.DSS[i], pa.f1[i], NA, PAM.size = PAM.size,
+      getBestAlnInfo(seq.f.DSS[[i]], pa.f1[[i]], NA, PAM.size = PAM.size,
                      PAM = PAM, gRNA.size = gRNA.size)
     }))
 
     best.aln.info <- do.call(rbind, lapply(1:length(seq.r.DSS), function(i) {
-      getBestAlnInfo(seq.r.DSS[i], NA, pa.r2[i], PAM.size = PAM.size,
+      getBestAlnInfo(seq.r.DSS[i], NA, pa.r2[[i]], PAM.size = PAM.size,
                      PAM = PAM, gRNA.size = gRNA.size)
     }))
   }
@@ -145,7 +145,7 @@ getAlnWithBulge <- function(gRNA, gRNA.name,
         scoreOnly = FALSE)
     })
     best.aln.info <- do.call(rbind, lapply(1:length(seqname), function(i) {
-      getBestAlnInfo(subjects2[i], pa.f[i], pa.r[i], PAM.size = PAM.size,
+      getBestAlnInfo(subjects2[i], pa.f[[i]], pa.r[[i]], PAM.size = PAM.size,
                      PAM = PAM, gRNA.size = gRNA.size)
     }))
   }
