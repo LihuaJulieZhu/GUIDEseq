@@ -101,10 +101,21 @@ getAlnWithBulge <- function(gRNA, gRNA.name,
                         scoreOnly = FALSE)
     })
 
+    # pa.r.2 <- lapply(1:length(seq.r.DSS), function(i) {
+    #   pairwiseAlignment(pattern =
+    #                       as.character(reverseComplement(DNAString(gRNA))),
+    #                     subject = reverseComplement(seq.r.DSS[i]),
+    #                     type = "global-local",
+    #                     substitutionMatrix = mat,
+    #                     gapOpening = gapOpening,
+    #                     gapExtension = gapExtension,
+    #                     scoreOnly = FALSE)
+    # })
+
     pa.r.2 <- lapply(1:length(seq.r.DSS), function(i) {
       pairwiseAlignment(pattern =
-                          as.character(reverseComplement(DNAString(gRNA))),
-                        subject = reverseComplement(seq.r.DSS[i]),
+                         gRNA,
+                        subject = seq.r.DSS[i],
                         type = "global-local",
                         substitutionMatrix = mat,
                         gapOpening = gapOpening,
@@ -134,16 +145,27 @@ getAlnWithBulge <- function(gRNA, gRNA.name,
                         gapExtension = gapExtension,
                         scoreOnly = FALSE)
     })
+    # pa.r <- lapply(1:length(seqname), function(i) {
+    #   pairwiseAlignment(pattern = as.character(
+    #     reverseComplement(DNAString(gRNA))),
+    #     subject = as.character(subjects2[i]),
+    #     type = "global-local",
+    #     substitutionMatrix = mat,
+    #     gapOpening = gapOpening,
+    #     gapExtension = gapExtension,
+    #     scoreOnly = FALSE)
+    #})
+     # favor matches with bulge distant from PAM
     pa.r <- lapply(1:length(seqname), function(i) {
-      pairwiseAlignment(pattern = as.character(
-        reverseComplement(DNAString(gRNA))),
-        subject = as.character(subjects2[i]),
-        type = "global-local",
-        substitutionMatrix = mat,
-        gapOpening = gapOpening,
-        gapExtension = gapExtension,
-        scoreOnly = FALSE)
-    })
+        pairwiseAlignment(pattern = gRNA,
+          subject = as.character(reverseComplement(subjects2[i])),
+          type = "global-local",
+          substitutionMatrix = mat,
+          gapOpening = gapOpening,
+          gapExtension = gapExtension,
+          scoreOnly = FALSE)
+      })
+
     best.aln.info <- do.call(rbind, lapply(1:length(seqname), function(i) {
       getBestAlnInfo(subjects2[i], pa.f[[i]], pa.r[[i]], PAM.size = PAM.size,
                      PAM = PAM, gRNA.size = gRNA.size)
@@ -188,10 +210,14 @@ getAlnWithBulge <- function(gRNA, gRNA.name,
     best.aln.info$peak_score <- bed$peak_score
     best.aln.info$offTarget <- bed[,4]
   }
+
+  n.indel <- unlist(best.aln.info$n.insertion) +
+    unlist(best.aln.info$n.deletion)
+
   list(aln.all = best.aln.info,
-       aln.indel = best.aln.info[best.aln.info$pos.indel != "" &
+       aln.indel = best.aln.info[n.indel > 0 &
                     best.aln.info$n.PAM.mismatch <= allowed.mismatch.PAM &
-                    (unlist(best.aln.info$n.indel) +
+                    (n.indel +
                        unlist(best.aln.info$n.mismatch)) <=
                     max.mismatch,])
 }

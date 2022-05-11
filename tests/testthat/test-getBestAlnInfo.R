@@ -10,6 +10,15 @@ pa.r <- readRDS(file = "~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUID
 subjects2 <- readRDS(file = "~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/inst/extdata/subjects2.RDS")
 
 test_that("getBestAlnInfo plus strand bulge in gRNA works", {
+  i = 16
+  temp <- getBestAlnInfo(subjects2[i], pa.f[[i]], pa.r[[i]])
+  expect_equal(
+    as.character(substr(as.character(subjects2[i]),
+                        temp$offTarget_Start, temp$offTarget_End)),
+    "ATGGAATCATCATAGAATGG")
+})
+
+test_that("getBestAlnInfo plus strand bulge in gRNA works", {
   i = 123
   temp <- getBestAlnInfo(subjects2[i], pa.f[[i]], pa.r[[i]])
   expect_equal(

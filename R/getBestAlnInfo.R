@@ -15,7 +15,6 @@
 #' @return a dataframe with the following columns.
 #' offTarget: name of the offtarget
 #' peak_score: place holder for storing peak score
-#' predicted_cleavage_score: place holder for storing cleavage score
 #' gRNA.name: place holder for storing gRNA name
 #' gRNAPlusPAM: place holder for storing gRNAPlusPAM sequence
 #' offTarget_sequence: offTarget sequence with PAM in the right orientation.
@@ -198,10 +197,9 @@ getBestAlnInfo <- function(offtargetSeq, pa.f, pa.r, gRNA.size = 20,
     n.insertion
 
  seq.print<- paste0(seq.print, collapse = "")
-
+col
  list(offTarget = name.peak,
       peak_score = NA,
-      predicted_cleavage_score = NA,
       gRNA.name = NA,
       gRNAPlusPAM = NA,
       offTarget_sequence = seq.aligned,

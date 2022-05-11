@@ -75,7 +75,7 @@ test_that(" bulge on offtarget with mismacth and on minus strand works", {
     as.numeric(unlist(temp1$aln.all$pos.mismatch)),c(19,2,1))
 })
 
-test_that(" bulge on gRNA offtarget on plus strand works", {
+test_that("bulge on gRNA offtarget on plus strand works", {
   peaks.f <- system.file("extdata", "T2plus100OffTargets.bed",
                          package = "GUIDEseq")
   gRNA <- substr(as.character(readDNAStringSet(system.file("extdata", "T2.fa",
@@ -107,7 +107,7 @@ test_that(" bulge on gRNA offtarget on plus strand works", {
     "..G.GG-....AAT.T..A.")
   expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
-                                   off.names[1],]$n.guide.mismatch)), 8)
+                                   off.names[1],]$n.mismatch)), 8)
   expect_equal(
     as.character(unlist(merged.bed[merged.bed$names == off.names[1],]$PAM.sequence)),
     "TTG")
@@ -138,7 +138,7 @@ test_that(" bulge on gRNA offtarget on plus strand works", {
 
   expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
-                                     off.names[1],]$n.guide.mismatch)),
+                                     off.names[1],]$n.mismatch)),
     8)
 
   expect_equal(
@@ -182,7 +182,7 @@ test_that("bulge on gRNA and offtarget on the minus strand  works", {
 
   expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
-                                     off.names[2],]$n.guide.mismatch)),
+                                     off.names[2],]$n.mismatch)),
     3)
 
   expect_equal(
@@ -202,7 +202,7 @@ test_that("bulge on gRNA and offtarget on the minus strand  works", {
 
   expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
-                                   off.names[2],]$n.guide.mismatch)), 3)
+                                   off.names[2],]$n.mismatch)), 3)
   expect_equal(
     as.character(unlist(merged.bed[merged.bed$names == off.names[2],]$PAM.sequence)),
      "AGG")
