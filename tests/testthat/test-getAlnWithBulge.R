@@ -7,17 +7,17 @@ detach("package:BSgenome.Hsapiens.UCSC.hg19", unload = TRUE)
 library(BSgenome.Hsapiens.UCSC.hg38)
 test_that("getAlnWithBulge without restricting PAM.pattern works", {
 
-#peaks.f <- "~/DropboxUmass/Bioconductor/Trunk/GUIDEseq/inst/extdata/1450-PlusMinusPeaksMerged.bed"
+  #peaks.f <- "~/DropboxUmass/Bioconductor/Trunk/GUIDEseq/inst/extdata/1450-PlusMinusPeaksMerged.bed"
   peaks.f <- "~/DropboxUmass/Bioconductor/Trunk/GUIDEseq/inst/extdata/1450-chr14-chr2-bulge-test.bed"
   gRNA <- "TGCTTGGTCGGCACTGATAG"
 
   temp <- getAlnWithBulge(gRNA, gRNA.name = "gRNA1450", peaks.withHeader = FALSE,
-                        peaks = peaks.f, BSgenomeName = Hsapiens,
-    )
+                          peaks = peaks.f, BSgenomeName = Hsapiens,
+  )
 
   aln.all <- temp$aln.all
   expect_equal(as.character(aln.all$offTarget_sequence),
-              c("GGCTTGGCCGGGCACTGATTGCGG", "TGCTTGGTCGGCACTGATAGGGG"))
+               c("GGCTTGGCCGGGCACTGATTGCGG", "TGCTTGGTCGGCACTGATAGGGG"))
 
   expect_equal(aln.all$pos.mismatch[[1]], c(1, 8, 19))
   expect_equal(as.numeric(aln.all$pos.deletion)[1],  12)
@@ -28,7 +28,7 @@ test_that("getAlnWithBulge without restricting PAM.pattern works", {
   expect_equal(aln.all$guideAlignment2OffTarget[[2]],
                "....................")
 
-#featureVectors <- buildFeatureVectorForScoringBulge(aln.all)
+  #featureVectors <- buildFeatureVectorForScoringBulge(aln.all)
 })
 
 detach("package:BSgenome.Hsapiens.UCSC.hg38", unload = TRUE)
@@ -43,10 +43,10 @@ test_that("getAlnWithBulge bulge on gRNA offtarget on minus strand without misma
                            peaks = peaks, BSgenomeName = Hsapiens)
 
   expect_equal(as.character(temp1$aln.all$guideAlignment2OffTarget),
-                         "...............^.....")
+               "...............^.....")
 
   expect_true(as.character(temp1$aln.all$offTarget_sequence) ==
-                          as.character(reverseComplement(peaks)))
+                as.character(reverseComplement(peaks)))
 
   expect_equal(as.numeric(temp1$aln.all$pos.deletion), 16)
 })
@@ -54,25 +54,32 @@ test_that("getAlnWithBulge bulge on gRNA offtarget on minus strand without misma
 test_that(" bulge on offtarget with mismacth and on minus strand works", {
   # PAM followed by 2t(19A), 19c(2G), 20t(1A), 6 insertion
   peaks <- DNAStringSet(c("CCTGTGGCTGGGGTGGAGGGGGCT"))
+  gRNA <- substr(as.character(readDNAStringSet(system.file("extdata", "T2.fa",
+                                                           package = "CRISPRseek"))), 1, 20)
+
   names(peaks) <- "testMinusBulgeOff"
   temp1 <- getAlnWithBulge(gRNA, gRNA.name = "T2",
                            peaks = peaks, BSgenomeName = Hsapiens)
 
   expect_equal(as.character(temp1$aln.all$guideAlignment2OffTarget),
-                         "AG.............^...A.")
+               "AG.............^...A.")
 
   expect_true(as.character(reverseComplement(DNAStringSet(substr(peaks,
-           temp1$aln.all$offTarget_Start, temp1$aln.all$offTarget_End)))) ==
-                          temp1$aln.all$offTarget_sequence)
+                                                                 temp1$aln.all$offTarget_Start, temp1$aln.all$offTarget_End)))) ==
+                temp1$aln.all$offTarget_sequence)
 
   expect_true(as.character(temp1$aln.all$offTarget_sequence) ==
-                          as.character(reverseComplement(peaks)))
+                as.character(reverseComplement(peaks)))
 
   expect_equal(as.numeric(temp1$aln.all$pos.deletion), 16)
 
+  expect_equal(as.numeric(temp1$aln.all$offTarget_End), 24)
+  expect_equal(as.numeric(temp1$aln.all$offTarget_Start), 1)
+
   expect_equal(as.character(temp1$aln.all$PAM.sequence), "AGG")
   expect_equal(
-    as.numeric(unlist(temp1$aln.all$pos.mismatch)),c(19,2,1))
+    as.numeric(unlist(temp1$aln.all$pos.mismatch)),c(1,2,19))
+  expect_equal(as.character(temp1$aln.all$offTargetStrand), "-")
 })
 
 test_that("bulge on gRNA offtarget on plus strand works", {
@@ -138,7 +145,7 @@ test_that("bulge on gRNA offtarget on plus strand works", {
 
   expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
-                                     off.names[1],]$n.mismatch)),
+                                   off.names[1],]$n.mismatch)),
     8)
 
   expect_equal(
@@ -182,34 +189,34 @@ test_that("bulge on gRNA and offtarget on the minus strand  works", {
 
   expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
-                                     off.names[2],]$n.mismatch)),
+                                   off.names[2],]$n.mismatch)),
     3)
 
   expect_equal(
     as.character(unlist(merged.bed[merged.bed$names ==
                                      off.names[2],]$mismatch.distance2PAM)),
-    "2,5,20")
+    "20,5,2")
 
 
-    expect_equal(
+  expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names == off.names[2],]$pos.insertion))
     , 8)
 
   expect_equal(
     as.character(unlist(merged.bed[merged.bed$names ==
                                      off.names[2],]$guideAlignment2OffTarget)),
-         "C......-.......A..C.")
+    "C......-.......A..C.")
 
   expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
                                    off.names[2],]$n.mismatch)), 3)
   expect_equal(
     as.character(unlist(merged.bed[merged.bed$names == off.names[2],]$PAM.sequence)),
-     "AGG")
+    "AGG")
   expect_equal(
     as.numeric(unlist(merged.bed[merged.bed$names ==
                                    off.names[2],]$pos.mismatch)),
-       c(19, 16, 1))
+    c(1,16,19))
 
 
 
@@ -225,6 +232,6 @@ test_that("bulge on gRNA and offtarget on the minus strand  works", {
 
   expect_equal(
     as.character(unlist(merged.bed[merged.bed$names ==
-                                   off.names[2],]$chromosome.y)),
+                                     off.names[2],]$chromosome.y)),
     "chr2")
 })

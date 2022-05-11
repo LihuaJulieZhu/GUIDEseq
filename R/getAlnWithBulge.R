@@ -104,7 +104,7 @@ getAlnWithBulge <- function(gRNA, gRNA.name,
     # pa.r.2 <- lapply(1:length(seq.r.DSS), function(i) {
     #   pairwiseAlignment(pattern =
     #                       as.character(reverseComplement(DNAString(gRNA))),
-    #                     subject = reverseComplement(seq.r.DSS[i]),
+    #                     subject = seq.r.DSS[i],
     #                     type = "global-local",
     #                     substitutionMatrix = mat,
     #                     gapOpening = gapOpening,
@@ -115,7 +115,7 @@ getAlnWithBulge <- function(gRNA, gRNA.name,
     pa.r.2 <- lapply(1:length(seq.r.DSS), function(i) {
       pairwiseAlignment(pattern =
                          gRNA,
-                        subject = seq.r.DSS[i],
+                        subject = as.character(reverseComplement(seq.r.DSS[i])),
                         type = "global-local",
                         substitutionMatrix = mat,
                         gapOpening = gapOpening,

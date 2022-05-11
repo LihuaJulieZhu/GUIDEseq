@@ -5,17 +5,40 @@
 # subjects2 <- readRDS(file = system.file("extdata", "subjects2.RDS",
 #                                         package = "GUIDEseq"))
 
-pa.f <- readRDS(file = "~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/inst/extdata/pa.f.RDS")
-pa.r <- readRDS(file = "~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/inst/extdata/pa.r.RDS")
+# hg19
 subjects2 <- readRDS(file = "~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/inst/extdata/subjects2.RDS")
+gRNA <- "TTGCTTTTATCACAGGCTCC"
+
+pa.f<- lapply(1:length(subjects2), function(i) {
+  pairwiseAlignment(pattern = gRNA,
+                    subject = as.character(subjects2[i]),
+                    type = "global-local",
+                    scoreOnly = FALSE)
+})
+
+pa.r <- lapply(1:length(subjects2), function(i) {
+  pairwiseAlignment(pattern = gRNA,
+                    subject = as.character(reverseComplement(subjects2[i])),
+                    type = "global-local",
+                    scoreOnly = FALSE)
+})
+
+#saveRDS(pa.f, file = "~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/inst/extdata/pa.f.RDS")
+#saveRDS(pa.r, file = "~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/inst/extdata/pa.r.RDS")
+
 
 test_that("getBestAlnInfo plus strand bulge in gRNA works", {
   i = 16
   temp <- getBestAlnInfo(subjects2[i], pa.f[[i]], pa.r[[i]])
   expect_equal(
-    as.character(substr(as.character(subjects2[i]),
-                        temp$offTarget_Start, temp$offTarget_End)),
-    "ATGGAATCATCATAGAATGG")
+    as.character(reverseComplement(DNAString(substr(as.character(subjects2[i]),
+                        temp$offTarget_Start, temp$offTarget_End)))),
+    "TTCCATTCAATGATTCCATT")
+  expect_equal(temp$offTargetStrand, "-")
+  expect_equal(temp$guideAlignment2OffTarget, "..C.A..---..AT.AT...")
+  expect_equal(temp$n.mismatch, 6)
+  expect_equal(temp$n.insertion, 3)
+  expect_equal(temp$n.deletion, 0)
 })
 
 test_that("getBestAlnInfo plus strand bulge in gRNA works", {
@@ -48,27 +71,29 @@ test_that("getBestAlnInfo minus strand bulge in gRNA works", {
   i = 66
   temp <- getBestAlnInfo(subjects2[i], pa.f[[i]], pa.r[[i]])
   expect_equal(
-    as.character(substr(subjects2[i],
-                        temp$offTarget_Start, temp$offTarget_End)),
-    "ATGAGATGCTGAAATAATGCAA")
+    as.character(reverseComplement(DNAString(substr(subjects2[i],
+                        temp$offTarget_Start, temp$offTarget_End)))),
+    "TTGCATTATTTCAGCATCTCAT")
+
   expect_equal(temp$offTarget,
                          "chr2+:221535820:221535845chr2-:221535730:221535755"
   )
 
   expect_equal(temp$offTargetStrand, "-")
   expect_equal(as.character(temp$PAM.sequence),"CAT")
-  expect_equal(temp$offTarget_sequence, "TTGC-ATTATTTCAGCATCTCAT")
+  expect_equal(temp$offTarget_sequence, "TTGCATT-ATTTCAGCATCTCAT")
 
   expect_equal(temp$offTarget_End, 71)
   expect_equal(temp$offTarget_Start, 50)
 
-  expect_equal(temp$guideAlignment2OffTarget, "....-A....TT...CA..T")
+  expect_equal(temp$guideAlignment2OffTarget, "....A..-..TT...CA..T")
   expect_equal(temp$n.PAM.mismatch, 2)
-  expect_equal(temp$mismatch.distance2PAM, "1,4,5,9,10,15") ###
-  expect_equal(as.numeric(temp$pos.insertion), 5)
-  expect_equal(temp$pos.mismatch, c(20,17,16,12,11,6))
+  expect_equal(temp$mismatch.distance2PAM, "16,10,9,5,4,1") ###
+  expect_equal(as.numeric(temp$pos.insertion), 8)
+  expect_equal(temp$pos.mismatch, c(5,11,12,16,17,20))
   # n.mismatch = mismatches + indels
   expect_equal(temp$n.mismatch, 6)
+  expect_equal(temp$pos.insertion, 8)
 
   expect_equal(temp$n.insertion, 1)
 })
@@ -106,18 +131,13 @@ test_that("getBestAlnInfo plus strand without indel works", {
   expect_equal(temp$n.deletion, 0)
 })
 
-test_that("getBestAlnInfo minus strand without indel works", {
+test_that("getBestAlnInfo minus strand with deletion on gRNA works", {
   i = 96
   #pattern:      GGAGCCTGTGATAAAAGCAA
   #subject: [48] GAAGCCTATGCTAGAAATGG
   temp <- getBestAlnInfo(subjects2[i], pa.f[[i]], pa.r[[i]])
-  expected_mismatch_pos <- c(19, 13, 10,  7,  4,  3,  2,  1)
-   expect_equal(temp$n.insertion, 0)
-  expect_equal(temp$n.deletion, 0)
 
-  expect_equal(temp$pos.mismatch, expected_mismatch_pos)
-
-  expect_equal(temp$offTarget_End, 67)
+  expect_equal(temp$offTarget_End, 69)
   expect_equal(temp$offTarget_Start, 45)
 
   expect_equal(
@@ -135,14 +155,15 @@ test_that("getBestAlnInfo minus strand without indel works", {
                              temp$offTarget_Start, temp$offTarget_Start + 2)))
 
 
-  expect_equal(temp$guideAlignment2OffTarget, "CCAT..C..G..T.....T.")
-  expect_equal(temp$mismatch.distance2PAM, "2,8,11,14,17,18,19,20")
+  expect_equal(temp$guideAlignment2OffTarget, "..C.A..^^..G..T.....T.")
+  expect_equal(temp$mismatch.distance2PAM, "18,16,11,8,2")
+  expect_equal(temp$pos.mismatch, c(3,5, 10, 13, 19))
 
   expect_equal(temp$n.PAM.mismatch, 1)
   # n.mismatch = mismatches + indels
-  expect_equal(temp$n.mismatch, 8)
+  expect_equal(temp$n.mismatch, 5)
 
-  expect_equal(temp$n.deletion, 0)
+  expect_equal(temp$n.deletion, 2)
   expect_equal(temp$n.insertion, 0)
 })
 
@@ -154,18 +175,31 @@ test_that("getBestAlnInfo plus strand with bulge in offtargets works", {
   # chr14OT <- readRDS(file = system.file(
   #                           "extdata", "InsertionInOfftarget.RDS",
   #                                         package = "GUIDEseq"))
-
   chr14OT <- readRDS(file =
-                    "~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/inst/extdata/InsertionInOfftarget.RDS")
+                       "~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/inst/extdata/InsertionInOfftarget.RDS")
 
   subjects2 <- chr14OT[[3]]
-  pa.f <- chr14OT[[1]]
-  pa.r <- chr14OT[[2]]
+  gRNA <- "TGCTTGGTCGGCACTGATAG"
+
+  pa.f<- lapply(1:length(subjects1), function(i) {
+    pairwiseAlignment(pattern = gRNA,
+                      subject = as.character(subjects1[i]),
+                      type = "global-local",
+                      scoreOnly = FALSE)
+  })
+
+  pa.r <- lapply(1:length(subjects1), function(i) {
+    pairwiseAlignment(pattern = gRNA,
+                      subject = as.character(reverseComplement(subjects1[i])),
+                      type = "global-local",
+                      scoreOnly = FALSE)
+  })
+
   i <- 1
 
   temp <- getBestAlnInfo(subjects2[i], pa.f[[i]], pa.r[[i]])
 
-  expect_equal(as.numeric(temp$pos.deletion), 12)
+  expect_equal(as.numeric(temp$pos.deletion), 10)
   expect_equal(temp$pos.mismatch, c(1,8,19))
 
   expect_equal(temp$offTarget_End, 38)
@@ -186,10 +220,10 @@ test_that("getBestAlnInfo plus strand with bulge in offtargets works", {
     as.character(substr(as.character(subjects2[i]),
                         temp$offTarget_End - PAM.size  + 1, temp$offTarget_End)))
 
-  expect_equal(temp$pos.deletion, 12)
+  expect_equal(temp$pos.deletion, 10)
 
   expect_equal(temp$pos.mismatch, c(1,8,19))
-  expect_equal(temp$guideAlignment2OffTarget, "G......C...^.......T.")
+  expect_equal(temp$guideAlignment2OffTarget, "G......C.^.........T.")
   expect_equal(temp$mismatch.distance2PAM, "20,13,2")
 
   expect_equal(temp$n.PAM.mismatch, 0)
@@ -206,31 +240,53 @@ test_that("getBestAlnInfo minus strand with perfect match in offtargets works", 
   #   "extdata", "InsertionInOfftarget.RDS",
   #   package = "GUIDEseq"))
 
+
   chr14OT <- readRDS(file =
          "~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/inst/extdata/InsertionInOfftarget.RDS")
 
-  subjects2 <- chr14OT[[3]]
-  pa.f <- chr14OT[[1]]
-  pa.r <- chr14OT[[2]]
+  subjects1 <- chr14OT[[3]]
+  gRNA <- "TGCTTGGTCGGCACTGATAG"
+
+  pa.f<- lapply(1:length(subjects1), function(i) {
+    pairwiseAlignment(pattern = gRNA,
+                      subject = as.character(subjects1[i]),
+                      type = "global-local",
+                      scoreOnly = FALSE)
+  })
+
+  pa.r <- lapply(1:length(subjects1), function(i) {
+    pairwiseAlignment(pattern = gRNA,
+                      subject = as.character(reverseComplement(subjects1[i])),
+                      type = "global-local",
+                      scoreOnly = FALSE)
+  })
+
+  #saveRDS(list(pa.f = pa.f, pa.r = pa.r, subjects = subjects1), file =
+  #         "~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/inst/extdata/InsertionInOfftarget.RDS")
+
+
+  #pa.f <- chr14OT[[1]]
+  #pa.r <- chr14OT[[2]]
+
   i <- 2
 
-  temp <- getBestAlnInfo(subjects2[i], pa.f[[i]], pa.r[[i]])
+  temp <- getBestAlnInfo(subjects1[i], pa.f[[i]], pa.r[[i]])
 
   expect_equal(temp$offTarget_End, 47)
   expect_equal(temp$offTarget_Start, 25)
 
   expect_equal(
-    as.character(substr(as.character(subjects2[i]),
+    as.character(substr(as.character(subjects1[i]),
                         temp$offTarget_Start, temp$offTarget_End)),
     as.character(reverseComplement(DNAString(temp$offTarget_sequence))))
 
-  expect_equal(temp$offTarget,names(subjects2[i]))
+  expect_equal(temp$offTarget,names(subjects1[i]))
 
   expect_equal(temp$offTargetStrand, "-")
 
   expect_equal(as.character(reverseComplement(DNAString(
     as.character(temp$PAM.sequence)))),
-    as.character(substr(as.character(subjects2[i]),
+    as.character(substr(as.character(subjects1[i]),
                         temp$offTarget_Start, temp$offTarget_Start + 2)))
 
 

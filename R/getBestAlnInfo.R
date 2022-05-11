@@ -4,7 +4,7 @@
 #' @param pa.f Global-Local PairwiseAlignmentsSingleSubject, results of
 #' pairwiseAlignment, alignment of pattern to subject
 #' @param pa.r Global-Local PairwiseAlignmentsSingleSubject, results of
-#' pairwiseAlignment, alignment of reverse pattern to subject
+#' pairwiseAlignment, alignment of pattern to reverse subject
 #' @param gRNA.size size of gRNA, default to 20
 #' @param PAM PAM sequence, default to NGG
 #' @param PAM.size PAM size, default to 3
@@ -100,28 +100,30 @@ getBestAlnInfo <- function(offtargetSeq, pa.f, pa.r, gRNA.size = 20,
 
   name.peak <- names(seq)[2]
 
-  seq.print <- as.character(
-    switch(best.pos[1],
-           seq[2],
-           reverseComplement(DNAString(as.character(seq[2])))))
+  seq.print <- as.character(seq[2])
+    # switch(best.pos[1],
+    #        seq[2],
+    #        reverseComplement(DNAString(as.character(seq[2])))))
 
-  pos.mismatch <- switch(best.pos,
-                         pa.f@subject@mismatch[[1]] - best.start + 1,
-                         nchar(seq[1]) - (pa.r@subject@mismatch[[1]] -
-                                        best.start[1]))
+  pos.mismatch <- best.aln@subject@mismatch[[1]] - best.start + 1
+                # switch(best.pos,
+                #          best.aln@subject@mismatch[[1]] - best.start + 1,
+                #          nchar(seq[1]) - (best.aln@subject@mismatch[[1]] -
+                #                         best.start[1]))
 
   guide.print <- as.character(seq[1])
   seq.print<- strsplit(seq.print, "")[[1]]
 
   guide.print.v <- strsplit(guide.print, "")[[1]]
-  if(best.pos == 2)
-  {
-      pos.deletion.guide <- gRNA.size - (which(guide.print.v == "-") - 1) + 1
-   }
-  else
-  {
-      pos.deletion.guide <- which(guide.print.v == "-")
-  }
+  # if(best.pos == 2)
+  # {
+  #     pos.deletion.guide <- gRNA.size - (which(guide.print.v == "-") - 1) + 1
+  #  }
+  # else
+  # {
+  #     pos.deletion.guide <- which(guide.print.v == "-")
+  # }
+  pos.deletion.guide <- which(guide.print.v == "-")
   pos.deletion.off <- which(seq.print == "-")
   if(insertion.symbol == "lowerCase")
     seq.print[pos.deletion.guide] <- tolower(seq.print[pos.deletion.guide])
@@ -132,12 +134,12 @@ getBestAlnInfo <- function(offtargetSeq, pa.f, pa.r, gRNA.size = 20,
   {
     for (i in 1:length(pos.deletion.off))
     {
-      if (best.pos == 1)
+      # if (best.pos == 1)
         pos.mismatch[(pos.mismatch - pos.deletion.off[i]) > 0] <-
           pos.mismatch[(pos.mismatch - pos.deletion.off[i]) > 0] + 1
-      else
-        pos.mismatch[(pos.mismatch - pos.deletion.off[i]) < 0] <-
-           pos.mismatch[(pos.mismatch - pos.deletion.off[i]) < 0] - 1
+      # else
+      #   pos.mismatch[(pos.mismatch - pos.deletion.off[i]) < 0] <-
+      #      pos.mismatch[(pos.mismatch - pos.deletion.off[i]) < 0] - 1
     }
   }
  # It is important to set seq.print before reset pos.mismatch using
@@ -155,49 +157,59 @@ getBestAlnInfo <- function(offtargetSeq, pa.f, pa.r, gRNA.size = 20,
   {
     for (i in 1:length(pos.deletion.guide))
     {
-      if (best.pos == 1)
+      # if (best.pos == 1)
         pos.mismatch[(pos.mismatch - pos.deletion.guide[i]) > 0] <-
           pos.mismatch[(pos.mismatch - pos.deletion.guide[i]) > 0] - 1
-      else
-      {
-        pos.mismatch[(pos.mismatch - pos.deletion.guide[i]) < 0] <-
-          pos.mismatch[(pos.mismatch - pos.deletion.guide[i]) < 0] + 1
-        # need to add the following line after seq.print is set
-        pos.mismatch <- pos.mismatch - nchar(seq[1]) + gRNA.size
-      }
+      # else
+      # {
+      #   pos.mismatch[(pos.mismatch - pos.deletion.guide[i]) < 0] <-
+      #     pos.mismatch[(pos.mismatch - pos.deletion.guide[i]) < 0] + 1
+      #   # need to add the following line after seq.print is set
+      #   pos.mismatch <- pos.mismatch - nchar(seq[1]) + gRNA.size
+      # }
     }
   }
 
-  seq.aligned <- switch(best.pos,
-                        as.character(pa.f@subject),
-                        as.character(reverseComplement(DNAString(as.character(
-                          pa.r@subject)))))
+  seq.aligned <- as.character(best.aln@subject)
+              # switch(best.pos,
+              #           as.character(pa.f@subject),
+              #           as.character(reverseComplement(DNAString(as.character(
+              #             pa.r@subject)))))
   strand.aligned <- switch(best.pos,
                            "+", "-")
 
   PAM.aligned <- switch(best.pos,
-                        substr(offtargetSeq, best.start + width(seq[2]) -
+                        substr(as.character(offtargetSeq), best.start + width(seq[2]) -
                                  length(which(seq.print == "-")) ,
                                best.start + width(seq[2]) + PAM.size - 1 -
-                                 length(which(seq.print == "-"))),
-                        as.character(reverseComplement(DNAString(
-                          substr(offtargetSeq, best.start - PAM.size,
-                                 best.start - 1))))
-  )
+                               length(which(seq.print == "-"))),
+                        substr(as.character(reverseComplement(
+                         offtargetSeq)), best.start + width(seq[2]) -
+                           length(which(seq.print == "-")) ,
+                              best.start + width(seq[2]) + PAM.size - 1 -
+                              length(which(seq.print == "-"))))
   seq.aligned <- paste0(seq.aligned, PAM.aligned)
 
   # only allow A, C, G, T, and N in the PAM sequence for now.
   # need to add other code types later
 
-  offTarget_Start <- switch(best.pos,
-                           best.start,
-                           max(1, best.start - PAM.size))
+  # offTarget_Start <- switch(best.pos,
+  #                          best.start,
+  #                          nchar(offtargetSeq) - best.start + 2 - gRNA.size -
+  #                            n.insertion + n.deletion)
+  #                          # max(1, best.start - PAM.size))
 
-  offTarget_End <- offTarget_Start + width(seq[2]) - 1 + PAM.size -
-    n.insertion
+  #offTarget_End <- offTarget_Start + width(seq[2]) - 1 + PAM.size -
+    #n.insertion
+  offTarget_End <- switch(best.pos,
+                          best.start + gRNA.size - 1 -
+                            n.insertion + n.deletion + PAM.size,
+                          nchar(offtargetSeq) - best.start + 1)
+
+  offTarget_Start <- offTarget_End - gRNA.size + 1 +
+    n.insertion - n.deletion - PAM.size
 
  seq.print<- paste0(seq.print, collapse = "")
-col
  list(offTarget = name.peak,
       peak_score = NA,
       gRNA.name = NA,
