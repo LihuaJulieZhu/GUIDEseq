@@ -1,14 +1,14 @@
 # need to remove the source later
-source("~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/R/getAlnWithBulge.R")
-source("~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/R/getBestAlnInfo.R")
-source("~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/R/bulge-internal.R")
+devtools::load_all("~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq")
 
 detach("package:BSgenome.Hsapiens.UCSC.hg19", unload = TRUE)
 library(BSgenome.Hsapiens.UCSC.hg38)
 test_that("getAlnWithBulge without restricting PAM.pattern works", {
 
   #peaks.f <- "~/DropboxUmass/Bioconductor/Trunk/GUIDEseq/inst/extdata/1450-PlusMinusPeaksMerged.bed"
-  peaks.f <- "~/DropboxUmass/Bioconductor/Trunk/GUIDEseq/inst/extdata/1450-chr14-chr2-bulge-test.bed"
+  peaks.f <- system.file("extdata", "1450-chr14-chr2-bulge-test.bed",
+                         package = "GUIDEseq")
+
   gRNA <- "TGCTTGGTCGGCACTGATAG"
 
   temp <- getAlnWithBulge(gRNA, gRNA.name = "gRNA1450", peaks.withHeader = FALSE,
@@ -54,8 +54,9 @@ test_that("getAlnWithBulge bulge on gRNA offtarget on minus strand without misma
 test_that(" bulge on offtarget with mismacth and on minus strand works", {
   # PAM followed by 2t(19A), 19c(2G), 20t(1A), 6 insertion
   peaks <- DNAStringSet(c("CCTGTGGCTGGGGTGGAGGGGGCT"))
-  gRNA <- substr(as.character(readDNAStringSet(system.file("extdata", "T2.fa",
-                                                           package = "CRISPRseek"))), 1, 20)
+  gRNA <- substr(as.character(
+    readDNAStringSet(system.file("extdata", "T2.fa",
+                            package = "CRISPRseek"))), 1, 20)
 
   names(peaks) <- "testMinusBulgeOff"
   temp1 <- getAlnWithBulge(gRNA, gRNA.name = "T2",
@@ -85,12 +86,15 @@ test_that(" bulge on offtarget with mismacth and on minus strand works", {
 test_that("bulge on gRNA offtarget on plus strand works", {
   peaks.f <- system.file("extdata", "T2plus100OffTargets.bed",
                          package = "GUIDEseq")
-  gRNA <- substr(as.character(readDNAStringSet(system.file("extdata", "T2.fa",
-                                                           package = "CRISPRseek"))),
+  gRNA <- substr(as.character(
+    readDNAStringSet(system.file("extdata", "T2.fa",
+              package = "CRISPRseek"))),
                  1, 20)
   names(gRNA) <- "T2"
+  # important to set peaks.withHeader = TRUE
   temp <- getAlnWithBulge(gRNA, gRNA.name = "T2",
-                          peaks = peaks.f, BSgenomeName = Hsapiens)
+                          peaks = peaks.f, BSgenomeName = Hsapiens,
+                          peaks.withHeader = TRUE)
 
   bed <- read.table(system.file("extdata", "T2plus100OffTargets.bed",
                                 package = "GUIDEseq"),
@@ -172,9 +176,9 @@ test_that("bulge on gRNA offtarget on plus strand works", {
     as.character(unlist(merged.bed[merged.bed$names ==
                                      off.names[3],]$chromosome.y)),
     "chr10")
-})
 
-test_that("bulge on gRNA and offtarget on the minus strand  works", {
+
+cat("bulge on gRNA and offtarget on the minus strand  works")
 
   cat("Start testing offtarget on the minus strand ...")
 
@@ -217,7 +221,6 @@ test_that("bulge on gRNA and offtarget on the minus strand  works", {
     as.numeric(unlist(merged.bed[merged.bed$names ==
                                    off.names[2],]$pos.mismatch)),
     c(1,16,19))
-
 
 
   expect_equal(

@@ -1,3 +1,91 @@
+#' GUIDEseq analysis
+#'
+#' @param alignment.inputfile
+#' @param umi.inputfile
+#' @param alignment.format
+#' @param umi.header
+#' @param read.ID.col
+#' @param umi.col
+#' @param umi.sep
+#' @param BSgenomeName
+#' @param gRNA.file
+#' @param outputDir
+#' @param n.cores.max
+#' @param keep.chrM
+#' @param keep.R1only
+#' @param keep.R2only
+#' @param concordant.strand
+#' @param max.paired.distance
+#' @param min.mapping.quality
+#' @param max.R1.len
+#' @param max.R2.len
+#' @param min.umi.count
+#' @param max.umi.count
+#' @param min.read.coverage
+#' @param apply.both.max.len
+#' @param same.chromosome
+#' @param distance.inter.chrom
+#' @param min.R1.mapped
+#' @param min.R2.mapped
+#' @param apply.both.min.mapped
+#' @param max.duplicate.distance
+#' @param umi.plus.R1start.unique
+#' @param umi.plus.R2start.unique
+#' @param window.size
+#' @param step
+#' @param bg.window.size
+#' @param min.reads
+#' @param min.reads.per.lib
+#' @param min.peak.score.1strandOnly
+#' @param min.SNratio
+#' @param maxP
+#' @param stats
+#' @param p.adjust.methods
+#' @param distance.threshold
+#' @param max.overlap.plusSig.minusSig
+#' @param plus.strand.start.gt.minus.strand.end
+#' @param keepPeaksInBothStrandsOnly
+#' @param gRNA.format
+#' @param overlap.gRNA.positions
+#' @param upstream
+#' @param downstream
+#' @param PAM.size
+#' @param gRNA.size
+#' @param PAM
+#' @param PAM.pattern
+#' @param max.mismatch
+#' @param allowed.mismatch.PAM
+#' @param overwrite
+#' @param weights
+#' @param orderOfftargetsBy
+#' @param descending
+#' @param keepTopOfftargetsOnly
+#' @param keepTopOfftargetsBy
+#' @param scoring.method
+#' @param subPAM.activity
+#' @param subPAM.position
+#' @param PAM.location
+#' @param mismatch.activity.file
+#' @param bulge.activity.file Used for predicting indel effect on offtarget
+#' cleavage score
+#' @param txdb
+#' @param orgAnn
+#' @param mat nucleotide substitution matrix. Function
+#' nucleotideSubstitutionMatrix can be used for creating customized
+#' nucleotide substitution matrix. By default, match = 1,
+#' mismatch = -1, and baseOnly = TRUE
+#' Only applicalbe with includeBulge set to TRUE
+#' @param includeBulge indicates whether including offtargets with indels
+#' default to FALSE
+#' @param max.n.bulge offtargets with at most this number of indels
+#' to be included in the offtarget list. Only applicalbe with includeBulge set
+#' to TRUE
+#'
+#' @return
+#' @importFrom rio export
+#' @export
+#'
+#' @examples
 GUIDEseqAnalysis <- function(alignment.inputfile,
     umi.inputfile,
     alignment.format = c("auto", "bam", "bed"),
@@ -83,8 +171,14 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
      PAM.location = "3prime",
      mismatch.activity.file = system.file("extdata",
          "NatureBiot2016SuppTable19DoenchRoot.csv",
-         package = "CRISPRseek"),
-     txdb, orgAnn
+                package = "CRISPRseek"),
+     bulge.activity.file = system.file("extdata",
+         "NatureBiot2016SuppTable19DoenchRoot.xlsx",
+                  package = "GUIDEseq"),
+     txdb, orgAnn,
+     mat,
+     includeBulge = FALSE,
+     max.n.bulge = 2L
 )
 {
     alignment.format <- match.arg(alignment.format)
@@ -120,9 +214,24 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         length(umi.inputfile))
     n.files <- min(n.files, 2)
     if (class(gRNA.file) != "DNAStringSet")
+    {
         gRNAName <- gsub(".fa", "", basename(gRNA.file))
+        gRNA <- readDNAStringSet(gRNA.file)
+    }
     else
+    {
         gRNAName <- names(gRNA.file)
+        gRNA <- gRNA.file
+    }
+
+    if (PAM.location == "3prime")
+        gRNA <- as.character(substr(as.character(gRNA), 1, gRNA.size))
+    else if (nchar(as.character(gRNA)) == gRNA.size + PAM.size)
+        gRNA <- as.character(substr(as.character(gRNA), PAM.size + 1,
+                       gRNA.size + PAM.size))
+    else if (nchar(as.character(gRNA)) != gRNA.size)
+        stop("gRNA should include protospace with/without PAM")
+
     for (i in 1:length(gRNA.file))
     {
         if (is.na(gRNAName[i]) || nchar(gRNAName)[i]  == 0)
@@ -299,25 +408,45 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
 
     if(!file.exists(outputDir))
         dir.create(outputDir)
-
-    offTargets <- offTargetAnalysisOfPeakRegions(gRNA = gRNA.file,
-        peaks = output.bedfile,
-        format = c(gRNA.format, "bed"),
-        peaks.withHeader = FALSE, BSgenomeName = BSgenomeName,
-        upstream = upstream, downstream = downstream,
-        PAM.size = PAM.size, gRNA.size = gRNA.size,
-        PAM =  PAM, PAM.pattern = PAM.pattern, max.mismatch = max.mismatch,
-        outputDir = outputDir, overlap.gRNA.positions  = overlap.gRNA.positions,
-        allowed.mismatch.PAM = allowed.mismatch.PAM, overwrite = overwrite,
-        weights = weights,
-        orderOfftargetsBy = keepTopOfftargetsBy,
-        keepTopOfftargetsOnly = keepTopOfftargetsOnly,
-        scoring.method = scoring.method,
-        subPAM.activity = subPAM.activity,
-        subPAM.position = subPAM.position,
-        PAM.location = PAM.location,
-        mismatch.activity.file = mismatch.activity.file
-    )
+    if (includeBulge)
+    {
+         offTargets <- do.call(rbind, lapply(1:length(gRNAName), function(i) {
+            temp <- offTargetAnalysisWithBulge(gRNA = gRNA[i], gRNA.name = gRNAName[i],
+                                    peaks = output.bedfile,
+                                    BSgenomeName = BSgenomeName,
+                                    mismatch.activity.file = bulge.activity.file,
+                                    peaks.withHeader = FALSE,
+                                    PAM.size = PAM.size, gRNA.size = gRNA.size,
+                                    PAM =  PAM, PAM.pattern = PAM.pattern,
+                                    PAM.location = PAM.location,
+                                    max.mismatch = max.mismatch,
+                                    allowed.mismatch.PAM = allowed.mismatch.PAM,
+                                    max.DNA.bulge = max.n.bulge,
+                                    upstream = upstream,
+                                    downstream = downstream)
+            temp$score.bulge
+             }))
+    }
+    else
+    {
+        offTargets <- offTargetAnalysisOfPeakRegions(gRNA = gRNA.file,
+            peaks = output.bedfile,
+            format = c(gRNA.format, "bed"),
+            peaks.withHeader = FALSE, BSgenomeName = BSgenomeName,
+            upstream = upstream, downstream = downstream,
+            PAM.size = PAM.size, gRNA.size = gRNA.size,
+            PAM =  PAM, PAM.pattern = PAM.pattern, max.mismatch = max.mismatch,
+            outputDir = outputDir, overlap.gRNA.positions  = overlap.gRNA.positions,
+            allowed.mismatch.PAM = allowed.mismatch.PAM, overwrite = overwrite,
+            weights = weights,
+            orderOfftargetsBy = keepTopOfftargetsBy,
+            keepTopOfftargetsOnly = keepTopOfftargetsOnly,
+            scoring.method = scoring.method,
+            subPAM.activity = subPAM.activity,
+            subPAM.position = subPAM.position,
+            PAM.location = PAM.location,
+            mismatch.activity.file = mismatch.activity.file)
+    }
     cat("Done with offtarget search!\n")
     offTargets <- subset(offTargets, !is.na(offTargets$offTarget))
     if (dim(offTargets)[1] == 0)
@@ -329,52 +458,60 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         offTargets <- annotateOffTargets(offTargets, txdb, orgAnn)
     }
 
-    colnames(offTargets)[colnames(offTargets) == "n.mismatch"] <- "n.guide.mismatch"
-    colnames(offTargets)[colnames(offTargets) == "name"] <- "gRNA.name"
-
     cat("Extract PAM sequence and n.PAM.mismatch. \n")
-    if (PAM.location == "3prime")
-    {
-        PAM.sequence <- substr(offTargets$offTarget_sequence,
-            gRNA.size + 1, gRNA.size + PAM.size)
-    }
-    else
-    {
-        PAM.sequence <- substr(offTargets$offTarget_sequence,
-            1,  PAM.size)
-    }
 
-    n.PAM.mismatch <- unlist(lapply(DNAStringSet(PAM.sequence), function(i) {
-        neditAt(i, DNAString(PAM), fixed=FALSE)
-    }))
-    exclude.col <- which(colnames(offTargets) %in%
-        c("names", "targetSeqName", "peak_start", "peak_end", "peak_strand"))
-    offTargets <- offTargets[, -exclude.col]
-    ind1 <- which(colnames(offTargets) == "n.guide.mismatch")
-    ind3 <- which(colnames(offTargets) == "mismatch.distance2PAM")
-    ind.start1 <- min(ind1, ind3)
-    ind2 <- ind.start1 + 1
-    ind.start2 <- max(ind1, ind3)
-    ind4 <- ind.start2 + 1
-    if (ind.start2 > ind2)
+    if (!includeBulge)
     {
-        offTargets <- cbind(offTargets[,1:ind.start1], n.PAM.mismatch = n.PAM.mismatch,
-            offTargets[,ind2:ind.start2], PAM.sequence = PAM.sequence,
-            offTargets[,ind4:dim(offTargets)[2]])
+        colnames(offTargets)[colnames(offTargets) == "n.mismatch"] <- "n.guide.mismatch"
+        colnames(offTargets)[colnames(offTargets) == "name"] <- "gRNA.name"
+
+        if (PAM.location == "3prime")
+        {
+            PAM.sequence <- substr(offTargets$offTarget_sequence,
+                gRNA.size + 1, gRNA.size + PAM.size)
+        }
+        else
+        {
+             PAM.sequence <- substr(offTargets$offTarget_sequence,
+                    1,  PAM.size)
+        }
+
+        n.PAM.mismatch <- unlist(lapply(DNAStringSet(PAM.sequence), function(i) {
+            neditAt(i, DNAString(PAM), fixed=FALSE)
+        }))
+        exclude.col <- which(colnames(offTargets) %in%
+            c("names", "targetSeqName", "peak_start", "peak_end", "peak_strand"))
+        offTargets <- offTargets[, -exclude.col]
+        ind1 <- which(colnames(offTargets) == "n.guide.mismatch")
+        ind3 <- which(colnames(offTargets) == "mismatch.distance2PAM")
+        ind.start1 <- min(ind1, ind3)
+        ind2 <- ind.start1 + 1
+        ind.start2 <- max(ind1, ind3)
+        ind4 <- ind.start2 + 1
+        if (ind.start2 > ind2)
+        {
+            offTargets <- cbind(offTargets[,1:ind.start1],
+                                n.PAM.mismatch = n.PAM.mismatch,
+                                offTargets[,ind2:ind.start2],
+                                PAM.sequence = PAM.sequence,
+                                 offTargets[,ind4:dim(offTargets)[2]])
+         }
+        else
+        {
+            name.ind2 <- colnames(offTargets)[ind2]
+            offTargets <- cbind(offTargets[,1:ind.start1],
+                                n.PAM.mismatch = n.PAM.mismatch,
+                                offTargets[,ind2],
+                                PAM.sequence = PAM.sequence,
+                                offTargets[,ind4:dim(offTargets)[2]])
+            colnames(offTargets)[ind2+1] <- name.ind2
+        }
     }
-    else
-    {
-        name.ind2 <- colnames(offTargets)[ind2]
-        offTargets <- cbind(offTargets[,1:ind.start1], n.PAM.mismatch = n.PAM.mismatch,
-            offTargets[,ind2], PAM.sequence = PAM.sequence,
-            offTargets[,ind4:dim(offTargets)[2]])
-        colnames(offTargets)[ind2+1] <- name.ind2
-    }
-    offTargets <- offTargets[order(offTargets[,which(colnames(offTargets) ==orderOfftargetsBy)],
-        decreasing = descending), ]
-    write.table(offTargets,
-        file = file.path(outputDir,"offTargetsInPeakRegions.xls"),
-        sep="\t", row.names = FALSE)
+    offTargets <- offTargets[order(offTargets[,which(
+        colnames(offTargets) == orderOfftargetsBy)],
+            decreasing = descending), ]
+    rio::export(offTargets,
+        file.path(outputDir,"offTargetsInPeakRegions.xlsx"))
 
     message("Please check output file in directory ", outputDir , "\n")
     if (n.files > 1)

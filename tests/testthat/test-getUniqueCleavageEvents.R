@@ -7,6 +7,7 @@ test_that("getUniqueCleavageEvents", {
                            package = "GUIDEseq")
   cleavages <- getUniqueCleavageEvents(
     alignment.inputfile = alignFile , umi.inputfile = umiFile,
-    n.cores.max = 1)
+    n.cores.max = 1,
+    min.umi.count = 5L, max.umi.count = 100000L, min.read.coverage = 1L)
   expect_equal(cleavages, cleavages.truth)
 })

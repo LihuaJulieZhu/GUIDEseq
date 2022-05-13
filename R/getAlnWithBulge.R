@@ -4,7 +4,7 @@ getAlnWithBulge <- function(gRNA, gRNA.name,
                             peaks,
                             BSgenomeName,
                             mat,
-                            peaks.withHeader = TRUE,
+                            peaks.withHeader = FALSE,
                             peaks.format= "bed",
                             gapOpening = 1L,
                             gapExtension = 3L,
@@ -76,6 +76,7 @@ getAlnWithBulge <- function(gRNA, gRNA.name,
   if (PAM.pattern != paste(rep("N", PAM.size), collapse=""))
   {
     #need to obtain separate masked.seq for forward and reverse strands
+    stop("PAM pattern other than NNN is not fully implemented yet.")
     subSeqs <- .PAMpatternSearch(PAM.pattern = PAM.pattern,
                                     sequences = as.character(subjects2),
                                     PAM.location = PAM.location,
@@ -213,6 +214,8 @@ getAlnWithBulge <- function(gRNA, gRNA.name,
 
   n.indel <- unlist(best.aln.info$n.insertion) +
     unlist(best.aln.info$n.deletion)
+
+
 
   list(aln.all = best.aln.info,
        aln.indel = best.aln.info[n.indel > 0 &
