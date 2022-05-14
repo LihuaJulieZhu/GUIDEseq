@@ -2,11 +2,10 @@
 #                                    package = "GUIDEseq"))
 # pa.r <- readRDS(file = system.file("extdata", "pa.r.RDS",
 #                                    package = "GUIDEseq"))
-# subjects2 <- readRDS(file = system.file("extdata", "subjects2.RDS",
-#                                         package = "GUIDEseq"))
+ subjects2 <- readRDS(file = system.file("extdata", "subjects2.RDS",
+                                         package = "GUIDEseq"))
 
 # hg19
-subjects2 <- readRDS(file = "~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/inst/extdata/subjects2.RDS")
 gRNA <- "TTGCTTTTATCACAGGCTCC"
 
 pa.f<- lapply(1:length(subjects2), function(i) {
@@ -172,12 +171,9 @@ test_that("getBestAlnInfo minus strand with deletion on gRNA works", {
 #subject: [15] GGCTTGGCCGGGCACTGATTG
 test_that("getBestAlnInfo plus strand with bulge in offtargets works", {
 
-  # chr14OT <- readRDS(file = system.file(
-  #                           "extdata", "InsertionInOfftarget.RDS",
-  #                                         package = "GUIDEseq"))
-  chr14OT <- readRDS(file =
-                       "~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/inst/extdata/InsertionInOfftarget.RDS")
-
+   chr14OT <- readRDS(file = system.file(
+                             "extdata", "InsertionInOfftarget.RDS",
+                                           package = "GUIDEseq"))
   subjects2 <- chr14OT[[3]]
   gRNA <- "TGCTTGGTCGGCACTGATAG"
 
@@ -236,13 +232,9 @@ test_that("getBestAlnInfo plus strand with bulge in offtargets works", {
 
 test_that("getBestAlnInfo minus strand with perfect match in offtargets works", {
 
-  # chr14OT <- readRDS(file = system.file(
-  #   "extdata", "InsertionInOfftarget.RDS",
-  #   package = "GUIDEseq"))
-
-
-  chr14OT <- readRDS(file =
-         "~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/inst/extdata/InsertionInOfftarget.RDS")
+   chr14OT <- readRDS(file = system.file(
+     "extdata", "InsertionInOfftarget.RDS",
+     package = "GUIDEseq"))
 
   subjects1 <- chr14OT[[3]]
   gRNA <- "TGCTTGGTCGGCACTGATAG"

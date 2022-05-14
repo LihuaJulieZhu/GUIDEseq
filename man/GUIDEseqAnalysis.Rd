@@ -77,8 +77,14 @@ GUIDEseqAnalysis(alignment.inputfile, umi.inputfile,
      mismatch.activity.file = system.file("extdata", 
          "NatureBiot2016SuppTable19DoenchRoot.csv", 
          package = "CRISPRseek"),
+     bulge.activity.file = system.file("extdata",
+         "NatureBiot2016SuppTable19DoenchRoot.xlsx",
+                  package = "GUIDEseq"),
      txdb,
-     orgAnn
+     orgAnn,
+     mat,
+     includeBulge = FALSE,
+     max.n.bulge = 2L
 )
 }
 \arguments{
@@ -360,8 +366,16 @@ Please set to 5prime for cpf1 PAM since it's PAM is located on the 5 prime end
 }
 \item{mismatch.activity.file}{
 Applicable only when scoring.method is set to CFDscore
-A comma separated (csv) file containing the cleavage rates for all possible types of
-single nucleotide mismatche at each position of the gRNA. By default, using the supplemental Table 19 from Doench et al., Nature Biotechnology 2016
+A comma separated (csv) file containing the cleavage 
+rates for all possible types of single nucleotide mismatche 
+at each position of the gRNA. By default, use the supplemental 
+Table 19 from Doench et al., Nature Biotechnology 2016
+}
+\item{bulge.activity.file}{
+Used for predicting indel effect on offtarget
+cleavage score. An excel file with the second sheet for deletion activity 
+and the third sheet for Insertion. By default, use the supplemental 
+Table 19 from Doench et al., Nature Biotechnology 2016
 }
 \item{txdb}{
 TxDb object, for creating and using TxDb object, please refer 
@@ -376,6 +390,22 @@ TxDb.Celegans.UCSC.ce6.ensGene for C.elegans
 }
 \item{orgAnn}{
 organism annotation mapping such as org.Hs.egSYMBOL in org.Hs.eg.db package for human
+}
+\item{mat}{
+nucleotide substitution matrix. Function
+nucleotideSubstitutionMatrix can be used for creating customized
+nucleotide substitution matrix. By default, match = 1,
+mismatch = -1, and baseOnly = TRUE
+Only applicalbe with includeBulge set to TRUE
+}
+\item{includeBulge}{
+indicates whether including offtargets with indels
+default to FALSE
+}
+\item{max.n.bulge}{
+ offtargets with at most this number of indels
+ to be included in the offtarget list. Only applicalbe with includeBulge set
+ to TRUE
 }
 }
 

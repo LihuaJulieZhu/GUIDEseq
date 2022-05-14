@@ -12,7 +12,7 @@ Imports: BiocParallel, Biostrings, CRISPRseek, ChIPpeakAnno,
          data.table, matrixStats, BSgenome, parallel,
 	 IRanges (>= 2.5.5), S4Vectors (>= 0.9.6),
 	 GenomicAlignments (>= 1.7.3), GenomeInfoDb, Rsamtools, 
-         hash, limma,dplyr, GenomicFeatures
+         hash, limma,dplyr, GenomicFeatures, rio
 biocViews: ImmunoOncology, GeneRegulation, Sequencing, WorkflowStep, CRISPR
 Suggests: 
     knitr,

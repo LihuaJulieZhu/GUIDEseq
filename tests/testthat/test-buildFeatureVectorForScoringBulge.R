@@ -1,4 +1,8 @@
 #devtools::load_all("~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq/")
+if("BSgenome.Hsapiens.UCSC.hg38" %in% (.packages()))
+{
+          detach("package:BSgenome.Hsapiens.UCSC.hg38", unload=TRUE)
+}
 library(BSgenome.Hsapiens.UCSC.hg19)
 
 test_that("buildFeatureVectorsForScoring works", {

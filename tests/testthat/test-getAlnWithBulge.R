@@ -1,7 +1,7 @@
-# need to remove the source later
-devtools::load_all("~/Dropbox (UMass Medical School)/Bioconductor/Trunk/GUIDEseq")
-
-detach("package:BSgenome.Hsapiens.UCSC.hg19", unload = TRUE)
+if("BSgenome.Hsapiens.UCSC.hg19" %in% (.packages()))
+{
+   detach("package:BSgenome.Hsapiens.UCSC.hg19", unload=TRUE)
+}
 library(BSgenome.Hsapiens.UCSC.hg38)
 test_that("getAlnWithBulge without restricting PAM.pattern works", {
 
@@ -66,8 +66,8 @@ test_that(" bulge on offtarget with mismacth and on minus strand works", {
                "AG.............^...A.")
 
   expect_true(as.character(reverseComplement(DNAStringSet(substr(peaks,
-                                                                 temp1$aln.all$offTarget_Start, temp1$aln.all$offTarget_End)))) ==
-                temp1$aln.all$offTarget_sequence)
+             temp1$aln.all$offTarget_Start, temp1$aln.all$offTarget_End)))) ==
+             temp1$aln.all$offTarget_sequence)
 
   expect_true(as.character(temp1$aln.all$offTarget_sequence) ==
                 as.character(reverseComplement(peaks)))

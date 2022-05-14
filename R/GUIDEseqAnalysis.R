@@ -234,7 +234,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
 
     for (i in 1:length(gRNA.file))
     {
-        if (is.na(gRNAName[i]) || nchar(gRNAName)[i]  == 0)
+        if (length(gRNAName[i]) == 0)
             gRNAName[i] <- paste("gRNAName", i, sep="")
     }
     cleavages.gr <- do.call(c, lapply(1:n.files, function(i)

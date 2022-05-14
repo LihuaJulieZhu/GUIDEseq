@@ -1,4 +1,5 @@
-detach("package:BSgenome.Hsapiens.UCSC.hg19", unload = TRUE)
+if("BSgenome.Hsapiens.UCSC.hg19" %in% (.packages()))
+   detach("package:BSgenome.Hsapiens.UCSC.hg19", unload = TRUE)
 test_that("getOfftargetScoreBulge with deletion in gRNA works", {
   library(BSgenome.Hsapiens.UCSC.hg38)
   peaks <- system.file("extdata", "1450-chr14-chr2-bulge-test.bed",
@@ -12,7 +13,7 @@ test_that("getOfftargetScoreBulge with deletion in gRNA works", {
   temp <- offTargetAnalysisWithBulge(gRNA = gRNA, gRNA.name = gRNA.name,
         peaks = peaks, BSgenomeName = Hsapiens, mat = mat,
         mismatch.activity.file = mismatch.activity.file)
-  expect_equal(c(1.000000, 0.028614), 
+  expect_equal(c(1.000000, 0.028614),
     temp$score.bulges$predicted_cleavage_score)
 })
 

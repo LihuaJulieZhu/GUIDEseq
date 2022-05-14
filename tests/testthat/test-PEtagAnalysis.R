@@ -1,6 +1,10 @@
 test_that("PEtagAnalysis", {
      library(TxDb.Hsapiens.UCSC.hg19.knownGene)
      library(org.Hs.eg.db)
+     if("BSgenome.Hsapiens.UCSC.hg38" %in% (.packages()))
+     {
+          detach("package:BSgenome.Hsapiens.UCSC.hg38", unload=TRUE)
+     }
      library(BSgenome.Hsapiens.UCSC.hg19)
      PET.res.truth <- readRDS(system.file("extdata",
             "PEtagAnalysis_testthat.RDS", package = "GUIDEseq"))
