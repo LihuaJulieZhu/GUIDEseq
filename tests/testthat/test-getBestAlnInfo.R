@@ -2,7 +2,7 @@
 #                                    package = "GUIDEseq"))
 # pa.r <- readRDS(file = system.file("extdata", "pa.r.RDS",
 #                                    package = "GUIDEseq"))
- subjects2 <- readRDS(file = system.file("extdata", "subjects2.RDS",
+subjects2 <- readRDS(file = system.file("extdata", "subjects2.RDS",
                                          package = "GUIDEseq"))
 
 # hg19
@@ -174,7 +174,7 @@ test_that("getBestAlnInfo plus strand with bulge in offtargets works", {
    chr14OT <- readRDS(file = system.file(
                              "extdata", "InsertionInOfftarget.RDS",
                                            package = "GUIDEseq"))
-  subjects2 <- chr14OT[[3]]
+  subjects1 <- chr14OT[[3]]
   gRNA <- "TGCTTGGTCGGCACTGATAG"
 
   pa.f<- lapply(1:length(subjects1), function(i) {
@@ -193,7 +193,7 @@ test_that("getBestAlnInfo plus strand with bulge in offtargets works", {
 
   i <- 1
 
-  temp <- getBestAlnInfo(subjects2[i], pa.f[[i]], pa.r[[i]])
+  temp <- getBestAlnInfo(subjects1[i], pa.f[[i]], pa.r[[i]])
 
   expect_equal(as.numeric(temp$pos.deletion), 10)
   expect_equal(temp$pos.mismatch, c(1,8,19))
@@ -202,18 +202,18 @@ test_that("getBestAlnInfo plus strand with bulge in offtargets works", {
   expect_equal(temp$offTarget_Start, 15)
 
   expect_equal(
-    as.character(substr(as.character(subjects2[i]),
+    as.character(substr(as.character(subjects1[i]),
                         temp$offTarget_Start, temp$offTarget_End)),
     temp$offTarget_sequence)
 
-  expect_equal(temp$offTarget,names(subjects2[i]))
+  expect_equal(temp$offTarget,names(subjects1[i]))
 
   expect_equal(temp$offTargetStrand, "+")
 
   PAM.size <- 3
   expect_equal(
     as.character(temp$PAM.sequence),
-    as.character(substr(as.character(subjects2[i]),
+    as.character(substr(as.character(subjects1[i]),
                         temp$offTarget_End - PAM.size  + 1, temp$offTarget_End)))
 
   expect_equal(temp$pos.deletion, 10)

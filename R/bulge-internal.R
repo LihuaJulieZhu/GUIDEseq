@@ -82,8 +82,8 @@
 .getSubSeq <- function(inds, this.seq, direction = c("forward", "reverse"),
                        PAM.size = 3L,
                        gRNA.size = 20L,
-                       max.DNA.bulge = 2L,
-                       PAM.location = "3prime")
+                       PAM.location = "3prime",
+                       max.DNA.bulge = 2L)
 {
   if (PAM.location == "3prime")
   {
@@ -133,7 +133,7 @@
   }
   else
   {
-    stop("Sorry! 5prime has not been implemented yet!")
+    stop("5prime has not been implemented yet!")
   }
 }
 
@@ -173,7 +173,9 @@
                 sequences[i], direction = "reverse",
                 PAM.size = PAM.size,
                 gRNA.size = gRNA.size,
-                PAM.location  = PAM.location)
+                PAM.location  = PAM.location,
+                max.DNA.bulge = max.DNA.bulge)
+
    }))
    as.data.frame(rbind(sub.sequences.f, sub.sequences.r))
   # unlist(lapply(1:length(sequences), function(i) {
@@ -250,54 +252,3 @@
   #mean(outer(splitLetters[[i]], splitLetters[[j]], "=="))
   #abs(match) * submat - abs(mismatch) %safemult% (1 - submat)
 }
-
-### for testing masking when masking strategy was used. No longer needed
-# seq1 <- paste0("CCCA", paste0(rep("AT", 10), collapse = ""), collapse = "")
-# PAM.pattern <- "NGG"
-# debugonce(.PAMpatternSearch)
-# debugonce(.getMatchedInd)
-# debugonce(.getInd)
-#
-# unlist(.PAMpatternSearch(PAM.pattern,
-#                          seq1, PAM.location))
-# expected.seqs <- c(masked.f.seq = "NNNNNNNNNNNNNNNNNNNNNNNN",
-#                    masked.r.seq = "NNNAATATATATATATATATATAT" )
-# testthat::expect_equal(expected.seqs,
-#                        unlist(.PAMpatternSearch(PAM.pattern,
-#                                                 seq1, PAM.location)))
-#
-# #CRISPRseek:::translatePattern
-#
-# test.sequence1 <- "ATATATCATATCATATCATACAGGAAGG"
-# expected.seqs <- c(masked.f.seq = "ATATATCATATCATATCATACAGGANNN",
-#                    masked.r.seq = paste0(rep("N", nchar(test.sequence1)),
-#                                          collapse = ""))
-# testthat::expect_equal(expected.seqs,
-#                        unlist(.PAMpatternSearch(PAM.pattern,
-#                                                 test.sequence1, PAM.location)))
-#
-# PAM.pattern <- "NGG$"
-#
-# expected.seqs <- c(masked.f.seq = "NTATATCATATCATATCATACAGGANNN",
-#                    masked.r.seq = paste0(rep("N", nchar(test.sequence1) ),
-#                                          collapse = ""))
-# testthat::expect_equal(expected.seqs,
-#                        unlist(.PAMpatternSearch(PAM.pattern,
-#                                                 test.sequence1, PAM.location)))
-#
-# PAM.pattern <- "NRR$"
-# test.sequence2 <- "AGGAAGG"
-# testthat::expect_equal(c(masked.f.seq = "NNNNNNN",
-#                          masked.r.seq = "NNNNNNN"),
-#                        unlist(.PAMpatternSearch(PAM.pattern,
-#                                                 test.sequence2, PAM.location)))
-#
-# test.sequence3 <- "ATATATATATATATATATATATATATCGCGCG"
-# expected.seqs <- paste0(rep("N", nchar(test.sequence3)),
-#                         collapse = "")
-# expected.seqs <- c(masked.f.seq = expected.seqs,
-#                    masked.r.seq = expected.seqs)
-#
-# observed.seqs <- .PAMpatternSearch(PAM.pattern,
-#                                    test.sequence3, PAM.location)
-# testthat::expect_equal(expected.seqs, observed.seqs)

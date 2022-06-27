@@ -22,18 +22,18 @@ test_that(".getMatchedPAMInd works", {
        "TCCTTCCATATATATATATATATATATATATAT")
   PAM.pattern <- "NGG"
   rev.pattern <- "CCN"
-  ind.f <- .getInd(PAM.pattern = PAM.pattern, sequences = sequences)
-  ind.r <- .getInd(PAM.pattern = rev.pattern , sequences = sequences)
+  ind.f <- .getPAMInd(PAM.pattern = PAM.pattern, sequences = sequences)
+  ind.r <- .getPAMInd(PAM.pattern = rev.pattern , sequences = sequences)
 
   PAM.location = "3prime"
   PAM.size = 3L
   gRNA.size = 20L
-  temp <- .getMatchedPAMInd(inds=  ind.f[[1]],
+  expect_warning(temp <- .getMatchedPAMInd(inds=  ind.f[[1]],
                          direction = "forward",
                            sequences = sequences[1],
                            PAM.size = PAM.size,
                            gRNA.size = gRNA.size,
-                           PAM.location = PAM.location)
+                           PAM.location = PAM.location))
   ind.start <- temp[[1]]
   ind.end <- temp[[2]]
   testthat::expect_equal(as.numeric(ind.start),c(1,4))
@@ -82,17 +82,18 @@ test_that(".getSubSeq works", {
   rev.pattern <- "CCN"
   PAM.size <- 3L
   gRNA.size <- 20L
-  ind.f <- .getInd(PAM.pattern = PAM.pattern, sequences = sequences)
-  ind.r <- .getInd(PAM.pattern = rev.pattern , sequences = sequences)
+  PAM.location <- "3prime"
+  ind.f <- .getPAMInd(PAM.pattern = PAM.pattern, sequences = sequences)
+  ind.r <- .getPAMInd(PAM.pattern = rev.pattern , sequences = sequences)
 
-  seq.f <- do.call(rbind, lapply(1:length(sequences),
+  expect_warning(seq.f <- do.call(rbind, lapply(1:length(sequences),
      function(i) {
        .getSubSeq(ind.f[[i]],
                   sequences[i],
                   direction = "forward", PAM.location = PAM.location,
                   gRNA.size = gRNA.size, PAM.size = PAM.size,
                   max.DNA.bulge = 0L)
-   }))
+   })))
 
   testthat::expect_equal(seq.f[,5], c("TAATGTTGTTTTCGTTTCT",
           "TGTTGTTTTCGTTTCTAGGA"))
@@ -111,7 +112,7 @@ test_that(".getSubSeq works", {
 
   seq.r <-  do.call(rbind, lapply(1:length(sequences),
       function(i) {
-       .getSubSeq(ind.r[[i]],
+        .getSubSeq(ind.r[[i]],
                    sequences[i], direction = "reverse",
                    PAM.location = PAM.location,
                    gRNA.size = gRNA.size, PAM.size = PAM.size,
@@ -137,15 +138,16 @@ test_that(".getSubSeq works", {
 })
 
 
-test_that("getMaskedSeq works", {
+test_that("getMaskedSeq works with max.DNA.bulge of 2", {
   sequences <- c("TAATGTTGTTTTCGTTTCTAGGAAGG",
        "TCCTTCCATATATATATATATATATATATATAT")
   PAM.location <- "3prime"
   PAM.pattern <- "NGG$"
-  sub.seq <- .PAMpatternSearch(PAM.pattern, sequences,
-                              PAM.location = "3prime",
+  expect_warning(sub.seq <- .PAMpatternSearch(PAM.pattern, sequences,
+                              PAM.location = PAM.location,
                               PAM.size = 3,
-                              gRNA.size = 20)
+                              gRNA.size = 20,
+                              max.DNA.bulge = 2L))
 
    testthat::expect_equal(sub.seq[,1],
        c(rep(sequences[1], 2),
@@ -155,13 +157,16 @@ test_that("getMaskedSeq works", {
        c(rep("+", 2),
          rep("-",2)))
 
-   testthat::expect_equal(as.numeric(sub.seq[,3]), c(1,4,2,6))
-   testthat::expect_equal(as.numeric(sub.seq[,4]), c(22,26,24,28))
+   testthat::expect_equal(as.numeric(sub.seq[,3]), c(1,2,2,6))
+   testthat::expect_equal(as.numeric(sub.seq[,4]), c(22,26,26,30))
    testthat::expect_equal(sub.seq[,6], c(rep("AGG", 3), "TGG"))
 
    testthat::expect_equal(sub.seq[,7], c("TAATGTTGTTTTCGTTTCTAGG",
-     "TGTTGTTTTCGTTTCTAGGAAGG", "TATATATATATATATATGGAAGG",
-     "TATATATATATATATATATATGG"))
+     "AATGTTGTTTTCGTTTCTAGGAAGG",
+     as.character(reverseComplement(DNAString(
+       substr("TCCTTCCATATATATATATATATATATATATAT", 2, 26)))),
+     as.character(reverseComplement(DNAString(
+       substr("TCCTTCCATATATATATATATATATATATATAT", 6, 30))))))
 })
 
 test_that(".getSubSeq allowing max.DNA.bulge to 2 works", {
@@ -171,19 +176,22 @@ test_that(".getSubSeq allowing max.DNA.bulge to 2 works", {
   rev.pattern <- "CCN"
   PAM.size <- 3L
   gRNA.size <- 20L
-  ind.f <- .getInd(PAM.pattern = PAM.pattern, sequences = sequences)
-  ind.r <- .getInd(PAM.pattern = rev.pattern , sequences = sequences)
+  PAM.location = "3prime"
+  ind.f <- .getPAMInd(PAM.pattern = PAM.pattern, sequences = sequences)
+  ind.r <- .getPAMInd(PAM.pattern = rev.pattern , sequences = sequences)
 
   max.DNA.bulge <- 2L
 
-  seq.f <- do.call(rbind, lapply(1:length(sequences),
+  expect_warning(seq.f <- do.call(rbind, lapply(1:length(sequences),
                                  function(i) {
                                    .getSubSeq(ind.f[[i]],
                                               sequences[i],
-                                              direction = "forward", PAM.location = PAM.location,
-                                              gRNA.size = gRNA.size, PAM.size = PAM.size,
+                                              direction = "forward",
+                                              PAM.location = PAM.location,
+                                              gRNA.size = gRNA.size,
+                                              PAM.size = PAM.size,
                                               max.DNA.bulge = max.DNA.bulge)
-                                 }))
+                                 })))
 
   testthat::expect_equal(seq.f[,5], c("TAATGTTGTTTTCGTTTCT",
                                       "AATGTTGTTTTCGTTTCTAGGA"))
@@ -247,14 +255,16 @@ test_that(".getSubSeq allowing max.DNA.bulge to 2 works", {
                          rep("TCCTTCCATATATATATATATATATATATATAT",2))
   testthat::expect_equal(seq.r[,2], c("-", "-"))
 
-  seq.f <- do.call(rbind, lapply(1:length(sequences),
+  expect_warning(seq.f <- do.call(rbind, lapply(1:length(sequences),
                                  function(i) {
                                    .getSubSeq(ind.f[[i]],
                                               sequences[i],
-                                              direction = "forward", PAM.location = PAM.location,
-                                              gRNA.size = gRNA.size, PAM.size = PAM.size,
+                                              direction = "forward",
+                                              PAM.location = PAM.location,
+                                              gRNA.size = gRNA.size,
+                                              PAM.size = PAM.size,
                                               max.DNA.bulge = max.DNA.bulge)
-                                 }))
+                                 })))
 
   testthat::expect_equal(seq.f[,6], c("AGG",
                                       "AGG"))
@@ -264,22 +274,19 @@ test_that(".getSubSeq allowing max.DNA.bulge to 2 works", {
   testthat::expect_equal(seq.f[,1], rep("TAATGTTGTTTTCGTTTCTAGGAAGG", 2))
   testthat::expect_equal(seq.f[,5], c("TAATGTTGTTTTCGTTTCT",
                                       "TAATGTTGTTTTCGTTTCTAGGA"))
-
 })
 
 
-test_that(".getSubSeq with default max.DNA.bulge = 2 works", {
+test_that(".getSubSeq with default max.DNA.bulge = 2 works for both strands", {
   sequences <- c("TAATGTTGTTTTCGTTTCTAGGAAGG",
                  "TCCTTCCATATATATATATATATATATATATAT")
   PAM.location <- "3prime"
   PAM.pattern <- "NGG$"
 
-  cat("default max.DNA.bulge = 2 for plus and negative strand....")
-
-  sub.seq <- .PAMpatternSearch(PAM.pattern, sequences,
+  expect_warning(sub.seq <- .PAMpatternSearch(PAM.pattern, sequences,
                                PAM.location = "3prime",
                                PAM.size = 3,
-                               gRNA.size = 20)
+                               gRNA.size = 20))
 
   testthat::expect_equal(sub.seq[,1],
                          c(rep(sequences[1], 2),

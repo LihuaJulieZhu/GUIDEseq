@@ -1,10 +1,11 @@
-if("BSgenome.Hsapiens.UCSC.hg19" %in% (.packages()))
-   detach("package:BSgenome.Hsapiens.UCSC.hg19", unload = TRUE)
 test_that("getOfftargetScoreBulge with deletion in gRNA works", {
+  if("BSgenome.Hsapiens.UCSC.hg19" %in% (.packages()))
+    detach("package:BSgenome.Hsapiens.UCSC.hg19", unload = TRUE)
   library(BSgenome.Hsapiens.UCSC.hg38)
   peaks <- system.file("extdata", "1450-chr14-chr2-bulge-test.bed",
       package = "GUIDEseq")
-  mismatch.activity.file <- system.file("extdata", "NatureBiot2016SuppTable19DoenchRoot.xlsx",
+  mismatch.activity.file <- system.file("extdata",
+        "NatureBiot2016SuppTable19DoenchRoot.xlsx",
          package = "GUIDEseq")
   gRNA <- "TGCTTGGTCGGCACTGATAG"
   gRNA.name <- "Test1450"
@@ -17,12 +18,15 @@ test_that("getOfftargetScoreBulge with deletion in gRNA works", {
     temp$score.bulges$predicted_cleavage_score)
 })
 
-detach("package:BSgenome.Hsapiens.UCSC.hg38", unload = TRUE)
-library(BSgenome.Hsapiens.UCSC.hg19)
-
 test_that("getOfftargetScoreBulge with insertion in gRNA works", {
-    peaks.f <- system.file("extdata", "T2plus100OffTargets.bed",
+   if("BSgenome.Hsapiens.UCSC.hg38" %in% (.packages()))
+     detach("package:BSgenome.Hsapiens.UCSC.hg38", unload = TRUE)
+   library(BSgenome.Hsapiens.UCSC.hg19)
+   peaks.f <- system.file("extdata", "T2plus100OffTargets.bed",
                        package = "GUIDEseq")
+   mismatch.activity.file <- system.file("extdata",
+                                   "NatureBiot2016SuppTable19DoenchRoot.xlsx",
+                                    package = "GUIDEseq")
    gRNA <-"GACCCCCTCCACCCCGCCTC"
    gRNA.name  <- "T2"
    temp <- offTargetAnalysisWithBulge(gRNA = gRNA, gRNA.name = gRNA.name,

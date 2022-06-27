@@ -30,5 +30,12 @@ test_that("PEtagAnalysis", {
         PBS.len = 10L,
         HA.len = 7L, min.read.coverage = 2L
     )
-  expect_equal(PET.res$offTargets, PET.res.truth$offTargets)
+  expect_equal(sum(PET.res$offTargets$peak_score),
+               sum(PET.res.truth$offTargets$peak_score))
+  expect_equal(max(PET.res$offTargets$peak_score),
+               max(PET.res.truth$offTargets$peak_score))
+  expect_equal(as.vector(PET.res$offTargets[PET.res$offTargets$offTarget ==
+                                    "chr13:+:39262912:39262934", 1:20]),
+               as.vector(PET.res.truth$offTargets[PET.res.truth$offTargets$offTarget ==
+                                          "chr13:+:39262912:39262934", 1:20]))
 })

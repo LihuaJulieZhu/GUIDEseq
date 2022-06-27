@@ -1,9 +1,9 @@
-if("BSgenome.Hsapiens.UCSC.hg19" %in% (.packages()))
-{
-   detach("package:BSgenome.Hsapiens.UCSC.hg19", unload=TRUE)
-}
-library(BSgenome.Hsapiens.UCSC.hg38)
 test_that("getAlnWithBulge without restricting PAM.pattern works", {
+  if("BSgenome.Hsapiens.UCSC.hg19" %in% (.packages()))
+  {
+    detach("package:BSgenome.Hsapiens.UCSC.hg19", unload=TRUE)
+  }
+  library(BSgenome.Hsapiens.UCSC.hg38)
 
   #peaks.f <- "~/DropboxUmass/Bioconductor/Trunk/GUIDEseq/inst/extdata/1450-PlusMinusPeaksMerged.bed"
   peaks.f <- system.file("extdata", "1450-chr14-chr2-bulge-test.bed",
@@ -27,13 +27,15 @@ test_that("getAlnWithBulge without restricting PAM.pattern works", {
 
   expect_equal(aln.all$guideAlignment2OffTarget[[2]],
                "....................")
-
   #featureVectors <- buildFeatureVectorForScoringBulge(aln.all)
 })
 
-detach("package:BSgenome.Hsapiens.UCSC.hg38", unload = TRUE)
-library("BSgenome.Hsapiens.UCSC.hg19")
 test_that("getAlnWithBulge bulge on gRNA offtarget on minus strand without mismatches works", {
+  if("BSgenome.Hsapiens.UCSC.hg38" %in% (.packages()))
+  {
+    detach("package:BSgenome.Hsapiens.UCSC.hg38", unload=TRUE)
+  }
+  library(BSgenome.Hsapiens.UCSC.hg19)
   peaks <- DNAStringSet(c("CCTGAGGCTGGGGTGGAGGGGGTC"))
   names(peaks) <- "testMinusBulgeOff"
   gRNA <- substr(as.character(readDNAStringSet(system.file("extdata", "T2.fa",
@@ -53,6 +55,12 @@ test_that("getAlnWithBulge bulge on gRNA offtarget on minus strand without misma
 
 test_that(" bulge on offtarget with mismacth and on minus strand works", {
   # PAM followed by 2t(19A), 19c(2G), 20t(1A), 6 insertion
+  if("BSgenome.Hsapiens.UCSC.hg38" %in% (.packages()))
+  {
+    detach("package:BSgenome.Hsapiens.UCSC.hg38", unload=TRUE)
+  }
+  library(BSgenome.Hsapiens.UCSC.hg19)
+
   peaks <- DNAStringSet(c("CCTGTGGCTGGGGTGGAGGGGGCT"))
   gRNA <- substr(as.character(
     readDNAStringSet(system.file("extdata", "T2.fa",
@@ -84,6 +92,11 @@ test_that(" bulge on offtarget with mismacth and on minus strand works", {
 })
 
 test_that("bulge on gRNA offtarget on plus strand works", {
+  if("BSgenome.Hsapiens.UCSC.hg38" %in% (.packages()))
+  {
+    detach("package:BSgenome.Hsapiens.UCSC.hg38", unload=TRUE)
+  }
+  library(BSgenome.Hsapiens.UCSC.hg19)
   peaks.f <- system.file("extdata", "T2plus100OffTargets.bed",
                          package = "GUIDEseq")
   gRNA <- substr(as.character(
