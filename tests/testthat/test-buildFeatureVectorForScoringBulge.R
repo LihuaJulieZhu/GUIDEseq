@@ -24,7 +24,7 @@ test_that("buildFeatureVectorsForScoring works", {
   featureVectors <- featureVectors[, -(grep("pos", colnames(featureVectors)))]
 
   t2 <- offTargetAnalysisOfPeakRegions(gRNA.file, BSgenomeName = Hsapiens,
-                                     peaks = "gRNA-PlusMinusPeaksMerged.bed",
+                                     peaks = peaks,
                                      outputDir = getwd(),
                                      scoring.method = "CFDscore")
   mismatch.activity.file <-
@@ -32,7 +32,7 @@ test_that("buildFeatureVectorsForScoring works", {
               package = "GUIDEseq")
 
   res.bulge <- offTargetAnalysisWithBulge(gRNA = gRNA, gRNA.name = gRNA.name,
-                                        peaks = "gRNA-PlusMinusPeaksMerged.bed",
+                                        peaks = peaks,
                                         BSgenomeName = Hsapiens,
                                         mismatch.activity.file = mismatch.activity.file)
 
