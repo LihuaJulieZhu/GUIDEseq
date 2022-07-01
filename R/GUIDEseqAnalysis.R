@@ -510,8 +510,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     offTargets <- offTargets[order(offTargets[,which(
         colnames(offTargets) == orderOfftargetsBy)],
             decreasing = descending), ]
-    rio::export(offTargets,
-        file.path(outputDir,"offTargetsInPeakRegions.xlsx"))
+    #rio::export(offTargets,
+    #    file.path(outputDir,"offTargetsInPeakRegions.xlsx"))
 
     message("Please check output file in directory ", outputDir , "\n")
     if (n.files > 1)
