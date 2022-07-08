@@ -16,6 +16,10 @@ test_that("getOfftargetScoreBulge with deletion in gRNA works", {
         mismatch.activity.file = mismatch.activity.file)
   expect_equal(c(1.000000, 0.028614),
     temp$score.bulges$predicted_cleavage_score)
+  expect_equal(12, unlist(temp$score.bulges$pos.deletion))
+  expect_equal(c("....................", "G......C...^.......T."), 
+      unlist(temp$score.bulges$guideAlignment2OffTarget))
+  expect_equal(c("", "G"), unlist(temp$score.bulges$gRNA.deletion))
 })
 
 test_that("getOfftargetScoreBulge with insertion in gRNA works", {

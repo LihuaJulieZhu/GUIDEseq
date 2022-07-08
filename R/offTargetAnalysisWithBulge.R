@@ -53,31 +53,18 @@
 #' @importFrom rio import
 #' @importFrom hash hash
 #'
-#'  mismatch.activity.file <- "~/DropboxUmass/Bioconductor/Trunk/CRISPRseek/inst/extdata//NatureBiot2016SuppTable19DoenchRoot.xlsx"
-#' source("~/DropboxUmass/Bioconductor/Trunk/CRISPRseek/R/getOfftargetScore2.R")
 #' @example
-#'   peaks.f <- system.file("extdata", "T2plus100OffTargets.bed",
-#'   package = "GUIDEseq")
-#'   gRNA <- substr(as.character(readDNAStringSet(system.file("extdata", "T2.fa",
-#'    package = "CRISPRseek"))), 1, 20)
-#'   names(gRNA) <- "T2"
+#'   peaks <- system.file("extdata","1450-chr14-chr2-bulge-test.bed", package = "GUIDEseq")
+#'   mismatch.activity.file <-system.file("extdata", "NatureBiot2016SuppTable19DoenchRoot.xlsx", 
+#'     package = "GUIDEseq")
 #'
-#'   peaks <- "~/DropboxUmass/Bioconductor/Trunk/GUIDEseq/inst/extdata/1450-chr14-chr2-bulge-test.bed"
-#' mismatch.activity.file <-
-#' "~/DropboxUmass/Bioconductor/Trunk/CRISPRseek/inst/extdata/NatureBiot2016SuppTable19DoenchRoot.xlsx"
-#'  gRNA <- "TGCTTGGTCGGCACTGATAG"
-#'  gRNA.name <- "Test1450"
-#'  library(BSgenome.Hsapiens.UCSC.hg38)
+#'   gRNA <- "TGCTTGGTCGGCACTGATAG"
+#'   gRNA.name <- "Test1450"
+#'   library(BSgenome.Hsapiens.UCSC.hg38)
 #'
-#'   mat <- nucleotideSubstitutionMatrix(match = 1, mismatch = -3, baseOnly = TRUE)
-#' temp <- offTargetAnalysis(gRNA = gRNA, gRNA.name = gRNA.name,
-#'    peaks = peaks, BSgenomeName = Hsapiens,
-#'    mismatch.activity.file = mismatch.activity.file)
-#' expect_equal(0.028614, temp$predicted_cleavage_score)
-#'
-#' TGCTTGGTC-GGCACTGATAG     Our 1450 alignment
-#' TGCTTGGTCGG-CACTGATAG     Julie’s
-#' gGCTTGGcCGGGCACTGATtGCGG  1450_OT_0071
+#'   temp <- offTargetAnalysisWithBulge(gRNA = gRNA, gRNA.name = gRNA.name,
+#'      peaks = peaks, BSgenomeName = Hsapiens,
+#'      mismatch.activity.file = mismatch.activity.file)
 #'
 offTargetAnalysisWithBulge <-
     function(gRNA, gRNA.name,
