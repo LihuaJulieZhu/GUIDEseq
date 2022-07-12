@@ -87,7 +87,7 @@ offTargetAnalysisWithBulge <-
              PAM.location = "3prime",
         mismatch.activity.file = system.file("extdata",
             "NatureBiot2016SuppTable19DoenchRoot.xlsx",
-            package = "CRISPRseek")
+	    package = "GUIDEseq")
 )
 {
     alns <- getAlnWithBulge(gRNA, gRNA.name = gRNA.name,
@@ -111,8 +111,13 @@ offTargetAnalysisWithBulge <-
     alns <- subset(temp,
                    (as.numeric(temp$n.mismatch) +
                         as.numeric(temp$n.insertion) +
-                        as.numeric(temp$n.deletion)) < max.mismatch)
+                        as.numeric(temp$n.deletion)) <= max.mismatch)
 
+    if (nrow(alns) ==  0)
+    {
+        alns <- temp
+        warning("No offtarget meets the required max.mismatch criteria!") 
+    }
     fv <- buildFeatureVectorForScoringBulge(alns)
     colnames(fv$featureVectors)[colnames(fv$featureVectors) ==
                                     "guideAlignment2OffTarget"] <- "alignment"

@@ -3,8 +3,8 @@ function (thePeaks, txdb, orgAnn)
 {
     thePeaks <- subset(thePeaks, !is.na(offTarget_Start) & offTarget_Start != "")
     peaks.RD <- GRanges(seqnames = Rle(thePeaks$chromosome), 
-        ranges = IRanges(start = thePeaks$offTarget_Start, 
-        end = thePeaks$offTarget_End, names = thePeaks$names))
+        ranges = IRanges(start = as.numeric(thePeaks$offTarget_Start), 
+        end = as.numeric(thePeaks$offTarget_End), names = thePeaks$offTarget))
     allExons <- as(exons(txdb, columns = "gene_id"), "GRanges")
     if (seqlevelsStyle(allExons) != seqlevelsStyle(peaks.RD)) {
         seqlevelsStyle(allExons) <-  seqlevelsStyle(peaks.RD)

@@ -23,7 +23,7 @@ getAlnWithBulge <- function(gRNA, gRNA.name,
     stop("gRNA name is required, e.g., testgRNA!")
   if (missing(gRNA) || nchar(gRNA) != gRNA.size)
     stop("gRNA is a required input with length equal to the specified
-         gRNA.size, e.g., GACCCCCTCCACCCCGCCTCCGG")
+         gRNA.size, e.g., GACCCCCTCCACCCCGCCTC")
   if (missing(mat))
   {
     mat <- nucleotideSubstitutionMatrix(match = 1,
@@ -214,8 +214,6 @@ getAlnWithBulge <- function(gRNA, gRNA.name,
 
   n.indel <- unlist(best.aln.info$n.insertion) +
     unlist(best.aln.info$n.deletion)
-
-
 
   list(aln.all = best.aln.info,
        aln.indel = best.aln.info[n.indel > 0 &

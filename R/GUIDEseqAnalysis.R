@@ -83,6 +83,7 @@
 #'
 #' @return
 #' @importFrom rio export
+#' @importFrom tidyr unnest
 #' @export
 #'
 #' @examples
@@ -146,7 +147,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     overwrite = TRUE,
     weights = c(0, 0, 0.014, 0, 0, 0.395, 0.317, 0, 0.389, 0.079,
     0.445, 0.508, 0.613, 0.851, 0.732, 0.828, 0.615,0.804, 0.685, 0.583),
-    orderOfftargetsBy = c("peak_score", "predicted_cleavage_score", "n.mismatch"),
+    orderOfftargetsBy = c("peak_score", "predicted_cleavage_score", "n.guide.mismatch"),
     descending = TRUE,
     keepTopOfftargetsOnly = TRUE,
     keepTopOfftargetsBy = c("predicted_cleavage_score", "n.mismatch"),
@@ -408,28 +409,10 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
 
     if(!file.exists(outputDir))
         dir.create(outputDir)
-    if (includeBulge)
-    {
-         offTargets <- do.call(rbind, lapply(1:length(gRNAName), function(i) {
-            temp <- offTargetAnalysisWithBulge(gRNA = gRNA[i], gRNA.name = gRNAName[i],
-                                    peaks = output.bedfile,
-                                    BSgenomeName = BSgenomeName,
-                                    mismatch.activity.file = bulge.activity.file,
-                                    peaks.withHeader = FALSE,
-                                    PAM.size = PAM.size, gRNA.size = gRNA.size,
-                                    PAM =  PAM, PAM.pattern = PAM.pattern,
-                                    PAM.location = PAM.location,
-                                    max.mismatch = max.mismatch,
-                                    allowed.mismatch.PAM = allowed.mismatch.PAM,
-                                    max.DNA.bulge = max.n.bulge,
-                                    upstream = upstream,
-                                    downstream = downstream)
-            temp$score.bulge
-             }))
-    }
-    else
-    {
-        offTargets <- offTargetAnalysisOfPeakRegions(gRNA = gRNA.file,
+
+    offTargets <- cbind(name = names(merged.gr$mergedPeaks.gr),
+                                      as.data.frame(merged.gr$mergedPeaks.gr))
+    tryCatch((offTargets <- offTargetAnalysisOfPeakRegions(gRNA = gRNA.file,
             peaks = output.bedfile,
             format = c(gRNA.format, "bed"),
             peaks.withHeader = FALSE, BSgenomeName = BSgenomeName,
@@ -445,9 +428,173 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
             subPAM.activity = subPAM.activity,
             subPAM.position = subPAM.position,
             PAM.location = PAM.location,
-            mismatch.activity.file = mismatch.activity.file)
+            mismatch.activity.file = mismatch.activity.file)),
+        error = function(e) {
+             message(e)
+    })
+
+        if (length(which(colnames(offTargets) == "n.mismatch")) > 0)
+        {
+            colnames(offTargets)[colnames(offTargets) == "n.mismatch"] <-
+                "n.guide.mismatch"
+            colnames(offTargets)[colnames(offTargets) == "name"] <- "gRNA.name"
+
+            cat("Extract PAM sequence and n.PAM.mismatch. \n")
+            if (PAM.location == "3prime")
+            {
+                PAM.sequence <- substr(offTargets$offTarget_sequence,
+                                   gRNA.size + 1, gRNA.size + PAM.size)
+            }
+            else
+            {
+                PAM.sequence <- substr(offTargets$offTarget_sequence,
+                                   1,  PAM.size)
+            }
+
+            n.PAM.mismatch <- unlist(lapply(DNAStringSet(PAM.sequence),
+                                        function(i) {
+                neditAt(i, DNAString(PAM), fixed=FALSE)
+            }))
+            exclude.col <- which(colnames(offTargets) %in%
+                                 c("names", "targetSeqName",
+                                   "peak_start", "peak_end", "peak_strand"))
+            offTargets <- offTargets[, -exclude.col]
+            ind1 <- which(colnames(offTargets) == "n.guide.mismatch")
+            ind3 <- which(colnames(offTargets) == "mismatch.distance2PAM")
+            ind.start1 <- min(ind1, ind3)
+            ind2 <- ind.start1 + 1
+            ind.start2 <- max(ind1, ind3)
+            ind4 <- ind.start2 + 1
+            if (ind.start2 > ind2)
+            {
+                offTargets <- cbind(offTargets[,1:ind.start1],
+                                n.PAM.mismatch = n.PAM.mismatch,
+                                offTargets[,ind2:ind.start2],
+                                PAM.sequence = PAM.sequence,
+                                offTargets[,ind4:dim(offTargets)[2]])
+            }
+            else
+            {
+                name.ind2 <- colnames(offTargets)[ind2]
+                offTargets <- cbind(offTargets[,1:ind.start1],
+                                n.PAM.mismatch = n.PAM.mismatch,
+                                offTargets[,ind2],
+                                PAM.sequence = PAM.sequence,
+                                offTargets[,ind4:dim(offTargets)[2]])
+                colnames(offTargets)[ind2+1] <- name.ind2
+            }
+       }
+    if (includeBulge)
+    {
+        offTargets.bulge <- do.call(rbind, lapply(1:length(gRNAName), function(i) {
+            temp <- offTargetAnalysisWithBulge(gRNA = gRNA[i], gRNA.name = gRNAName[i],
+                                               peaks = output.bedfile,
+                                               BSgenomeName = BSgenomeName,
+                                               mismatch.activity.file = bulge.activity.file,
+                                               peaks.withHeader = FALSE,
+                                               PAM.size = PAM.size, gRNA.size = gRNA.size,
+                                               PAM =  PAM, PAM.pattern = PAM.pattern,
+                                               PAM.location = PAM.location,
+                                               max.mismatch = max.mismatch,
+                                               allowed.mismatch.PAM = allowed.mismatch.PAM,
+                                               max.DNA.bulge = max.n.bulge,
+                                               upstream = upstream,
+                                               downstream = downstream)
+            temp$score.bulge
+        }))
+        colnames(offTargets.bulge)[colnames(offTargets.bulge) ==
+                                       "n.mismatch"] <- "n.guide.mismatch"
+
+        #saveRDS(offTargets, file ="test-nb.RDS")
+        #saveRDS(offTargets.bulge, file ="test-b.RDS")
+
+        offTargets.bulge <- offTargets.bulge[
+            unlist(offTargets.bulge$n.deletion) > 0 |
+                unlist(offTargets.bulge$n.insertion) > 0,]
+        if (nrow(offTargets.bulge) > 0)
+        {
+            offTargets.b <- offTargets.bulge %>%
+                select(-pos.mismatch, -NGG,
+                   -mean.neighbor.distance.mismatch,
+                   -mismatch.type,
+                   -subPAM) %>%
+                select(offTarget,
+                   peak_score,
+                   predicted_cleavage_score,
+                   gRNA.name,
+                   gRNAPlusPAM,
+                   offTarget_sequence,
+                   guideAlignment2OffTarget,
+                   offTargetStrand,
+                   mismatch.distance2PAM,
+                   n.PAM.mismatch,
+                   n.guide.mismatch,
+                   PAM.sequence,
+                   offTarget_Start,
+                   offTarget_End,
+                   chromosome,
+                   gRNA.insertion, gRNA.deletion,
+                   pos.insertion, pos.deletion)
+
+            offTargets.b.bk  <- do.call(cbind, lapply(1:ncol(offTargets.b),
+                                                      function(i) {
+                temp <- offTargets.b[,i]
+                if (mode(temp[1]) == "list")
+                {
+                    unlist(lapply(1:length(temp), function(j) {
+                     temp2 <- unlist(temp[j])
+                        ifelse(length(temp2) > 1,
+                              paste(temp2, collapse = ","), temp2)
+                    }))
+                }
+                else
+                {
+                    temp
+                }
+            }))
+            colnames(offTargets.b.bk) <- colnames(offTargets.b)
+            offTargets.b <- offTargets.b.bk
+            rm(offTargets.b.bk)
+
+            offTargets.b <- as.data.frame(offTargets.b)
+            offTargets.b[,which(colnames(offTargets.b) == "offTarget_End")] <-
+                as.numeric(offTargets.b[,which(colnames(offTargets.b) ==
+                                               "offTarget_End")] )
+            offTargets.b[,which(colnames(offTargets.b) == "offTarget_Start")] <-
+                as.numeric(offTargets.b[,which(colnames(offTargets.b) ==
+                                               "offTarget_Start")] )
+
+            if (length(which(colnames(offTargets) == "n.guide.mismatch")) > 0)
+            {
+                offTargets.nb <- offTargets %>%
+                  select(offTarget,
+                    peak_score,
+                   predicted_cleavage_score,
+                   gRNA.name,
+                   gRNAPlusPAM,
+                   offTarget_sequence,
+                   guideAlignment2OffTarget,
+                   offTargetStrand,
+                   mismatch.distance2PAM,
+                   n.PAM.mismatch,
+                   n.guide.mismatch,
+                   PAM.sequence,
+                   offTarget_Start,
+                   offTarget_End,
+                   chromosome) %>%
+                 mutate(gRNA.insertion = "", gRNA.deletion = "",
+                   pos.insertion = "", pos.deletion = "")
+
+                offTargets <- rbind(offTargets.b, offTargets.nb)
+            }
+            else
+            {
+                offTargets <- offTargets.b
+            }
+        }
     }
     cat("Done with offtarget search!\n")
+
     offTargets <- subset(offTargets, !is.na(offTargets$offTarget))
     if (dim(offTargets)[1] == 0)
         stop("No offtargets found with the searching criteria!")
@@ -458,60 +605,19 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         offTargets <- annotateOffTargets(offTargets, txdb, orgAnn)
     }
 
-    cat("Extract PAM sequence and n.PAM.mismatch. \n")
+    cat("Order offtargets. \n")
 
-    if (!includeBulge)
-    {
-        colnames(offTargets)[colnames(offTargets) == "n.mismatch"] <- "n.guide.mismatch"
-        colnames(offTargets)[colnames(offTargets) == "name"] <- "gRNA.name"
+    orderOfftargetsBy <- intersect(orderOfftargetsBy,colnames(offTargets))
+    if(length(orderOfftargetsBy) > 0)
+        offTargets <- offTargets[order(offTargets[,which(
+            colnames(offTargets) == orderOfftargetsBy)],
+                decreasing = descending), ]
 
-        if (PAM.location == "3prime")
-        {
-            PAM.sequence <- substr(offTargets$offTarget_sequence,
-                gRNA.size + 1, gRNA.size + PAM.size)
-        }
-        else
-        {
-             PAM.sequence <- substr(offTargets$offTarget_sequence,
-                    1,  PAM.size)
-        }
+    cat("Save offtargets. \n")
+    write.table(offTargets, file =
+            file.path(outputDir,"offTargetsInPeakRegions.xls"),
+            sep = "\t", row.names = FALSE)
 
-        n.PAM.mismatch <- unlist(lapply(DNAStringSet(PAM.sequence), function(i) {
-            neditAt(i, DNAString(PAM), fixed=FALSE)
-        }))
-        exclude.col <- which(colnames(offTargets) %in%
-            c("names", "targetSeqName", "peak_start", "peak_end", "peak_strand"))
-        offTargets <- offTargets[, -exclude.col]
-        ind1 <- which(colnames(offTargets) == "n.guide.mismatch")
-        ind3 <- which(colnames(offTargets) == "mismatch.distance2PAM")
-        ind.start1 <- min(ind1, ind3)
-        ind2 <- ind.start1 + 1
-        ind.start2 <- max(ind1, ind3)
-        ind4 <- ind.start2 + 1
-        if (ind.start2 > ind2)
-        {
-            offTargets <- cbind(offTargets[,1:ind.start1],
-                                n.PAM.mismatch = n.PAM.mismatch,
-                                offTargets[,ind2:ind.start2],
-                                PAM.sequence = PAM.sequence,
-                                 offTargets[,ind4:dim(offTargets)[2]])
-         }
-        else
-        {
-            name.ind2 <- colnames(offTargets)[ind2]
-            offTargets <- cbind(offTargets[,1:ind.start1],
-                                n.PAM.mismatch = n.PAM.mismatch,
-                                offTargets[,ind2],
-                                PAM.sequence = PAM.sequence,
-                                offTargets[,ind4:dim(offTargets)[2]])
-            colnames(offTargets)[ind2+1] <- name.ind2
-        }
-    }
-    offTargets <- offTargets[order(offTargets[,which(
-        colnames(offTargets) == orderOfftargetsBy)],
-            decreasing = descending), ]
-    #rio::export(offTargets,
-    #    file.path(outputDir,"offTargetsInPeakRegions.xlsx"))
 
     message("Please check output file in directory ", outputDir , "\n")
     if (n.files > 1)
