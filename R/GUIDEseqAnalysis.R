@@ -412,7 +412,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
 
     offTargets <- cbind(name = names(merged.gr$mergedPeaks.gr),
                                       as.data.frame(merged.gr$mergedPeaks.gr))
-    tryCatch((offTargets <- offTargetAnalysisOfPeakRegions(gRNA = gRNA.file,
+    tryCatch(offTargets <- offTargetAnalysisOfPeakRegions(gRNA = gRNA.file,
             peaks = output.bedfile,
             format = c(gRNA.format, "bed"),
             peaks.withHeader = FALSE, BSgenomeName = BSgenomeName,
@@ -428,10 +428,11 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
             subPAM.activity = subPAM.activity,
             subPAM.position = subPAM.position,
             PAM.location = PAM.location,
-            mismatch.activity.file = mismatch.activity.file)),
+            mismatch.activity.file = mismatch.activity.file),
         error = function(e) {
              message(e)
-    })
+             return(NA)
+        })
 
         if (length(which(colnames(offTargets) == "n.mismatch")) > 0)
         {
