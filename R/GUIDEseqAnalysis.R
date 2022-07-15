@@ -410,8 +410,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     if(!file.exists(outputDir))
         dir.create(outputDir)
 
-    offTargets <- cbind(name = names(merged.gr$mergedPeaks.gr),
-                                      as.data.frame(merged.gr$mergedPeaks.gr))
+    offTargets <-  read.table(file = output.bedfile, sep = "\t",
+                              header = FALSE)
     tryCatch(offTargets <- offTargetAnalysisOfPeakRegions(gRNA = gRNA.file,
             peaks = output.bedfile,
             format = c(gRNA.format, "bed"),
