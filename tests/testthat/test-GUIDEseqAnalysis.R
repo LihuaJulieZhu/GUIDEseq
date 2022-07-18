@@ -80,12 +80,12 @@ test_that("GUIDEseqAnalysis", {
         c(0.000213, 0.000259))
 #    expect_equal(GSBulge.res$offTargets$mismatch.type,
 #             c("rG:dT,rC:dC,rG:dA,rA:dA", "rC:dC,rC:dA,rA:dC"))
-     expect_equal(as.character(GSBulge.res$offTargets$gRNA.deletion),
+     expect_equal(as.character(GSBulge.res$offTargets$DNA.bulge),
              c("A", "U"))
 #    expect_equal(GSBulge.res$offTargets$pos.mismatch,
 #             list(c(1,5,12,20), c(8, 11, 20 )))
      expect_equal(as.character(GSBulge.res$offTargets$mismatch.distance2PAM),
              c("20,16,9,1", "13,10,1"))
-     expect_equal(as.numeric(as.character(GSBulge.res$offTargets$pos.deletion)), c(13,12))
+     expect_equal(as.numeric(as.character(GSBulge.res$offTargets$pos.DNA.bulge)), c(13,12))
   }
 })

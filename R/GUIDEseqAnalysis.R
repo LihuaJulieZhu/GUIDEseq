@@ -84,6 +84,7 @@
 #' @return
 #' @importFrom rio export
 #' @importFrom tidyr unnest
+#' @importFrom dplyr rename
 #' @export
 #'
 #' @examples
@@ -535,7 +536,14 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
                    offTarget_End,
                    chromosome,
                    gRNA.insertion, gRNA.deletion,
-                   pos.insertion, pos.deletion)
+                   pos.insertion, pos.deletion,
+                   n.insertion, n.deletion) %>%
+                rename(RNA.bulge = gRNA.insertion,
+                       DNA.bulge = gRNA.deletion,
+                       pos.RNA.bulge  = pos.insertion,
+                       pos.DNA.bulge = pos.deletion,
+                       n.RNA.bulge = n.insertion,
+                       n.DNA.bulge = n.deletion)
 
             offTargets.b.bk  <- do.call(cbind, lapply(1:ncol(offTargets.b),
                                                       function(i) {
@@ -583,8 +591,15 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
                    offTarget_Start,
                    offTarget_End,
                    chromosome) %>%
-                 mutate(gRNA.insertion = "", gRNA.deletion = "",
-                   pos.insertion = "", pos.deletion = "")
+                  mutate(RNA.bulge = "",
+                         DNA.bulge = "",
+                         pos.RNA.bulge = "",
+                         pos.DNA.bulge = "",
+                         n.RNA.bulge = "",
+                         n.DNA.bulge = "")
+                 #mutate(gRNA.insertion = "", gRNA.deletion = "",
+                 #  pos.insertion = "", pos.deletion = "")
+
 
                 offTargets <- rbind(offTargets.b, offTargets.nb)
             }
