@@ -1,3 +1,54 @@
+#' Merge peaks from plus strand and minus strand
+#'
+#' Merge peaks from plus strand and minus strand with required orientation and
+#' within certain distance apart
+#'
+#'
+#' @param peaks.gr Specify the peaks as GRanges object, which should contain
+#' peaks from both plus and minus strand. In addition, it should contain peak
+#' height metadata column to store peak height and optionally background
+#' height.
+#' @param peak.height.mcol Specify the metadata column containing the peak
+#' height, default to count
+#' @param bg.height.mcol Specify the metadata column containing the background
+#' height, default to bg
+#' @param distance.threshold Specify the maximum gap allowed between the plus
+#' stranded and the negative stranded peak, default 40. Suggest set it to twice
+#' of window.size used for peak calling.
+#' @param max.overlap.plusSig.minusSig Specify the cushion distance to allow
+#' sequence error and inprecise integration Default to 30 to allow at most 10
+#' (30-window.size 20) bp (half window) of minus-strand peaks on the right side
+#' of plus-strand peaks. Only applicable if
+#' plus.strand.start.gt.minus.strand.end is set to TRUE.
+#' @param plus.strand.start.gt.minus.strand.end Specify whether plus strand
+#' peak start greater than the paired negative strand peak end. Default to TRUE
+#' @param output.bedfile Specify the bed output file name, which is used for
+#' off target analysis subsequently.
+#' @return output a list and a bed file containing the merged peaks a data
+#' frame of the bed format \item{mergedPeaks.gr}{merged peaks as GRanges}
+#' \item{mergedPeaks.bed}{merged peaks in bed format}
+#' @author Lihua Julie Zhu
+#' @references Zhu L.J. et al. (2010) ChIPpeakAnno: a Bioconductor package to
+#' annotate ChIP-seq and ChIP-chip data. BMC Bioinformatics 2010,
+#' 11:237doi:10.1186/1471-2105-11-237. Zhu L.J. (2013) Integrative analysis of
+#' ChIP-chip and ChIP-seq dataset.  Methods Mol Biol. 2013;1067:105-24. doi:
+#' 10.1007/978-1-62703-607-8\_8.
+#' @keywords misc
+#' @importFrom utils write.table
+#' @importFrom GenomicRanges mcols strand start end seqnames
+#' @examples
+#'
+#'
+#' if (interactive())
+#' {
+#'     data(peaks.gr)
+#'     mergedPeaks <- mergePlusMinusPeaks(peaks.gr = peaks.gr,
+#'         output.bedfile = "mergedPeaks.bed")
+#'     mergedPeaks$mergedPeaks.gr
+#'     head(mergedPeaks$mergedPeaks.bed)
+#' }
+#'
+#' @export mergePlusMinusPeaks
 mergePlusMinusPeaks <-
     function(peaks.gr, peak.height.mcol ="count",
     bg.height.mcol = "bg", distance.threshold = 40L,
@@ -13,7 +64,7 @@ mergePlusMinusPeaks <-
     if (missing(output.bedfile))
     {
         stop("Missing required bed output file \n")
-    } 
+    }
     if (length(intersect(names(mcols(peaks.gr)), peak.height.mcol))  == 0)
         stop(paste(peak.height.mcol, "is not a valid metadata column.\n Please",
             "specify a valid metadata column with peak height in peaks.gr \n"))
@@ -22,14 +73,14 @@ mergePlusMinusPeaks <-
     pos.gr <- subset(peaks.gr, strand(peaks.gr) %in% c( "+", "*"))
     neg.gr <- subset(peaks.gr, strand(peaks.gr) == "-")
     ### peaks from both strand or present in both library
-    if (length(pos.gr) >0 && length(neg.gr) > 0) 
+    if (length(pos.gr) >0 && length(neg.gr) > 0)
     {
         mergedPeaks <- .annotate(from.gr = pos.gr, to.gr = neg.gr,
-           peak.height.mcol = peak.height.mcol, 
+           peak.height.mcol = peak.height.mcol,
            bg.height.mcol = bg.height.mcol,
            distance.threshold = distance.threshold,
-           max.overlap.plusSig.minusSig = max.overlap.plusSig.minusSig, 
-           plus.strand.start.gt.minus.strand.end = 
+           max.overlap.plusSig.minusSig = max.overlap.plusSig.minusSig,
+           plus.strand.start.gt.minus.strand.end =
            plus.strand.start.gt.minus.strand.end,
            to.strand = "-")
     }
@@ -44,13 +95,13 @@ mergePlusMinusPeaks <-
             plus.strand.start.gt.minus.strand.end = FALSE,
             to.strand = "-",
             PeakLocForDistance = "middle", FeatureLocForDistance = "middle")
-    } 
+    }
     if (length(mergedPeaks) == 0)
     {
-        mergedPeaks.gr <- "" 
+        mergedPeaks.gr <- ""
         temp <- data.frame(peaks.gr)
         bed.s <-  ""
-        ann.peaks <- "" 
+        ann.peaks <- ""
         peaks.1strandOnly <- peaks.gr
         bed.m1 <- ""
         bed.m2 <- ""
@@ -62,13 +113,13 @@ mergePlusMinusPeaks <-
         ann.peaks <- mergedPeaks$detailed.mergedPeaks
         if (length(pos.gr) == 0 || length(neg.gr) == 0)
         {
-    	     peaks.1strandOnly <- peaks.gr[!names(peaks.gr) %in% 
-                 as.character(ann.peaks$feature) & 
+    	     peaks.1strandOnly <- peaks.gr[!names(peaks.gr) %in%
+                 as.character(ann.peaks$feature) &
                  ! names(peaks.gr) %in% ann.peaks$peak]
         }
         else
         {
-            neg.gr2 <- neg.gr[!names(neg.gr) %in% 
+            neg.gr2 <- neg.gr[!names(neg.gr) %in%
                 as.character(ann.peaks$feature)]
             pos.gr2 <- pos.gr[!names(pos.gr) %in% ann.peaks$peak]
             peaks.1strandOnly <- c(pos.gr2, neg.gr2)
@@ -113,7 +164,7 @@ mergePlusMinusPeaks <-
      } ### if mergedPeaks null or not
      write.table(bed.s, file = output.bedfile, sep = "\t",
          col.names = FALSE, row.names=FALSE, quote=FALSE)
-     list(bed.m1 = bed.m1, bed.m2 = bed.m2, mergedPeaks.gr = mergedPeaks.gr, 
+     list(bed.m1 = bed.m1, bed.m2 = bed.m2, mergedPeaks.gr = mergedPeaks.gr,
             mergedPeaks.bed = bed.s,
             peaks.1strandOnly = peaks.1strandOnly, mergedPeaks.details = ann.peaks)
 }

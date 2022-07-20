@@ -46,12 +46,11 @@
 #' bulged DNA base
 #' n.deletion: Number of deletions in the RNA. Deletions in gRNA creates
 #' bulged DNA base
-#' @importFrom Biostrings score start alignedPattern alignedSubject reverseComplement
-#' DNAString subject
-#' @importFrom Base names substr which class missing is.na strsplit length is.na
+#' @author Lihua Julie Zhu
+#' @importFrom Biostrings alignedPattern alignedSubject reverseComplement
+#' DNAString neditAt start width score subject
 #' @export
 #'
-#' @examples
 getBestAlnInfo <- function(offtargetSeq, pa.f, pa.r, gRNA.size = 20,
                            PAM = "NGG", PAM.size = 3, insertion.symbol = "^")
 {

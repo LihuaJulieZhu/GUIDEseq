@@ -1,4 +1,6 @@
-require(Biostrings)
+#' @importFrom Biostrings DNAStringSet nucleotideSubstitutionMatrix pairwiseAlignment readDNAStringSet reverseComplement
+#' @importFrom utils read.table
+#' @author Lihua Julie Zhu
 
 getAlnWithBulge <- function(gRNA, gRNA.name,
                             peaks,

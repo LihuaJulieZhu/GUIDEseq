@@ -1,24 +1,25 @@
 Package: GUIDEseq
 Type: Package
 Title: GUIDE-seq and PEtag-seq analysis pipeline
-Version: 1.27.7
-Date: 2022-07-19
+Version: 1.27.8
+Date: 2022-07-20
 Encoding: UTF-8
 Author: Lihua Julie Zhu, Michael Lawrence, Ankit Gupta,
        Hervé Pagès , Alper Kucukural, Manuel Garber, Scot A. Wolfe
 Maintainer: Lihua Julie Zhu <julie.zhu@umassmed.edu>
 Depends: R (>= 3.5.0), GenomicRanges, BiocGenerics
-Imports: BiocParallel, Biostrings, CRISPRseek, ChIPpeakAnno,
+Imports: Biostrings, CRISPRseek, ChIPpeakAnno,
          data.table, matrixStats, BSgenome, parallel,
 	 IRanges (>= 2.5.5), S4Vectors (>= 0.9.6),
 	 GenomicAlignments (>= 1.7.3), GenomeInfoDb, Rsamtools, 
-         hash, limma,dplyr, GenomicFeatures, rio, tidyr
+         hash, limma,dplyr, GenomicFeatures, rio, tidyr, tools, methods
 biocViews: ImmunoOncology, GeneRegulation, Sequencing, WorkflowStep, CRISPR
 Suggests: 
     knitr,
     RUnit,
     BiocStyle,
     BSgenome.Hsapiens.UCSC.hg19,
+    BSgenome.Hsapiens.UCSC.hg38,
     TxDb.Hsapiens.UCSC.hg19.knownGene,
     org.Hs.eg.db,
     testthat (>= 3.0.0)
@@ -33,3 +34,4 @@ License: GPL (>= 2)
 LazyLoad: yes
 NeedsCompilation: no
 Config/testthat/edition: 3
+RoxygenNote: 7.1.2

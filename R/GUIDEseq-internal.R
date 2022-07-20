@@ -1,22 +1,30 @@
+#' @importFrom S4Vectors Rle runValue mcols
+#' @importFrom methods as
+#' @importFrom IRanges IRanges viewWhichMaxs runLength runsum
+#' ranges Views coverage
+#' @importFrom GenomicRanges GRanges start score
+#' @importFrom GenomeInfoDb seqlevels seqinfo seqnames
+#' @importFrom matrixStats rowMins rowMaxs
+
 .annotate <-
     function(from.gr, to.gr, peak.height.mcol ="count",
-    bg.height.mcol = "bg", distance.threshold = 40, 
+    bg.height.mcol = "bg", distance.threshold = 40,
     max.overlap.plusSig.minusSig = 10L,
     plus.strand.start.gt.minus.strand.end = TRUE, to.strand = "-",
     PeakLocForDistance = "start", FeatureLocForDistance = "TSS")
 {
     if (length(names(from.gr)) < length(from.gr))
        names(from.gr) <- paste(seqnames(from.gr), start(from.gr), sep=":")
-    if (length(names(to.gr)) < length(to.gr)) 
+    if (length(names(to.gr)) < length(to.gr))
        names(to.gr) <- paste(seqnames(to.gr), start(to.gr), sep=":")
-  
-    gr <- annotatePeakInBatch(from.gr, featureType = "TSS", 
+
+    gr <- annotatePeakInBatch(from.gr, featureType = "TSS",
         AnnotationData = to.gr, output="both",
-        PeakLocForDistance = PeakLocForDistance, 
+        PeakLocForDistance = PeakLocForDistance,
         FeatureLocForDistance = FeatureLocForDistance,
         maxgap = distance.threshold)
     gr <- subset(gr, gr$peak != gr$feature)
-    if (plus.strand.start.gt.minus.strand.end) 
+    if (plus.strand.start.gt.minus.strand.end)
     {
         ann.peaks <- as.data.frame(gr[!is.na(gr$distancetoFeature) &
             gr$shortestDistance  <=  distance.threshold &
@@ -38,7 +46,7 @@
             paste(to.strand, colnames(to.peaks)[metadata.col], sep=":")
         to.peaks <- to.peaks[, c(1, metadata.col)]
         temp1 <- merge(to.peaks, ann.peaks)
-        temp1 <- cbind(temp1, 
+        temp1 <- cbind(temp1,
             totalCount = rowSums(temp1[,grep(peak.height.mcol,
             colnames(temp1))]))
         temp1$names <- paste(temp1$peak, temp1$feature, sep=":")
@@ -61,7 +69,7 @@
                     totalBg = rowSums(
                     temp1[,grep(bg.height.mcol, colnames(temp1))]))
             }
-            mergedPeaks.gr <- GRanges(IRanges(start = 
+            mergedPeaks.gr <- GRanges(IRanges(start =
                 as.numeric(as.character(bed.temp[,2])),
                 end = as.numeric(as.character(bed.temp[,3])),
                 names = bed.temp[,4]),
@@ -96,9 +104,9 @@
             gsub("M|I|S", "M", i ), "M")), function(thisStr)
            {if (length(grep("D",thisStr)) >0)
                as.numeric(strsplit(thisStr, "D")[[1]][1]) else 0})))
-    }      
+    }
     else
-    { 
+    {
         i <- substr(cigar, 1, nchar(cigar) - 1)
         sum(as.numeric(unlist(strsplit(gsub("^M", "",
             gsub("M|I|D|S", "M", i)), "M"))), na.rm = TRUE)
@@ -199,7 +207,7 @@ function(gr, window.size = 20L, step = 10L,
         local.max.start <- start(data.ranges[data.ranges$count >= min.reads])
     }
     #list(max.pos,  max.count)
-    local.max.start 
+    local.max.start
 }
 
 ### While these functions take GRanges, they assume ranges on one sequence

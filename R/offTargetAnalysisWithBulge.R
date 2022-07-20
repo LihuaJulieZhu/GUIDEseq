@@ -47,15 +47,64 @@
     }
     score
 }
-
+#' offTarget Analysis With Bulges Allowed
+#' Finding offtargets around peaks from GUIDE-seq or around any given
+#' genomic regions with bulges allowed in gRNA or the DNA sequence of
+#' offTargets when aligning gRNA and DNA sequences.
+#'
+#' @param gRNA a character string containing the gRNA sequence
+#' without PAM
+#' @param gRNA.name name of the gRNA
+#' @param peaks peak input file path or a GenomicRanges object that contains
+#' genomic regions to be searched for potential offtargets
+#' @param BSgenomeName BSgenome object. Please refer to available.genomes in
+#' BSgenome package. For example, BSgenome.Hsapiens.UCSC.hg19 for hg19,
+#' BSgenome.Mmusculus.UCSC.mm10 for mm10, BSgenome.Celegans.UCSC.ce6 for ce6,
+#' BSgenome.Rnorvegicus.UCSC.rn5 for rn5, BSgenome.Drerio.UCSC.danRer7 for Zv9,
+#' and BSgenome.Dmelanogaster.UCSC.dm3 for dm3
+#' @param mat nucleotideSubstitutionMatrix, which can be created using
+#' nucleotideSubstitutionMatrix.
+#' @param peaks.withHeader Indicate whether the peak input file contains
+#' header, default FALSE
+#' @param gapOpening Gap opening penalty, default to 1L
+#' @param gapExtension Gap extension penalty, default to 3L
+#' @param max.DNA.bulge Total number of bulges allowed, including bulges
+#' in DNA and gRNA, default to 2L
+#' @param max.mismatch Maximum mismatch allowed in off target search, default
+#' 10L
+#' @param allowed.mismatch.PAM Number of degenerative bases in the PAM.pattern
+#' sequence, default to 2L
+#' @param upstream upstream offset from the peak start to search for off
+#' targets, default 20
+#' @param downstream downstream offset from the peak end to search for off
+#' targets, default 20
+#' @param PAM.size PAM length, default 3
+#' @param gRNA.size The size of the gRNA, default 20
+#' @param PAM PAM sequence after the gRNA, default NGG
+#' @param PAM.pattern Regular expression of protospacer-adjacent motif (PAM),
+#' default to any NNN$. Currently, only support NNN$
+#' @param PAM.location  PAM location relative to gRNA. For example, default to
+#' 3prime for spCas9 PAM.  Please set to 5prime for cpf1 PAM since it's PAM is
+#' located on the 5 prime end
+#' @param mismatch.activity.file Applicable only when scoring.method is set to
+#' CFDscore A comma separated (csv) file containing the cleavage rates for all
+#' possible types of single nucleotide mismatch at each position of the gRNA.
+#' By default, using the supplemental Table 19 from Doench et al., Nature
+#' Biotechnology 2016
+#' @param peaks.format format of the peak file, default to bed file format.
+#' Currently, only bed format is supported
+#' @author Lihua Julie Zhu
+#'
 #' @importFrom BiocGenerics subset unlist lapply rbind
 #' @importFrom hash hash values
 #' @importFrom rio import
-#' @importFrom hash hash
+#' @export offTargetAnalysisWithBulge
+#' @examples
 #'
-#' @example
+#' if (interactive()) {
+#'   library(GUIDEseq)
 #'   peaks <- system.file("extdata","1450-chr14-chr2-bulge-test.bed", package = "GUIDEseq")
-#'   mismatch.activity.file <-system.file("extdata", "NatureBiot2016SuppTable19DoenchRoot.xlsx", 
+#'   mismatch.activity.file <-system.file("extdata", "NatureBiot2016SuppTable19DoenchRoot.xlsx",
 #'     package = "GUIDEseq")
 #'
 #'   gRNA <- "TGCTTGGTCGGCACTGATAG"
@@ -65,7 +114,8 @@
 #'   temp <- offTargetAnalysisWithBulge(gRNA = gRNA, gRNA.name = gRNA.name,
 #'      peaks = peaks, BSgenomeName = Hsapiens,
 #'      mismatch.activity.file = mismatch.activity.file)
-#'
+#' }
+
 offTargetAnalysisWithBulge <-
     function(gRNA, gRNA.name,
              peaks,
@@ -92,6 +142,7 @@ offTargetAnalysisWithBulge <-
 {
     alns <- getAlnWithBulge(gRNA, gRNA.name = gRNA.name,
             peaks = peaks, BSgenomeName = BSgenomeName,
+            mat = mat,
             peaks.withHeader = peaks.withHeader,
             peaks.format = peaks.format,
             gapOpening = gapOpening,
@@ -113,11 +164,15 @@ offTargetAnalysisWithBulge <-
                         as.numeric(temp$n.insertion) +
                         as.numeric(temp$n.deletion)) <= max.mismatch)
 
-    if (nrow(alns) ==  0)
+    if (nrow(alns) ==  0 || sum(unlist(alns$n.insertion)) +
+        sum(unlist(alns$n.deletion)) == 0)
     {
-        alns <- temp
-        warning("No offtarget meets the required max.mismatch criteria!") 
+        return(list(score.bulges = alns,
+                    offtargets.dropped = NA,
+                    scores.mismatch =  NA))
+        message("No offtarget with bulges meets the required max.mismatch criteria!")
     }
+
     fv <- buildFeatureVectorForScoringBulge(alns)
     colnames(fv$featureVectors)[colnames(fv$featureVectors) ==
                                     "guideAlignment2OffTarget"] <- "alignment"

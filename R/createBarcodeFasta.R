@@ -1,3 +1,40 @@
+#' Create barcode as fasta file format for building bowtie1 index
+#' 
+#' Create barcode as fasta file format for building bowtie1 index to assign
+#' reads to each library with different barcodes. The bowtie1 index has been
+#' built for the standard GUIDE-seq protocol using the standard p5 and p7
+#' index. It can be downloaded at
+#' http://mccb.umassmed.edu/GUIDE-seq/barcode.bowtie1.index.tar.gz
+#' 
+#' 
+#' @param p5.index A text file with one p5 index sequence per line
+#' @param p7.index A text file with one p7 index sequence per line
+#' @param header Indicate whether there is a header in the p5.index and
+#' p7.index files.  Default to FALSE
+#' @param reverse.p7 Indicate whether to reverse p7 index, default to TRUE for
+#' standard GUIDE-seq experiments
+#' @param reverse.p5 Indicate whether to reverse p5 index, default to FALSE for
+#' standard GUIDE-seq experiments
+#' @param outputFile Give a name to the output file where the generated
+#' barcodes are written. This file can be used to build bowtie1 index for
+#' binning reads.
+#' @return
+#' @note Create barcode file to be used to bin the reads sequenced in a pooled
+#' lane
+#' @author Lihua Julie Zhu
+#' @references %% ~put references to the literature/web site here ~
+#' @keywords manip utilities
+#' @examples
+#' 
+#'     p7 <- system.file("extdata", "p7.index",
+#'            package = "GUIDEseq") 
+#'     p5 <- system.file("extdata", "p5.index",
+#'            package = "GUIDEseq")
+#'     outputFile <- "barcodes.fa" 
+#'     createBarcodeFasta(p5.index = p5, p7.index = p7, reverse.p7 = TRUE,
+#'         reverse.p5 = FALSE, outputFile = outputFile)
+#' 
+#' @export createBarcodeFasta
 createBarcodeFasta <- function(p5.index, p7.index,
     reverse.p7 = TRUE, reverse.p5 = FALSE,
     header = FALSE, outputFile = "barcodes.fa")

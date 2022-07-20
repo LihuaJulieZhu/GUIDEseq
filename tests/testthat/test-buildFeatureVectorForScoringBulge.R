@@ -43,8 +43,10 @@ test_that("buildFeatureVectorsForScoring works", {
 
   res.bulge <- res.bulge[res.bulge$n.insertion == 0 & res.bulge$n.deletion == 0,]
 
-  expect_equal(as.numeric(res.bulge$predicted_cleavage_score),
-             as.numeric(t2$predicted_cleavage_score))
+# updated the function to not predict cleavage score if no offtarget contains bulges
+  #expect_equal(as.numeric(res.bulge$predicted_cleavage_score),
+  #           as.numeric(t2$predicted_cleavage_score))
+  
   expect_equal(as.numeric(res.bulge$offTarget_Start),
              as.numeric(t2$offTarget_Start))
 

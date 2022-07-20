@@ -2,7 +2,7 @@ getPeaks.old <-
 function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
     min.reads = 10L, min.SNratio = 2, maxP = 0.05,
     n.cores.max = 6, stats = c("poisson", "nbinom"),
-    p.adjust.methods = 
+    p.adjust.methods =
     c( "none", "BH", "holm", "hochberg", "hommel", "bonferroni", "BY", "fdr"))
 {
     message("Validating input ...");
@@ -25,7 +25,7 @@ function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
         if (length(minus.gr) >= 2)
         {
             message("prepare for minus strand ...");
-            minus.runsum <- .getStrandedCoverage(minus.gr, 
+            minus.runsum <- .getStrandedCoverage(minus.gr,
                 window.size = window.size,
                 bg.window.size = bg.window.size, min.reads = min.reads,
                 strand = "-")
@@ -40,7 +40,7 @@ function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
     {
         message("prepare for minus strand ...");
         both.runsum <- .getStrandedCoverage(minus.gr, window.size = window.size,
-            bg.window.size = bg.window.size, 
+            bg.window.size = bg.window.size,
             min.reads = min.reads, strand = "-")
     }
     else
@@ -60,24 +60,24 @@ function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
             mu = as.numeric(both.runsum$bg),
             size = window.size, lower.tail = FALSE, log.p = FALSE)
     }
-    both.runsum$SNratio <- 
+    both.runsum$SNratio <-
         as.numeric(both.runsum$count)/as.numeric(both.runsum$bg)
     n.cores <- detectCores()
-    n.cores <- min(n.cores.max, n.cores, 
+    n.cores <- min(n.cores.max, n.cores,
        length(seqnames(seqinfo(both.runsum))))
     if (n.cores > 1)
     {
         cl <- makeCluster(n.cores)
         clusterExport(cl, varlist = c("both.runsum", ".locMaxPos"),
-            envir = environment()) 
+            envir = environment())
         clusterExport(cl, varlist =  c("window.size", "step", "min.reads"),
             envir = environment())
         local.max.gr <- do.call(c, parLapply(cl, seqnames(seqinfo(both.runsum)),
             function(chr) {
             message("processing chromosome", chr, "\n")
-            this.gr <- subset(both.runsum, seqnames(both.runsum) == chr & 
+            this.gr <- subset(both.runsum, seqnames(both.runsum) == chr &
                 strand(both.runsum) == "+")
-            minus.gr <- subset(both.runsum, seqnames(both.runsum) == chr & 
+            minus.gr <- subset(both.runsum, seqnames(both.runsum) == chr &
                 strand(both.runsum) == "-")
             #max.pos <- which(diff(sign(diff(as.numeric(
                 #as.character(this.gr$count)))))==-2)+1
@@ -163,34 +163,78 @@ function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
     }
     both.runsum.bk <- both.runsum
     both.runsum <- local.max.gr
-   
+
     if (length(both.runsum) > 0)
     {
         if (p.adjust.methods != "none")
         {
             both.runsum$adjusted.p.value <- p.adjust(both.runsum$p.value,
                 method = p.adjust.methods)
-            peaks <- subset(both.runsum, both.runsum$adjusted.p.value <= maxP & 
+            peaks <- subset(both.runsum, both.runsum$adjusted.p.value <= maxP &
                 both.runsum$SNratio >= min.SNratio)
         }
         else
         {
-            peaks <- subset(both.runsum, both.runsum$p.value <= maxP & 
+            peaks <- subset(both.runsum, both.runsum$p.value <= maxP &
                 both.runsum$SNratio >= min.SNratio)
         }
     }
     else {
        peaks <- both.runsum
     }
-    list(peaks = peaks, both.runsum.bk = both.runsum.bk, 
+    list(peaks = peaks, both.runsum.bk = both.runsum.bk,
         summarized.count = both.runsum)
 }
+
+
+
+#' Obtain peaks from GUIDE-seq
+#'
+#' Obtain strand-specific peaks from GUIDE-seq
+#'
+#'
+#' @param gr GRanges with cleavage sites, output from getUniqueCleavageEvents
+#' @param window.size window size to calculate coverage
+#' @param step step size to calculate coverage
+#' @param bg.window.size window size to calculate local background
+#' @param min.reads minimum number of reads to be considered as a peak
+#' @param min.SNratio minimum signal noise ratio, which is the coverage
+#' normalized by local background
+#' @param maxP Maximum p-value to be considered as significant
+#' @param stats Statistical test, default poisson
+#' @param p.adjust.methods Adjustment method for multiple comparisons, default
+#' none
+#' @return \item{peaks }{GRanges with count (peak height), bg (local
+#' background), SNratio (signal noise ratio), p-value, and option adjusted
+#' p-value } \item{summarized.count}{A data frame contains the same information
+#' as peaks except that it has all the sites without filtering.  }
+#' @author Lihua Julie Zhu
+#' @keywords misc
+#' @importFrom stats p.adjust pnbinom ppois
+#' @importFrom methods is
+#' @importFrom GenomicRanges GRanges strand seqinfo start score
+#' seqnames
+#' @importFrom parallel makeCluster clusterExport
+#' stopCluster detectCores parLapply
+#'
+
+#' @examples
+#'
+#'     if (interactive())
+#'     {
+#'         data(uniqueCleavageEvents)
+#'         peaks <- getPeaks(uniqueCleavageEvents$cleavage.gr,
+#'             min.reads = 80)
+#'         peaks$peaks
+#'     }
+#'
+#' @export getPeaks
 
 getPeaks <-
     function(gr, window.size = 20L, step = 20L, bg.window.size = 5000L,
              min.reads = 10L, min.SNratio = 2, maxP = 0.05,
              stats = c("poisson", "nbinom"),
-             p.adjust.methods = 
+             p.adjust.methods =
                  c( "none", "BH", "holm", "hochberg", "hommel", "bonferroni",
                    "BY", "fdr"))
 {
@@ -217,7 +261,7 @@ getPeaks <-
     }
     if (length(minus.gr) >= 2) {
         message("computing coverage for minus strand ...")
-        minus.runsum <- .getStrandedCoverage2(minus.gr, 
+        minus.runsum <- .getStrandedCoverage2(minus.gr,
                                               window.size = window.size,
                                               bg.window.size = bg.window.size,
                                               min.reads = min.reads,
@@ -237,9 +281,9 @@ getPeaks <-
         both.runsum$SNratio <- score(both.runsum)/both.runsum$bg
 
         locMaxForChrStrand <- function(strand.gr) {
-            if(length(strand.gr) > 0) 
+            if(length(strand.gr) > 0)
 	    {
-                max.pos <- .locMaxPos2(strand.gr, 
+                max.pos <- .locMaxPos2(strand.gr,
                     window.size = window.size, step = step)
                 .findProminentPeaks(strand.gr[start(strand.gr) %in% max.pos],
                             window.size - 1L)
@@ -249,7 +293,7 @@ getPeaks <-
                  strand.gr
              }
         }
-    
+
         locMaxForChr <- function(chr.gr) {
            if (length(chr.gr) == 0L) {
               return(GRanges())
@@ -269,7 +313,7 @@ getPeaks <-
              == "score"]  <-  "count"
          both.runsum.bk <- both.runsum
          both.runsum <- loc.max.gr
-    
+
          colnames(mcols(both.runsum))[colnames(mcols(both.runsum))
           == "score"]  <-  "count"
 
@@ -279,8 +323,8 @@ getPeaks <-
              peaks <- subset(both.runsum,
                     adjusted.p.value <= maxP & SNratio >= min.SNratio)
          else
-             peaks <- GRanges() 
-         list(peaks = peaks, both.runsum.bk = both.runsum.bk, 
+             peaks <- GRanges()
+         list(peaks = peaks, both.runsum.bk = both.runsum.bk,
              summarized.count = both.runsum)
     }
     else

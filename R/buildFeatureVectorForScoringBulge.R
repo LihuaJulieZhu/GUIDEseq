@@ -10,25 +10,48 @@
     relist(ind_col, partitioning)
 }
 
-#' @importFrom Biostrings DNAStringSet isMatchingAt substring extractAt complement RNAStringSet DNAString replaceAt
+#' Build Feature Vector For Scoring Offtargets with Bulge
+#'
+#' @param alns alignments, output from getAlnWithBulge
+#' (see the example below)
+#'
+#' @param gRNA.size Size of the gRNA, default to 20L
+#' @param canonical.PAM PAM sequence, default to NGG
+#' @param subPAM.start  start of the subPAM, default to 2L for NGG
+#' @param subPAM.end    End of the subPAM, default to 3L for NGG
+#' @param insertion.symbol Symbol used to indicate bulge in DNA
+#' Default to ^
+#' @param PAM.size Size of the PAM, default to 3L for NGG
+#' @param PAM.location The location of the PAM, default to 3prime
+#'
+#' @author Lihua Julie Zhu
+
+#' @importFrom Biostrings readDNAStringSet DNAStringSet
+#' isMatchingAt substring extractAt isMatchingAt
+#' complement DNAString replaceAt
 #' @importFrom BiocGenerics grep sort relist rep.int cbind
 #' @importFrom IRanges IRangesList PartitioningByEnd
 #' @importFrom S4Vectors unstrsplit orderIntegerPairs elementNROWS
 #' @importFrom methods as
-#' @importFrom DelayedArray mean
+#' @importFrom BiocGenerics relist
 #'
+#' @export buildFeatureVectorForScoringBulge
 #'
-#' @example
+#' @examples
 #'
-#' peaks.f <- system.file("extdata", "T2plus100OffTargets.bed",
-#' package = "GUIDEseq")
-#' gRNA <- substr(as.character(readDNAStringSet(system.file("extdata", "T2.fa",
-#'    package = "CRISPRseek"))), 1, 20)
-#'    names(gRNA) <- "T2"
-#'  temp <- getAlnWithBulge(gRNA, gRNA.name = "T2",
-#'       peaks = peaks.f, BSgenomeName = Hsapiens)
-#'  fv <- buildFeatureVectorForScoringBulge(temp$aln.indel)
-#'  fv$featureVectors
+#' if (interactive())
+#' {
+#'   library(BSgenome.Hsapiens.UCSC.hg19)
+#'   library(GUIDEseq)
+#'   peaks.f <- system.file("extdata", "T2plus100OffTargets.bed",
+#'      package = "GUIDEseq")
+#'   gRNA <- "GACCCCCTCCACCCCGCCTC"
+#'   temp <- GUIDEseq:::getAlnWithBulge(gRNA, gRNA.name = "T2",
+#'       peaks = peaks.f, BSgenomeName = Hsapiens,
+#'        peaks.withHeader = TRUE)
+#'    fv <- buildFeatureVectorForScoringBulge(temp$aln.indel)
+#'    fv$featureVectors
+#'  }
 
 buildFeatureVectorForScoringBulge <-
     function(alns, gRNA.size = 20,

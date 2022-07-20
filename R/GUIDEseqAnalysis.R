@@ -1,93 +1,254 @@
-#' GUIDEseq analysis
+#' Analysis pipeline for GUIDE-seq dataset
 #'
-#' @param alignment.inputfile
-#' @param umi.inputfile
-#' @param alignment.format
-#' @param umi.header
-#' @param read.ID.col
-#' @param umi.col
-#' @param umi.sep
-#' @param BSgenomeName
-#' @param gRNA.file
-#' @param outputDir
-#' @param n.cores.max
-#' @param keep.chrM
-#' @param keep.R1only
-#' @param keep.R2only
-#' @param concordant.strand
-#' @param max.paired.distance
-#' @param min.mapping.quality
-#' @param max.R1.len
-#' @param max.R2.len
-#' @param min.umi.count
-#' @param max.umi.count
-#' @param min.read.coverage
-#' @param apply.both.max.len
-#' @param same.chromosome
-#' @param distance.inter.chrom
-#' @param min.R1.mapped
-#' @param min.R2.mapped
-#' @param apply.both.min.mapped
-#' @param max.duplicate.distance
-#' @param umi.plus.R1start.unique
-#' @param umi.plus.R2start.unique
-#' @param window.size
-#' @param step
-#' @param bg.window.size
-#' @param min.reads
-#' @param min.reads.per.lib
-#' @param min.peak.score.1strandOnly
-#' @param min.SNratio
-#' @param maxP
-#' @param stats
-#' @param p.adjust.methods
-#' @param distance.threshold
-#' @param max.overlap.plusSig.minusSig
-#' @param plus.strand.start.gt.minus.strand.end
-#' @param keepPeaksInBothStrandsOnly
-#' @param gRNA.format
-#' @param overlap.gRNA.positions
-#' @param upstream
-#' @param downstream
-#' @param PAM.size
-#' @param gRNA.size
-#' @param PAM
-#' @param PAM.pattern
-#' @param max.mismatch
-#' @param allowed.mismatch.PAM
-#' @param overwrite
-#' @param weights
-#' @param orderOfftargetsBy
-#' @param descending
-#' @param keepTopOfftargetsOnly
-#' @param keepTopOfftargetsBy
-#' @param scoring.method
-#' @param subPAM.activity
-#' @param subPAM.position
-#' @param PAM.location
-#' @param mismatch.activity.file
+#' A wrapper function that uses the UMI sequence plus the first few bases of
+#' each sequence from R1 reads to estimate the starting sequence library, piles
+#' up reads with a user defined window and step size, identify the insertion
+#' sites (proxy of cleavage sites), merge insertion sites from plus strand and
+#' minus strand, followed by off target analysis of extended regions around the
+#' identified insertion sites.
+#'
+#'
+#' @param alignment.inputfile The alignment file. Currently supports bam and
+#' bed output file with CIGAR information.  Suggest run the workflow
+#' binReads.sh, which sequentially runs barcode binning, adaptor removal,
+#' alignment to genome, alignment quality filtering, and bed file conversion.
+#' Please download the workflow function and its helper scripts at
+#' http://mccb.umassmed.edu/GUIDE-seq/binReads/
+#' @param umi.inputfile A text file containing at least two columns, one is the
+#' read identifier and the other is the UMI or UMI plus the first few bases of
+#' R1 reads. Suggest use getUMI.sh to generate this file. Please download the
+#' script and its helper scripts at http://mccb.umassmed.edu/GUIDE-seq/getUMI/
+#' @param alignment.format The format of the alignment input file. Default bed
+#' file format. Currently only bed file format is supported, which is generated
+#' from binReads.sh
+#' @param umi.header Indicates whether the umi input file contains a header
+#' line or not. Default to FALSE
+#' @param read.ID.col The index of the column containing the read identifier in
+#' the umi input file, default to 1
+#' @param umi.col The index of the column containing the umi or umi plus the
+#' first few bases of sequence from the R1 reads, default to 2
+#' @param umi.sep column separator in the umi input file, default to tab
+#' @param BSgenomeName BSgenome object. Please refer to available.genomes in
+#' BSgenome package. For example, BSgenome.Hsapiens.UCSC.hg19 for hg19,
+#' BSgenome.Mmusculus.UCSC.mm10 for mm10, BSgenome.Celegans.UCSC.ce6 for ce6,
+#' BSgenome.Rnorvegicus.UCSC.rn5 for rn5, BSgenome.Drerio.UCSC.danRer7 for Zv9,
+#' and BSgenome.Dmelanogaster.UCSC.dm3 for dm3
+#' @param gRNA.file gRNA input file path or a DNAStringSet object that contains
+#' the target sequence (gRNA plus PAM)
+#' @param outputDir the directory where the off target analysis and reports
+#' will be written to
+#' @param n.cores.max Indicating maximum number of cores to use in multi core
+#' mode, i.e., parallel processing, default 1 to disable multicore processing
+#' for small dataset.
+#' @param keep.chrM Specify whether to include alignment from chrM. Default
+#' FALSE
+#' @param keep.R1only Specify whether to include alignment with only R1 without
+#' paired R2.  Default TRUE
+#' @param keep.R2only Specify whether to include alignment with only R2 without
+#' paired R1.  Default TRUE
+#' @param concordant.strand Specify whether the R1 and R2 should be aligned to
+#' the same strand or opposite strand. Default opposite.strand (TRUE)
+#' @param max.paired.distance Specify the maximum distance allowed between
+#' paired R1 and R2 reads.  Default 1000 bp
+#' @param min.mapping.quality Specify min.mapping.quality of acceptable
+#' alignments
+#' @param max.R1.len The maximum retained R1 length to be considered for
+#' downstream analysis, default 130 bp. Please note that default of 130 works
+#' well when the read length 150 bp. Please also note that retained R1 length
+#' is not necessarily equal to the mapped R1 length
+#' @param max.R2.len The maximum retained R2 length to be considered for
+#' downstream analysis, default 130 bp. Please note that default of 130 works
+#' well when the read length 150 bp. Please also note that retained R2 length
+#' is not necessarily equal to the mapped R2 length
+#' @param min.umi.count To specify the minimum total count for a umi at the
+#' genome level to be included in the subsequent analysis. For example, with
+#' min.umi.count set to 2, if a umi only has 1 read in the entire genome, then
+#' that umi will be excluded for the subsequent analysis.  Please adjust it to
+#' a higher number for deeply sequenced library and vice versa.
+#' @param max.umi.count To specify the maximum count for a umi to be included
+#' in the subsequent analysis.  Please adjust it to a higher number for deeply
+#' sequenced library and vice versa.
+#' @param min.read.coverage To specify the minimum coverage for a read UMI
+#' combination to be included in the subsequent analysis.  Please note that
+#' this is different from min.umi.count which is less stringent.
+#' @param apply.both.max.len Specify whether to apply maximum length
+#' requirement to both R1 and R2 reads, default FALSE
+#' @param same.chromosome Specify whether the paired reads are required to
+#' align to the same chromosome, default TRUE
+#' @param distance.inter.chrom Specify the distance value to assign to the
+#' paired reads that are aligned to different chromosome, default -1
+#' @param min.R1.mapped The minimum mapped R1 length to be considered for
+#' downstream analysis, default 30 bp.
+#' @param min.R2.mapped The minimum mapped R2 length to be considered for
+#' downstream analysis, default 30 bp.
+#' @param apply.both.min.mapped Specify whether to apply minimum mapped length
+#' requirement to both R1 and R2 reads, default FALSE
+#' @param max.duplicate.distance Specify the maximum distance apart for two
+#' reads to be considered as duplicates, default 0. Currently only 0 is
+#' supported
+#' @param umi.plus.R1start.unique To specify whether two mapped reads are
+#' considered as unique if both containing the same UMI and same alignment
+#' start for R1 read, default TRUE.
+#' @param umi.plus.R2start.unique To specify whether two mapped reads are
+#' considered as unique if both containing the same UMI and same alignment
+#' start for R2 read, default TRUE.
+#' @param window.size window size to calculate coverage
+#' @param step step size to calculate coverage
+#' @param bg.window.size window size to calculate local background
+#' @param min.reads minimum number of reads to be considered as a peak
+#' @param min.reads.per.lib minimum number of reads in each library (usually
+#' two libraries) to be considered as a peak
+#' @param min.peak.score.1strandOnly Specify the minimum number of reads for a
+#' one-strand only peak to be included in the output. Applicable when set
+#' keepPeaksInBothStrandsOnly to FALSE and there is only one library per sample
+#' @param min.SNratio Specify the minimum signal noise ratio to be called as
+#' peaks, which is the coverage normalized by local background.
+#' @param maxP Specify the maximum p-value to be considered as significant
+#' @param stats Statistical test, currently only poisson is implemented
+#' @param p.adjust.methods Adjustment method for multiple comparisons, default
+#' none
+#' @param distance.threshold Specify the maximum gap allowed between the plus
+#' strand and the negative strand peak, default 40. Suggest set it to twice of
+#' window.size used for peak calling.
+#' @param max.overlap.plusSig.minusSig Specify the cushion distance to allow
+#' sequence error and inprecise integration Default to 30 to allow at most 10
+#' (30-window.size 20) bp (half window) of minus-strand peaks on the right side
+#' of plus-strand peaks. Only applicable if
+#' plus.strand.start.gt.minus.strand.end is set to TRUE.
+#' @param plus.strand.start.gt.minus.strand.end Specify whether plus strand
+#' peak start greater than the paired negative strand peak end. Default to TRUE
+#' @param keepPeaksInBothStrandsOnly Indicate whether only keep peaks present
+#' in both strands as specified by plus.strand.start.gt.minus.strand.end,
+#' max.overlap.plusSig.minusSig and distance.threshold.
+#' @param gRNA.format Format of the gRNA input file. Currently, fasta is
+#' supported
+#' @param PAM.size PAM length, default 3
+#' @param gRNA.size The size of the gRNA, default 20
+#' @param PAM PAM sequence after the gRNA, default NGG
+#' @param overlap.gRNA.positions The required overlap positions of gRNA and
+#' restriction enzyme cut site, default 17 and 18 for SpCas9.
+#' @param max.mismatch Maximum mismatch to the gRNA (not including mismatch to
+#' the PAM) allowed in off target search, default 6
+#' @param PAM.pattern Regular expression of protospacer-adjacent motif (PAM),
+#' default NNN$. Alternatively set it to (NAG|NGG|NGA)$ for off target search
+#' @param allowed.mismatch.PAM Maximum number of mismatches allowed for the PAM
+#' sequence plus the number of degenerate sequence in the PAM sequence, default
+#' to 2 for NGG PAM
+#' @param upstream upstream offset from the peak start to search for off
+#' targets, default 25 suggest set it to window size
+#' @param downstream downstream offset from the peak end to search for off
+#' targets, default 25 suggest set it to window size
+#' @param overwrite overwrite the existing files in the output directory or
+#' not, default FALSE
+#' @param weights a numeric vector size of gRNA length, default c(0, 0, 0.014,
+#' 0, 0, 0.395, 0.317, 0, 0.389, 0.079, 0.445, 0.508, 0.613, 0.851, 0.732,
+#' 0.828, 0.615, 0.804, 0.685, 0.583) for SPcas9 system, which is used in Hsu
+#' et al., 2013 cited in the reference section. Please make sure that the
+#' number of elements in this vector is the same as the gRNA.size, e.g., pad 0s
+#' at the beginning of the vector.
+#' @param orderOfftargetsBy Criteria to order the offtargets, which works
+#' together with the descending parameter
+#' @param descending Indicate the output order of the offtargets, i.e., in the
+#' descending or ascending order.
+#' @param keepTopOfftargetsOnly Output all offtargets or the top offtarget
+#' using the keepOfftargetsBy criteria, default to the top offtarget
+#' @param keepTopOfftargetsBy Output the top offtarget for each called peak
+#' using the keepTopOfftargetsBy criteria, If set to predicted_cleavage_score,
+#' then the offtargets with the highest predicted cleavage score will be
+#' retained If set to n.mismatch, then the offtarget with the lowest number of
+#' mismatch to the target sequence will be retained
+#' @param scoring.method Indicates which method to use for offtarget cleavage
+#' rate estimation, currently two methods are supported, Hsu-Zhang and CFDscore
+#' @param subPAM.activity Applicable only when scoring.method is set to
+#' CFDscore A hash to represent the cleavage rate for each alternative sub PAM
+#' sequence relative to preferred PAM sequence
+#' @param subPAM.position Applicable only when scoring.method is set to
+#' CFDscore The start and end positions of the sub PAM. Default to 22 and 23
+#' for SP with 20bp gRNA and NGG as preferred PAM
+#' @param PAM.location PAM location relative to gRNA. For example, default to
+#' 3prime for spCas9 PAM.  Please set to 5prime for cpf1 PAM since it's PAM is
+#' located on the 5 prime end
+#' @param mismatch.activity.file Applicable only when scoring.method is set to
+#' CFDscore A comma separated (csv) file containing the cleavage rates for all
+#' possible types of single nucleotide mismatche at each position of the gRNA.
+#' By default, use the supplemental Table 19 from Doench et al., Nature
+#' Biotechnology 2016
 #' @param bulge.activity.file Used for predicting indel effect on offtarget
-#' cleavage score
-#' @param txdb
-#' @param orgAnn
+#' cleavage score. An excel file with the second sheet for deletion activity
+#' and the third sheet for Insertion. By default, use the supplemental Table 19
+#' from Doench et al., Nature Biotechnology 2016
+#' @param txdb TxDb object, for creating and using TxDb object, please refer to
+#' GenomicFeatures package. For a list of existing TxDb object, please search
+#' for annotation package starting with Txdb at
+#' http://www.bioconductor.org/packages/release/BiocViews.html#___AnnotationData,
+#' such as TxDb.Rnorvegicus.UCSC.rn5.refGene for rat,
+#' TxDb.Mmusculus.UCSC.mm10.knownGene for mouse,
+#' TxDb.Hsapiens.UCSC.hg19.knownGene for human,
+#' TxDb.Dmelanogaster.UCSC.dm3.ensGene for Drosophila and
+#' TxDb.Celegans.UCSC.ce6.ensGene for C.elegans
+#' @param orgAnn organism annotation mapping such as org.Hs.egSYMBOL in
+#' org.Hs.eg.db package for human
 #' @param mat nucleotide substitution matrix. Function
-#' nucleotideSubstitutionMatrix can be used for creating customized
-#' nucleotide substitution matrix. By default, match = 1,
-#' mismatch = -1, and baseOnly = TRUE
-#' Only applicable with includeBulge set to TRUE
+#' nucleotideSubstitutionMatrix can be used for creating customized nucleotide
+#' substitution matrix. By default, match = 1, mismatch = -1, and baseOnly =
+#' TRUE Only applicalbe with includeBulge set to TRUE
 #' @param includeBulge indicates whether including offtargets with indels
 #' default to FALSE
-#' @param max.n.bulge offtargets with at most this number of indels
-#' to be included in the offtarget list. Only applicable with includeBulge set
-#' to TRUE
-#'
-#' @return
-#' @importFrom rio export
-#' @importFrom tidyr unnest
-#' @importFrom dplyr rename
-#' @export
-#'
+#' @param max.n.bulge offtargets with at most this number of indels to be
+#' included in the offtarget list. Only applicalbe with includeBulge set to
+#' TRUE
+#' @return \item{offTargets}{ a data frame, containing all input peaks with
+#' potential gRNA binding sites, mismatch number and positions, alignment to
+#' the input gRNA and predicted cleavage score.} \item{merged.peaks}{merged
+#' peaks as GRanges with count (peak height), bg (local background), SNratio
+#' (signal noise ratio), p-value, and option adjusted p-value } \item{peaks
+#' }{GRanges with count (peak height), bg (local background), SNratio (signal
+#' noise ratio), p-value, and option adjusted p-value }
+#' \item{uniqueCleavages}{Cleavage sites with one site per UMI as GRanges with
+#' metadata column total set to 1 for each range} \item{read.summary}{One table
+#' per input mapping file that contains the number of reads for each chromosome
+#' location}
+#' @author Lihua Julie Zhu
+#' @seealso getPeaks
+#' @references Shengdar Q Tsai and J Keith Joung et al. GUIDE-seq enables
+#' genome-wide profiling of off-target cleavage by CRISPR-Cas nucleases. Nature
+#' Biotechnology 33, 187 to 197 (2015)
+#' @keywords misc
 #' @examples
+#'
+#' if(interactive())
+#'     {
+#'         library("BSgenome.Hsapiens.UCSC.hg19")
+#'         umiFile <- system.file("extdata", "UMI-HEK293_site4_chr13.txt",
+#'            package = "GUIDEseq")
+#'         alignFile <- system.file("extdata","bowtie2.HEK293_site4_chr13.sort.bam" ,
+#'             package = "GUIDEseq")
+#'         gRNA.file <- system.file("extdata","gRNA.fa", package = "GUIDEseq")
+#'         guideSeqRes <- GUIDEseqAnalysis(
+#'             alignment.inputfile = alignFile,
+#'             umi.inputfile = umiFile, gRNA.file = gRNA.file,
+#'             orderOfftargetsBy = "peak_score",
+#'             descending = TRUE,
+#'             keepTopOfftargetsBy = "predicted_cleavage_score",
+#'             scoring.method = "CFDscore",
+#'             BSgenomeName = Hsapiens, min.reads = 80, n.cores.max = 1)
+#'         guideSeqRes$offTargets
+#'         names(guideSeqRes)
+#'    }
+#'
+#' @importFrom tidyr unnest
+#' @importFrom utils read.table write.table
+#' @importFrom dplyr mutate group_by add_count select
+#' filter '%>%' rename
+#' @importFrom GenomicRanges GRanges start end
+#' strand seqnames
+#' @importFrom Biostrings DNAString DNAStringSet neditAt
+#' readDNAStringSet
+#' @importFrom ChIPpeakAnno annotatePeakInBatch
+#' @importFrom hash hash
+#'
+#' @export GUIDEseqAnalysis
+
 GUIDEseqAnalysis <- function(alignment.inputfile,
     umi.inputfile,
     alignment.format = c("auto", "bam", "bed"),
@@ -180,8 +341,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
      txdb, orgAnn,
      mat,
      includeBulge = FALSE,
-     max.n.bulge = 2L
-)
+     max.n.bulge = 2L)
 {
     alignment.format <- match.arg(alignment.format)
     orderOfftargetsBy <- match.arg(orderOfftargetsBy)
@@ -239,9 +399,32 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
         if (length(gRNAName[i]) == 0)
             gRNAName[i] <- paste("gRNAName", i, sep="")
     }
+    if (missing(outputDir) || outputDir == getwd())
+    {
+        outputDir <- paste(gsub(".sorted", "", gsub(".bam", "",
+                                 basename(alignment.inputfile[1]))),
+                            paste(gRNAName,  "min", min.reads,
+                           "window", window.size, "step", step, "distance",
+                           distance.threshold, sep = "" ), sep ="_")
+    }
+    if(!file.exists(outputDir))
+        dir.create(outputDir)
+
+    sampleName <- gsub(".", "",
+                       gsub("minus", "", gsub("plus", "", gsub(".bam", "",
+                       gsub("sort", "",
+                            gsub("bowtie", "",
+                                gsub("bowtie1", "",
+                                    gsub("bowtie2", "",
+                        basename(alignment.inputfile[1])))))))),
+                      fixed = TRUE)
+
+    output.bedfile <- file.path(outputDir, paste(sampleName,
+                            paste(gRNAName, "PlusMinusPeaksMerged.bed",
+                                  sep = "_" ), sep ="_"))
     cleavages.gr <- do.call(c, lapply(1:n.files, function(i)
     {
-        cleavages <-
+         cleavages <-
             getUniqueCleavageEvents(
             alignment.inputfile = alignment.inputfile[i],
             umi.inputfile = umi.inputfile[i],
@@ -266,24 +449,29 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
             min.umi.count = min.umi.count,
             max.umi.count = max.umi.count,
             min.read.coverage = min.read.coverage,
-            n.cores.max = n.cores.max)
+            n.cores.max = n.cores.max, outputDir = outputDir)
         fileName <- gsub("bowtie2.", "",
             basename(alignment.inputfile[i]))
         fileName <- gsub("bowtie1.", "", fileName)
         fileName <- gsub("bowtie.", "", fileName)
         fileName <- gsub(".bed", "", fileName)
         fileName <- gsub(".sort", "", fileName)
+        fileName <- gsub(".bam", "", fileName)
 
         temp <- as.data.frame(cleavages$cleavage.gr)
         temp1 <- paste(temp[,1], temp[,5], temp[,2], sep = "")
         read.summary <- table(temp1)
-        write.table(read.summary, file = paste(gRNAName, fileName,
-            "ReadSummary.xls", sep = ""),
+        write.table(read.summary,
+                    file = file.path(outputDir,
+                                     paste(gRNAName, fileName,
+            "ReadSummary.xls", sep = "")),
             sep = "\t", row.names = FALSE)
         seq.depth <- as.data.frame(table(cleavages$umi.count.summary$n))
         colnames(seq.depth)[1] <- c("UMIduplicateLevels")
-        write.table(seq.depth, file = paste(gRNAName, fileName,
-            "UMIsummary.xls", sep = ""),
+        write.table(seq.depth,
+                    file = file.path(outputDir,
+                                     paste(gRNAName, fileName,
+            "UMIsummary.xls", sep = "")),
             sep = "\t", row.names = FALSE)
 	list(cleavages.gr = cleavages$cleavage.gr, read.summary = read.summary)
     }))
@@ -310,25 +498,11 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
          #save(peaks2, file="peaks2.RData")
 
     }
-    if (missing(outputDir))
-    {
-        outputDir <- getwd()
-    }
+
     #write.table(as.data.frame(peaks$peaks),
     #    file = "testPeaks.xls", sep="\t", row.names=FALSE)
     #save(peaks, file="peaks.RData")
     message("combine plus and minus peaks ... \n")
-
-    output.bedfile <- paste(gRNAName, "PlusMinusPeaksMerged.bed",
-        sep = "-" )
-    if (missing(outputDir) || outputDir == getwd())
-    {
-        outputDir <- paste(gRNAName,  "min", min.reads,
-            "window", window.size, "step", step, "distance",
-            distance.threshold, sep = "" )
-    }
-    if(!file.exists(outputDir))
-        dir.create(outputDir)
 
     merged.gr<- mergePlusMinusPeaks(peaks.gr = peaks$peaks,
         distance.threshold = distance.threshold,
@@ -381,8 +555,12 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
                 start(peaks.inboth1and2.gr),
                 end(peaks.inboth1and2.gr), names(peaks.inboth1and2.gr),
                 peaks.inboth1and2.gr$count, as.character(strand(peaks.inboth1and2.gr)))
-            write.table(bed.temp, file = output.bedfile, sep = "\t",
-                row.names = FALSE, col.names = FALSE, quote = FALSE, append = append)
+            write.table(bed.temp,
+                        file = output.bedfile,
+                        sep = "\t",
+                row.names = FALSE,
+                col.names = FALSE,
+                quote = FALSE, append = append)
             write.table(cbind(name = names(peaks.inboth1and2.gr),
                 as.data.frame(peaks.inboth1and2.gr)),
                 file = file.path(outputDir, paste(gRNAName,
@@ -402,17 +580,19 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
 
        peaks.1strandOnly.bed <- peaks.1strandOnly.bed[as.numeric(as.character(
            peaks.1strandOnly.bed[,5])) >= min.peak.score.1strandOnly, ]
-       write.table(peaks.1strandOnly.bed, file = output.bedfile, sep = "\t",
-            row.names = FALSE, col.names = FALSE, quote = FALSE, append = append)
+       write.table(peaks.1strandOnly.bed,
+                   file = output.bedfile,
+                   sep = "\t",
+            row.names = FALSE,
+            col.names = FALSE,
+            quote = FALSE, append = append)
     }
+   message("offtarget analysis ...\n")
 
-    message("offtarget analysis ...\n")
-
-    if(!file.exists(outputDir))
-        dir.create(outputDir)
-
-    offTargets <-  read.table(file = output.bedfile, sep = "\t",
-                              header = FALSE)
+    offTargets <-  read.table(
+        file = output.bedfile,
+        sep = "\t",
+        header = FALSE)
     tryCatch(offTargets <- offTargetAnalysisOfPeakRegions(gRNA = gRNA.file,
             peaks = output.bedfile,
             format = c(gRNA.format, "bed"),
@@ -488,6 +668,32 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
        }
     if (includeBulge)
     {
+        if (length(which(colnames(offTargets) == "n.guide.mismatch")) > 0)
+        {
+            offTargets <- offTargets %>%
+                select(offTarget,
+                       peak_score,
+                       predicted_cleavage_score,
+                       gRNA.name,
+                       gRNAPlusPAM,
+                       offTarget_sequence,
+                       guideAlignment2OffTarget,
+                       offTargetStrand,
+                       mismatch.distance2PAM,
+                       n.PAM.mismatch,
+                       n.guide.mismatch,
+                       PAM.sequence,
+                       offTarget_Start,
+                       offTarget_End,
+                       chromosome) %>%
+                mutate(RNA.bulge = "",
+                       DNA.bulge = "",
+                       pos.RNA.bulge = "",
+                       pos.DNA.bulge = "",
+                       n.RNA.bulge = "",
+                       n.DNA.bulge = "")
+        }
+        cat("Finding offtargets with bulges ...")
         offTargets.bulge <- do.call(rbind, lapply(1:length(gRNAName), function(i) {
             temp <- offTargetAnalysisWithBulge(gRNA = gRNA[i], gRNA.name = gRNAName[i],
                                                peaks = output.bedfile,
@@ -504,22 +710,17 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
                                                downstream = downstream)
             temp$score.bulge
         }))
-        colnames(offTargets.bulge)[colnames(offTargets.bulge) ==
-                                       "n.mismatch"] <- "n.guide.mismatch"
-
-        #saveRDS(offTargets, file ="test-nb.RDS")
-        #saveRDS(offTargets.bulge, file ="test-b.RDS")
-
-        offTargets.bulge <- offTargets.bulge[
-            unlist(offTargets.bulge$n.deletion) > 0 |
-                unlist(offTargets.bulge$n.insertion) > 0,]
-        if (nrow(offTargets.bulge) > 0)
+        if (class(offTargets.bulge) == "data.frame" &&
+            nrow(offTargets.bulge) > 0)
         {
-            offTargets.b <- offTargets.bulge %>%
-                select(-pos.mismatch, -NGG,
-                   -mean.neighbor.distance.mismatch,
-                   -mismatch.type,
-                   -subPAM) %>%
+           colnames(offTargets.bulge)[colnames(offTargets.bulge) ==
+                                 "n.mismatch"] <- "n.guide.mismatch"
+            offTargets.bulge <- offTargets.bulge[
+                unlist(offTargets.bulge$n.deletion) > 0 |
+                unlist(offTargets.bulge$n.insertion) > 0,]
+            if (nrow(offTargets.bulge) > 0)
+            {
+               offTargets.b <- offTargets.bulge %>%
                 select(offTarget,
                    peak_score,
                    predicted_cleavage_score,
@@ -572,68 +773,46 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
             offTargets.b[,which(colnames(offTargets.b) == "offTarget_Start")] <-
                 as.numeric(offTargets.b[,which(colnames(offTargets.b) ==
                                                "offTarget_Start")] )
-
             if (length(which(colnames(offTargets) == "n.guide.mismatch")) > 0)
             {
-                offTargets.nb <- offTargets %>%
-                  select(offTarget,
-                    peak_score,
-                   predicted_cleavage_score,
-                   gRNA.name,
-                   gRNAPlusPAM,
-                   offTarget_sequence,
-                   guideAlignment2OffTarget,
-                   offTargetStrand,
-                   mismatch.distance2PAM,
-                   n.PAM.mismatch,
-                   n.guide.mismatch,
-                   PAM.sequence,
-                   offTarget_Start,
-                   offTarget_End,
-                   chromosome) %>%
-                  mutate(RNA.bulge = "",
-                         DNA.bulge = "",
-                         pos.RNA.bulge = "",
-                         pos.DNA.bulge = "",
-                         n.RNA.bulge = "",
-                         n.DNA.bulge = "")
-                 #mutate(gRNA.insertion = "", gRNA.deletion = "",
-                 #  pos.insertion = "", pos.deletion = "")
-
-
-                offTargets <- rbind(offTargets.b, offTargets.nb)
+                offTargets <- rbind(offTargets.b, offTargets)
             }
             else
             {
                 offTargets <- offTargets.b
             }
+          }
         }
     }
     cat("Done with offtarget search!\n")
 
     offTargets <- subset(offTargets, !is.na(offTargets$offTarget))
-    if (dim(offTargets)[1] == 0)
-        stop("No offtargets found with the searching criteria!")
-    cat("Add gene and exon information to offTargets ....\n")
-    if (!missing(txdb) && (class(txdb) == "TxDb" ||
-        class(txdb) == "TranscriptDb"))
+    if (nrow(offTargets) == 0)
     {
-        offTargets <- annotateOffTargets(offTargets, txdb, orgAnn)
+        message("No offtargets found with the searching criteria!")
     }
+    else
+    {
+        cat("Add gene and exon information to offTargets ....\n")
+        if (!missing(txdb) && (class(txdb) == "TxDb" ||
+            class(txdb) == "TranscriptDb"))
+        {
+            offTargets <- annotateOffTargets(offTargets, txdb, orgAnn)
+        }
 
-    cat("Order offtargets. \n")
+        cat("Order offtargets. \n")
 
-    orderOfftargetsBy <- intersect(orderOfftargetsBy,colnames(offTargets))
-    if(length(orderOfftargetsBy) > 0)
-        offTargets <- offTargets[order(offTargets[,which(
-            colnames(offTargets) == orderOfftargetsBy)],
-                decreasing = descending), ]
+        orderOfftargetsBy <- intersect(orderOfftargetsBy,colnames(offTargets))
+        if(length(orderOfftargetsBy) > 0)
+            offTargets <- offTargets[order(offTargets[,which(
+                colnames(offTargets) == orderOfftargetsBy)],
+                    decreasing = descending), ]
 
-    cat("Save offtargets. \n")
-    write.table(offTargets, file =
+        cat("Save offtargets. \n")
+        write.table(offTargets, file =
             file.path(outputDir,"offTargetsInPeakRegions.xls"),
             sep = "\t", row.names = FALSE)
-
+    }
 
     message("Please check output file in directory ", outputDir , "\n")
     if (n.files > 1)
