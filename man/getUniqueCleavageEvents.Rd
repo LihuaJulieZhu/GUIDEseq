@@ -33,7 +33,8 @@ getUniqueCleavageEvents(
   max.umi.count = 100000L,
   min.read.coverage = 1L,
   n.cores.max = 6,
-  outputDir
+  outputDir,
+  removeDuplicate = TRUE
 )
 }
 \arguments{
@@ -139,6 +140,9 @@ mode, i.e., parallel processing, default 6. Please set it to 1 to disable
 multicore processing for small dataset.}
 
 \item{outputDir}{output Directory to save the figures}
+
+\item{removeDuplicate}{default to TRUE. Set it to FALSE if PCR duplicates
+not to be removed for testing purpose}
 }
 \value{
 \item{cleavage.gr }{Cleavage sites with one site per UMI as GRanges

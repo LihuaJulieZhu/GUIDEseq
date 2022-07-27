@@ -82,7 +82,8 @@ GUIDEseqAnalysis(
   orgAnn,
   mat,
   includeBulge = FALSE,
-  max.n.bulge = 2L
+  max.n.bulge = 2L,
+  removeDuplicate = TRUE
 )
 }
 \arguments{
@@ -346,19 +347,25 @@ default to FALSE}
 \item{max.n.bulge}{offtargets with at most this number of indels to be
 included in the offtarget list. Only applicalbe with includeBulge set to
 TRUE}
+
+\item{removeDuplicate}{default to TRUE. Set it to FALSE if PCR duplicates
+not to be removed for testing purpose}
 }
 \value{
 \item{offTargets}{ a data frame, containing all input peaks with
 potential gRNA binding sites, mismatch number and positions, alignment to
-the input gRNA and predicted cleavage score.} \item{merged.peaks}{merged
+the input gRNA and predicted cleavage score.}
+\item{merged.peaks}{merged
 peaks as GRanges with count (peak height), bg (local background), SNratio
-(signal noise ratio), p-value, and option adjusted p-value } \item{peaks
-}{GRanges with count (peak height), bg (local background), SNratio (signal
+(signal noise ratio), p-value, and option adjusted p-value }
+\item{peaks}{GRanges with count (peak height), bg (local background), SNratio (signal
 noise ratio), p-value, and option adjusted p-value }
 \item{uniqueCleavages}{Cleavage sites with one site per UMI as GRanges with
-metadata column total set to 1 for each range} \item{read.summary}{One table
+metadata column total set to 1 for each range}
+\item{read.summary}{One table
 per input mapping file that contains the number of reads for each chromosome
 location}
+\item{sequence.depth}{sequence depth in the input alignment files}
 }
 \description{
 A wrapper function that uses the UMI sequence plus the first few bases of

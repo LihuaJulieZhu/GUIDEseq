@@ -10,11 +10,13 @@ combineOfftargets(
   remove.common.offtargets = FALSE,
   control.sample.name,
   offtarget.filename = "offTargetsInPeakRegions.xls",
-  common.col = c("offTarget", "predicted_cleavage_score", "gRNA.name", "gRNAPlusPAM",
+  common.col = c("predicted_cleavage_score", "gRNA.name", "gRNAPlusPAM",
     "offTarget_sequence", "guideAlignment2OffTarget", "offTargetStrand",
     "mismatch.distance2PAM", "n.PAM.mismatch", "n.guide.mismatch", "PAM.sequence",
-    "offTarget_Start", "offTarget_End", "chromosome"),
-  exclude.col,
+    "offTarget_Start", "offTarget_End", "chromosome", "entrez_id", "symbol", "inExon",
+    "total.mismatch.bulge", "RNA.bulge", "DNA.bulge", "pos.RNA.bulge", "pos.DNA.bulge",
+    "n.RNA.bulge", "n.DNA.bulge"),
+  exclude.col = "",
   outputFileName
 )
 }
@@ -35,10 +37,12 @@ off-targets present in the control sample}
 in GUIDEseqAnalysis function}
 
 \item{common.col}{common column names used for merge files. Default to
-c("offTarget","predicted_cleavage_score", "gRNA.name", "gRNAPlusPAM",
+c("predicted_cleavage_score", "gRNA.name", "gRNAPlusPAM",
 "offTarget_sequence", "guideAlignment2OffTarget", "offTargetStrand",
 "mismatch.distance2PAM", "n.PAM.mismatch", "n.guide.mismatch",
-"PAM.sequence", "offTarget_Start", "offTarget_End", "chromosome")}
+"PAM.sequence", "offTarget_Start", "offTarget_End", "chromosome",
+"RNA.bulge", "DNA.bulge", "pos.RNA.bulge", "pos.DNA.bulge","n.RNA.bulge",
+"n.DNA.bulge")}
 
 \item{exclude.col}{columns to be excluded before merging.  Please check
 offTargetsInPeakRegions.xls to choose the desired columns to exclude}
