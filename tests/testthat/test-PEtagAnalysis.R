@@ -35,7 +35,11 @@ test_that("PEtagAnalysis", {
   expect_equal(max(PET.res$offTargets$peak_score),
                max(PET.res.truth$offTargets$peak_score))
   expect_equal(as.vector(PET.res$offTargets[PET.res$offTargets$offTarget ==
-                                    "chr13:+:39262912:39262934", 1:20]),
+                                    "chr13:+:39262912:39262934", 1:18]),
                as.vector(PET.res.truth$offTargets[PET.res.truth$offTargets$offTarget ==
-                                          "chr13:+:39262912:39262934", 1:20]))
+                                          "chr13:+:39262912:39262934", 1:18]))
+   expect_equal(as.vector(PET.res$offTargets[PET.res$offTargets$offTarget ==
+                                    "chr13:+:39262912:39262934", 20:21]),
+               as.vector(PET.res.truth$offTargets[PET.res.truth$offTargets$offTarget ==
+                                          "chr13:+:39262912:39262934", 19:20]))
 })

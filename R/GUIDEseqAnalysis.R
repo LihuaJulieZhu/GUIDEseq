@@ -197,17 +197,22 @@
 #' @param max.n.bulge offtargets with at most this number of indels to be
 #' included in the offtarget list. Only applicalbe with includeBulge set to
 #' TRUE
+#' @param removeDuplicate default to TRUE. Set it to FALSE if PCR duplicates
+#' not to be removed for testing purpose
 #' @return \item{offTargets}{ a data frame, containing all input peaks with
 #' potential gRNA binding sites, mismatch number and positions, alignment to
-#' the input gRNA and predicted cleavage score.} \item{merged.peaks}{merged
+#' the input gRNA and predicted cleavage score.}
+#' \item{merged.peaks}{merged
 #' peaks as GRanges with count (peak height), bg (local background), SNratio
-#' (signal noise ratio), p-value, and option adjusted p-value } \item{peaks
-#' }{GRanges with count (peak height), bg (local background), SNratio (signal
+#' (signal noise ratio), p-value, and option adjusted p-value }
+#' \item{peaks}{GRanges with count (peak height), bg (local background), SNratio (signal
 #' noise ratio), p-value, and option adjusted p-value }
 #' \item{uniqueCleavages}{Cleavage sites with one site per UMI as GRanges with
-#' metadata column total set to 1 for each range} \item{read.summary}{One table
+#' metadata column total set to 1 for each range}
+#' \item{read.summary}{One table
 #' per input mapping file that contains the number of reads for each chromosome
 #' location}
+#' \item{sequence.depth}{sequence depth in the input alignment files}
 #' @author Lihua Julie Zhu
 #' @seealso getPeaks
 #' @references Shengdar Q Tsai and J Keith Joung et al. GUIDE-seq enables
@@ -341,7 +346,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
      txdb, orgAnn,
      mat,
      includeBulge = FALSE,
-     max.n.bulge = 2L)
+     max.n.bulge = 2L,
+     removeDuplicate = TRUE)
 {
     alignment.format <- match.arg(alignment.format)
     orderOfftargetsBy <- match.arg(orderOfftargetsBy)
@@ -408,7 +414,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
                            distance.threshold, sep = "" ), sep ="_")
     }
     if(!file.exists(outputDir))
-        dir.create(outputDir)
+        dir.create(outputDir, recursive=TRUE)
 
     sampleName <- gsub(".", "",
                        gsub("minus", "", gsub("plus", "", gsub(".bam", "",
@@ -449,7 +455,9 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
             min.umi.count = min.umi.count,
             max.umi.count = max.umi.count,
             min.read.coverage = min.read.coverage,
-            n.cores.max = n.cores.max, outputDir = outputDir)
+            n.cores.max = n.cores.max,
+            outputDir = outputDir,
+            removeDuplicate = removeDuplicate)
         fileName <- gsub("bowtie2.", "",
             basename(alignment.inputfile[i]))
         fileName <- gsub("bowtie1.", "", fileName)
@@ -473,11 +481,13 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
                                      paste(gRNAName, fileName,
             "UMIsummary.xls", sep = "")),
             sep = "\t", row.names = FALSE)
-	list(cleavages.gr = cleavages$cleavage.gr, read.summary = read.summary)
+	list(cleavages.gr = cleavages$cleavage.gr,
+	     read.summary = read.summary,
+	     sequence.depth = cleavages$sequence.depth)
     }))
     message("Peak calling ...\n")
     if (n.files > 1)
-         combined.gr <- c(cleavages.gr[[1]], cleavages.gr[[3]])
+         combined.gr <- c(cleavages.gr[[1]], cleavages.gr[[4]])
     else
          combined.gr <- cleavages.gr[[1]]
     peaks <- getPeaks(combined.gr, step = step,
@@ -490,7 +500,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
             window.size = window.size, bg.window.size = bg.window.size,
             maxP = maxP, p.adjust.methods = p.adjust.methods,
             min.reads = min.reads.per.lib, min.SNratio = min.SNratio)
-        peaks2 <- getPeaks(cleavages.gr[[3]], step = step,
+        peaks2 <- getPeaks(cleavages.gr[[4]], step = step,
             window.size = window.size, bg.window.size = bg.window.size,
             maxP = maxP, p.adjust.methods = p.adjust.methods,
             min.reads = min.reads.per.lib, min.SNratio = min.SNratio)
@@ -690,8 +700,10 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
                        DNA.bulge = "",
                        pos.RNA.bulge = "",
                        pos.DNA.bulge = "",
-                       n.RNA.bulge = "",
-                       n.DNA.bulge = "")
+                       n.RNA.bulge = 0,
+                       n.DNA.bulge = 0,
+                       total.mismatch.bulge =
+                           n.guide.mismatch + n.PAM.mismatch)
         }
         cat("Finding offtargets with bulges ...")
         offTargets.bulge <- do.call(rbind, lapply(1:length(gRNAName), function(i) {
@@ -720,8 +732,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
                 unlist(offTargets.bulge$n.insertion) > 0,]
             if (nrow(offTargets.bulge) > 0)
             {
-               offTargets.b <- offTargets.bulge %>%
-                select(offTarget,
+                offTargets.b <- offTargets.bulge %>%
+                  select(offTarget,
                    peak_score,
                    predicted_cleavage_score,
                    gRNA.name,
@@ -744,7 +756,12 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
                        pos.RNA.bulge  = pos.insertion,
                        pos.DNA.bulge = pos.deletion,
                        n.RNA.bulge = n.insertion,
-                       n.DNA.bulge = n.deletion)
+                       n.DNA.bulge = n.deletion) %>%
+               mutate(total.mismatch.bulge =
+                       as.numeric(n.guide.mismatch) +
+                          as.numeric(n.PAM.mismatch) +
+                          as.numeric(n.RNA.bulge) +
+                          as.numeric(n.DNA.bulge))
 
             offTargets.b.bk  <- do.call(cbind, lapply(1:ncol(offTargets.b),
                                                       function(i) {
@@ -808,6 +825,14 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
                 colnames(offTargets) == orderOfftargetsBy)],
                     decreasing = descending), ]
 
+        message("Add sequence depth information. \n")
+        if (n.files == 1)
+            offTargets <- offTargets %>%
+                mutate(sequence.depth = cleavages.gr[[3]])
+        else if (n.files == 2)
+            offTargets <- offTargets %>%
+                mutate(sequence.depth =
+                           cleavages.gr[[3]] + cleavages.gr[[6]])
         cat("Save offtargets. \n")
         write.table(offTargets, file =
             file.path(outputDir,"offTargetsInPeakRegions.xls"),
@@ -818,10 +843,14 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     if (n.files > 1)
         list(offTargets = offTargets, merged.peaks = merged.gr$mergedPeaks.gr,
             peaks = peaks$peaks, uniqueCleavages = combined.gr,
-            read.summary = list(s1 = cleavages.gr[[2]], s2 = cleavages.gr[[4]]),
-            peaks.inboth1and2.gr = peaks.inboth1and2.gr)
+            read.summary = list(s1 = cleavages.gr[[2]], s2 = cleavages.gr[[5]]),
+            peaks.inboth1and2.gr = peaks.inboth1and2.gr,
+            sequence.depth = list(s1 = cleavages.gr[[3]],
+                                  s2 = cleavages.gr[[6]])
+        )
     else
          list(offTargets = offTargets, merged.peaks = merged.gr$mergedPeaks.gr,
             peaks = peaks$peaks, uniqueCleavages = combined.gr,
-            read.summary = cleavages.gr[[2]])
+            read.summary = cleavages.gr[[2]],
+            sequence.depth = cleavages.gr[[3]])
 }

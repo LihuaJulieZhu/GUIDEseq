@@ -82,6 +82,8 @@
 #' mode, i.e., parallel processing, default 6. Please set it to 1 to disable
 #' multicore processing for small dataset.
 #' @param outputDir output Directory to save the figures
+#' @param removeDuplicate default to TRUE. Set it to FALSE if PCR duplicates
+#' not to be removed for testing purpose
 #' @return \item{cleavage.gr }{Cleavage sites with one site per UMI as GRanges
 #' with metadata column total set to 1 for each range}
 #' \item{unique.umi.plus.R2}{a data frame containing unique cleavage site from
@@ -178,7 +180,8 @@ getUniqueCleavageEvents <-
     max.umi.count = 100000L,
     min.read.coverage = 1L,
     n.cores.max = 6,
-    outputDir)
+    outputDir,
+    removeDuplicate = TRUE)
 {
     if(!file.exists(alignment.inputfile))
         stop("alignment.inputfile is required,
@@ -251,7 +254,8 @@ getUniqueCleavageEvents <-
         all.ind <- seq(dim(align.umi)[1])
         align.umi <- align.umi[setdiff(all.ind, grep("N", align.umi$UMI)), ]
         temp <- as.data.frame(table(align.umi$UMI))
-	align.umi <- align.umi[align.umi$UMI %in% temp[temp[,2] >= min.umi.count &
+	    align.umi <-
+	        align.umi[align.umi$UMI %in% temp[temp[,2] >= min.umi.count &
                    temp[,2] <= max.umi.count,1],]
         pdf(file.path(outputDir,paste0(gsub(".sorted", "", gsub(".bam", "",
                    basename(alignment.inputfile))),
@@ -273,46 +277,55 @@ getUniqueCleavageEvents <-
         R1.umi.minus <- subset(R1.good.len, strand.first == "+" &
                                    !readName %in% R2.umi.minus$readName)
 
-        unique.umi.plus.R2 <- R2.umi.plus %>%
-            select(seqnames.last, seqnames.first,
+        if(!removeDuplicate)
+        {
+            unique.umi.plus.R2 <- R2.umi.plus
+            unique.umi.minus.R2 <- R2.umi.minus
+            unique.umi.plus.R1 <- R1.umi.plus
+            unique.umi.minus.R1 <- R1.umi.minus
+        }
+        else
+        {
+            unique.umi.plus.R2 <- R2.umi.plus %>%
+                select(seqnames.last, seqnames.first,
                      strand.last, strand.first,
                      start.last, end.first, UMI) %>%
-            add_count(seqnames.last, seqnames.first,
+                add_count(seqnames.last, seqnames.first,
                      strand.last, strand.first,
                      start.last, end.first, UMI) %>%
-            unique %>%
-            filter(n >= min.read.coverage)
+                unique %>%
+                filter(n >= min.read.coverage)
 
-        unique.umi.minus.R2 <- R2.umi.minus %>%
-            select(seqnames.last, seqnames.first,
+            unique.umi.minus.R2 <- R2.umi.minus %>%
+                select(seqnames.last, seqnames.first,
                      strand.last, strand.first,
                      end.last, start.first, UMI) %>%
-            add_count(seqnames.last, seqnames.first,
+                add_count(seqnames.last, seqnames.first,
                      strand.last, strand.first,
                      end.last, start.first, UMI) %>%
-            unique %>%
-            filter(n >= min.read.coverage)
+                unique %>%
+                filter(n >= min.read.coverage)
 
-        unique.umi.plus.R1 <- R1.umi.plus %>%
-            select(seqnames.last, seqnames.first,
+            unique.umi.plus.R1 <- R1.umi.plus %>%
+                select(seqnames.last, seqnames.first,
                      strand.last, strand.first,
                      start.first, start.last, UMI) %>%
-            add_count(seqnames.last, seqnames.first,
+                add_count(seqnames.last, seqnames.first,
                      strand.last, strand.first,
                      start.first, start.last, UMI) %>%
-            unique %>%
-            filter(n >= min.read.coverage)
+                unique %>%
+                filter(n >= min.read.coverage)
 
-        unique.umi.minus.R1 <- R1.umi.minus  %>%
-            select(seqnames.last, seqnames.first,
+            unique.umi.minus.R1 <- R1.umi.minus  %>%
+                select(seqnames.last, seqnames.first,
                      strand.last, strand.first,
                      end.first, end.last, UMI) %>%
-            add_count(seqnames.last, seqnames.first,
+                add_count(seqnames.last, seqnames.first,
                      strand.last, strand.first,
                      end.first, end.last, UMI) %>%
-            unique %>%
-            filter(n >= min.read.coverage)
-
+                unique %>%
+                filter(n >= min.read.coverage)
+        }
         plus.cleavage.R2 <-
             unique.umi.plus.R2[, c("seqnames.last", "start.last")]
         plus.cleavage.R1 <-
@@ -368,7 +381,8 @@ getUniqueCleavageEvents <-
             umi.count.summary = rbind(R1.umi.plus.summary,
               R1.umi.minus.summary,
               R2.umi.plus.summary,
-              R2.umi.minus.summary)
+              R2.umi.minus.summary),
+            sequence.depth = length(unique(align$readName))
 	)
         #saveRDS(res, file = paste0(gsub(".sorted", "",
         #      gsub(".bam", "", basename(alignment.inputfile))),
