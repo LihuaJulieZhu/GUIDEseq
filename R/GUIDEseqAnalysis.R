@@ -790,6 +790,10 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
             offTargets.b[,which(colnames(offTargets.b) == "offTarget_Start")] <-
                 as.numeric(offTargets.b[,which(colnames(offTargets.b) ==
                                                "offTarget_Start")] )
+
+            offTargets.b$pos.RNA.bulge[is.na(offTargets.b$pos.RNA.bulge)] <- ""
+            offTargets.b$pos.DNA.bulge[is.na(offTargets.b$pos.DNA.bulge)] <- ""
+
             if (length(which(colnames(offTargets) == "n.guide.mismatch")) > 0)
             {
                 offTargets <- rbind(offTargets.b, offTargets)

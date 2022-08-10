@@ -10,14 +10,18 @@ combineOfftargets(
   remove.common.offtargets = FALSE,
   control.sample.name,
   offtarget.filename = "offTargetsInPeakRegions.xls",
-  common.col = c("predicted_cleavage_score", "gRNA.name", "gRNAPlusPAM",
-    "offTarget_sequence", "guideAlignment2OffTarget", "offTargetStrand",
-    "mismatch.distance2PAM", "n.PAM.mismatch", "n.guide.mismatch", "PAM.sequence",
-    "offTarget_Start", "offTarget_End", "chromosome", "entrez_id", "symbol", "inExon",
-    "total.mismatch.bulge", "RNA.bulge", "DNA.bulge", "pos.RNA.bulge", "pos.DNA.bulge",
-    "n.RNA.bulge", "n.DNA.bulge"),
+  common.col = c("total.mismatch.bulge", "chromosome", "offTarget_Start",
+    "offTarget_End", "offTargetStrand", "offTarget_sequence", "PAM.sequence",
+    "guideAlignment2OffTarget", "mismatch.distance2PAM", "n.guide.mismatch",
+    "n.PAM.mismatch", "n.DNA.bulge", "n.RNA.bulge", "pos.DNA.bulge", "DNA.bulge",
+    "pos.RNA.bulge", "RNA.bulge", "gRNA.name", "gRNAPlusPAM", "predicted_cleavage_score",
+    "inExon", "symbol", "entrez_id"),
   exclude.col = "",
-  outputFileName
+  outputFileName,
+  comparison.sample1,
+  comparison.sample2,
+  multiAdjMethod = "BH",
+  comparison.score = c("peak_score", "umi.count")
 )
 }
 \arguments{
@@ -37,23 +41,45 @@ off-targets present in the control sample}
 in GUIDEseqAnalysis function}
 
 \item{common.col}{common column names used for merge files. Default to
-c("predicted_cleavage_score", "gRNA.name", "gRNAPlusPAM",
-"offTarget_sequence", "guideAlignment2OffTarget", "offTargetStrand",
-"mismatch.distance2PAM", "n.PAM.mismatch", "n.guide.mismatch",
-"PAM.sequence", "offTarget_Start", "offTarget_End", "chromosome",
-"RNA.bulge", "DNA.bulge", "pos.RNA.bulge", "pos.DNA.bulge","n.RNA.bulge",
-"n.DNA.bulge")}
+c("total.mismatch.bulge","chromosome", "offTarget_Start","offTarget_End",
+"offTargetStrand","offTarget_sequence","PAM.sequence","guideAlignment2OffTarget",
+"mismatch.distance2PAM","n.guide.mismatch","n.PAM.mismatch",
+"n.DNA.bulge","n.RNA.bulge","pos.DNA.bulge","DNA.bulge","pos.RNA.bulge",
+"RNA.bulge","gRNA.name","gRNAPlusPAM","predicted_cleavage_score",
+"inExon","symbol","entrez_id")}
 
-\item{exclude.col}{columns to be excluded before merging.  Please check
+\item{exclude.col}{columns to be excluded before merging. Please check
 offTargetsInPeakRegions.xls to choose the desired columns to exclude}
 
 \item{outputFileName}{The merged offtarget file}
+
+\item{comparison.sample1}{A vector of sample names to be used for comparison.
+For example, comparison.sample1 = c("A", "B"),
+comparison.sample2 = rep("Control", 2) indicates that you are
+interested in comparing sample A vs Control and B vs Control
+Please make sure the sample names specified in comparison.sample1 and
+comparison.sample2 are in the sample name list specified in sample.name}
+
+\item{comparison.sample2}{A vector of sample names to be used for comparison.
+For example, comparison.sample1 = c("A", "B"),
+comparison.sample2 = rep("Control", 2) indicates that you are
+interested in comparing sample A vs Control and B vs Control}
+
+\item{multiAdjMethod}{A vector of character strings containing the names of
+the multiple testing procedures for which adjusted p-values are to be
+computed. This vector should include any of the following: "none",
+"Bonferroni", "Holm", "Hochberg", "SidakSS", "SidakSD", "BH", "BY", "ABH",
+and "TSBH". Please type ?multtest::mt.rawp2adjp for details. Default to "BH"}
+
+\item{comparison.score}{the score to be used for statistical analysis.
+Two options are available: "peak_score" and "umi.count"
+umi.count is the number of unique UMIs in the associated peak region
+without considering the sequence coordinates while peak_score takes
+into consideration of the sequence coordinates}
 }
 \value{
-a tab-delimited file similar to offTargetsInPeakRegions.tsv,
-containing all peaks from all samples merged by potential gRNA binding
-sites, mismatch number and positions, alignment to the input gRNA and
-predicted cleavage score. Sample specific columns have sample.name
+a data frame containing all off-targets from all samples merged by
+the columns specified in common.col. Sample specific columns have sample.name
 concatenated to the original column name, e.g., peak_score becomes
 sample1.peak_score.
 }
@@ -71,7 +97,9 @@ offtargets found in the genome in GUIDEseqAnalysis function.
         package = "GUIDEseq")
     mergedOfftargets <-
        combineOfftargets(offtarget.folder = offtarget.folder,
-       sample.name = c("cas9Only", "WT SpCas9", "SpCas9-MT3-ZFP"),
+       sample.name = c("Cas9Only", "WT-SpCas9", "SpCas9-MT3-ZFP"),
+  comparison.sample1 = c("Cas9Only", "SpCas9-MT3-ZFP"),
+  comparison.sample2 = rep("WT-SpCas9", 2),
        outputFileName = "TS2offtargets3Constructs.xls")
 
 }

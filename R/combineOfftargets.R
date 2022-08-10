@@ -16,17 +16,37 @@
 #' @param offtarget.filename Default to offTargetsInPeakRegions.xls, generated
 #' in GUIDEseqAnalysis function
 #' @param common.col common column names used for merge files. Default to
-#' c("offTarget","predicted_cleavage_score", "gRNA.name", "gRNAPlusPAM",
-#' "offTarget_sequence", "guideAlignment2OffTarget", "offTargetStrand",
-#' "mismatch.distance2PAM", "n.PAM.mismatch", "n.guide.mismatch",
-#' "PAM.sequence", "offTarget_Start", "offTarget_End", "chromosome")
-#' @param exclude.col columns to be excluded before merging.  Please check
+#' c("total.mismatch.bulge","chromosome", "offTarget_Start","offTarget_End",
+#' "offTargetStrand","offTarget_sequence","PAM.sequence","guideAlignment2OffTarget",
+#' "mismatch.distance2PAM","n.guide.mismatch","n.PAM.mismatch",
+#' "n.DNA.bulge","n.RNA.bulge","pos.DNA.bulge","DNA.bulge","pos.RNA.bulge",
+#' "RNA.bulge","gRNA.name","gRNAPlusPAM","predicted_cleavage_score",
+#' "inExon","symbol","entrez_id")
+#' @param exclude.col columns to be excluded before merging. Please check
 #' offTargetsInPeakRegions.xls to choose the desired columns to exclude
 #' @param outputFileName The merged offtarget file
-#' @return a tab-delimited file similar to offTargetsInPeakRegions.tsv,
-#' containing all peaks from all samples merged by potential gRNA binding
-#' sites, mismatch number and positions, alignment to the input gRNA and
-#' predicted cleavage score. Sample specific columns have sample.name
+#' @param comparison.sample1 A vector of sample names to be used for comparison.
+#' For example, comparison.sample1 = c("A", "B"),
+#' comparison.sample2 = rep("Control", 2) indicates that you are
+#' interested in comparing sample A vs Control and B vs Control
+#' Please make sure the sample names specified in comparison.sample1 and
+#' comparison.sample2 are in the sample name list specified in sample.name
+#' @param comparison.sample2 A vector of sample names to be used for comparison.
+#'For example, comparison.sample1 = c("A", "B"),
+#' comparison.sample2 = rep("Control", 2) indicates that you are
+#' interested in comparing sample A vs Control and B vs Control
+#' @param multiAdjMethod A vector of character strings containing the names of
+#' the multiple testing procedures for which adjusted p-values are to be
+#' computed. This vector should include any of the following: "none",
+#' "Bonferroni", "Holm", "Hochberg", "SidakSS", "SidakSD", "BH", "BY", "ABH",
+#' and "TSBH". Please type ?multtest::mt.rawp2adjp for details. Default to "BH"
+#' @param comparison.score the score to be used for statistical analysis.
+#' Two options are available: "peak_score" and "umi.count"
+#' umi.count is the number of unique UMIs in the associated peak region
+#' without considering the sequence coordinates while peak_score takes
+#' into consideration of the sequence coordinates
+#' @return a data frame containing all off-targets from all samples merged by
+#' the columns specified in common.col. Sample specific columns have sample.name
 #' concatenated to the original column name, e.g., peak_score becomes
 #' sample1.peak_score.
 #' @author Lihua Julie Zhu
@@ -38,7 +58,9 @@
 #'         package = "GUIDEseq")
 #'     mergedOfftargets <-
 #'        combineOfftargets(offtarget.folder = offtarget.folder,
-#'        sample.name = c("cas9Only", "WT SpCas9", "SpCas9-MT3-ZFP"),
+#'        sample.name = c("Cas9Only", "WT-SpCas9", "SpCas9-MT3-ZFP"),
+#'	  comparison.sample1 = c("Cas9Only", "SpCas9-MT3-ZFP"),
+#'	  comparison.sample2 = rep("WT-SpCas9", 2),
 #'        outputFileName = "TS2offtargets3Constructs.xls")
 #'
 #' @importFrom utils read.table write.table
@@ -50,44 +72,93 @@ combineOfftargets <- function(offtarget.folder,
     sample.name, remove.common.offtargets = FALSE,
     control.sample.name,
     offtarget.filename = "offTargetsInPeakRegions.xls",
-    common.col = c("offTarget","predicted_cleavage_score",
-        "gRNA.name", "gRNAPlusPAM", "offTarget_sequence",
-        "guideAlignment2OffTarget", "offTargetStrand",
-        "mismatch.distance2PAM", "n.PAM.mismatch",
-        "n.guide.mismatch", "PAM.sequence", "offTarget_Start",
-        "offTarget_End", "chromosome"),
-    exclude.col,
-    outputFileName)
+    common.col = c("total.mismatch.bulge",
+                   "chromosome",
+                   "offTarget_Start",
+                   "offTarget_End",
+                   "offTargetStrand",
+                   "offTarget_sequence",
+                   "PAM.sequence",
+                   "guideAlignment2OffTarget",
+                   "mismatch.distance2PAM",
+                   "n.guide.mismatch",
+                   "n.PAM.mismatch",
+                   "n.DNA.bulge",
+                   "n.RNA.bulge",
+                   "pos.DNA.bulge",
+                   "DNA.bulge",
+                   "pos.RNA.bulge",
+                   "RNA.bulge",
+                   "gRNA.name",
+                   "gRNAPlusPAM",
+                   "predicted_cleavage_score",
+                   "inExon",
+                   "symbol",
+                   "entrez_id"),
+    exclude.col = "",
+    outputFileName,
+    comparison.sample1,
+    comparison.sample2,
+    multiAdjMethod = "BH",
+    comparison.score = c("peak_score", "umi.count"))
 {
+    stopifnot(!missing(offtarget.folder), length(offtarget.folder) > 1,
+              !missing(sample.name), !missing(outputFileName))
+     if(!missing(comparison.sample1) &&
+          (length(setdiff(comparison.sample1, sample.name)) > 0 ||
+           missing(comparison.sample2) ||
+          length(comparison.sample1) != length(comparison.sample2) ||
+          length(setdiff(comparison.sample2, sample.name)) > 0 ))
+        stop("Please make sure that comparison.sample1 has the same number of
+             samples as that of comparison.sample2 with the names
+             listed in the sample.name!")
+    comparison.score <- match.arg(comparison.score)
+    for (i in 1:length(offtarget.folder)) {
+        if(!file.exists(file.path(offtarget.folder[i],
+                    offtarget.filename, fsep = .Platform$file.sep)))
+            stop(offtarget.filename, " is not found in the directory ",
+                 offtarget.folder[i])
+    }
     all <- read.table(file.path(offtarget.folder[1],
         offtarget.filename, fsep = .Platform$file.sep),
-        sep="\t", header = TRUE)
+        sep="\t", header = TRUE, stringsAsFactors = FALSE)
     all <- subset(all, !is.na(all$offTarget))
     if (!missing(exclude.col) && exclude.col != "")
         all <- all[, -which(colnames(all) %in% exclude.col)]
-    if(length(setdiff(common.col, colnames(all))) > 0)
-    {
-        stop(paste(setdiff(common.col, colnames(all)),
-            "are not valid column names! Please make sure to
-            specify the correct column names for common.col! If
-            you have specified the column names in exclued.col, please
-            do not specify in the common.col!"))
-    }
+    # if(length(setdiff(common.col, colnames(all))) > 0)
+    # {
+    #     message(paste(paste(setdiff(common.col, colnames(all)),collapse = ", "),
+    #         "are not valid column names! Please make sure to
+    #         specify the correct column names for common.col! If
+    #         you have specified the column names in exclued.col, please
+    #         do not specify in the common.col!"))
+    # }
 
-    common.col <- setdiff(common.col, "peak_score")
+    common.col <- intersect(setdiff(common.col, c("offTarget", "peak_score")),
+                      colnames(all))
     colnames(all)[!colnames(all) %in% common.col] <- paste(sample.name[1],
         colnames(all)[!colnames(all) %in% common.col], sep=".")
 
+    if (length(grep("pos.RNA.bulge", colnames(all))) >0 )
+    {
+        all$pos.RNA.bulge[is.na(all$pos.RNA.bulge)] <- ""
+        all$pos.DNA.bulge[is.na(all$pos.DNA.bulge)] <- ""
+    }
     for (i in 2:length(offtarget.folder))
     {
         off <- read.table(file.path(offtarget.folder[i], offtarget.filename,
-            fsep = .Platform$file.sep), sep="\t", header = TRUE)
-        off <- subset(off, !is.na(off$offTarget))
+            fsep = .Platform$file.sep), sep="\t", header = TRUE,
+            stringsAsFactors = FALSE)
+        off <- subset(off, !is.na(off$offTarget_sequence))
         if (!missing(exclude.col) && exclude.col != "")
             off <- off[,-which(colnames(off) %in% exclude.col)]
         colnames(off)[!colnames(off) %in% common.col] <- paste(sample.name[i],
             colnames(off)[!colnames(off) %in% common.col], sep=".")
-
+        if (length(grep("pos.RNA.bulge", colnames(off))) > 0 )
+        {
+           off$pos.RNA.bulge[is.na(off$pos.RNA.bulge)] <- ""
+           off$pos.DNA.bulge[is.na(off$pos.DNA.bulge)] <- ""
+        }
         all <- merge(all, off, by = common.col, all = TRUE)
     }
 
@@ -110,9 +181,43 @@ combineOfftargets <- function(offtarget.folder,
         if (control.sample.name %in%  sample.name)
             all <- subset(all, !temp[, control.sample.name])
         else
-            warning("Please note that control.sample.name is not on the sample.name list, filtering skipped!")
+            message("Please note that control.sample.name is not on the sample.name list, filtering skipped!")
     }
     write.table(subset(all, !is.na(all[,1])), file = outputFileName, sep="\t", row.names=FALSE)
 
+    if (length(grep("sequence.depth", colnames(all))) > 0)
+    {
+        for (i in 1:length(comparison.sample1))
+        {
+            # important to have the following 4 lines inside the loop because
+            # the order of the columns may change after calling compareSamples
+            col.count1 <- which(colnames(all) ==
+                                paste(comparison.sample1[i], comparison.score,
+                                      sep = "."))
+            col.count2 <- which(colnames(all) ==
+                                paste(comparison.sample2[i], comparison.score,
+                                      sep = "."))
+            col.total1 <-  which(colnames(all) %in%
+                                 paste(comparison.sample1[i],"sequence.depth",
+                                       sep = "."))
+            col.total2 <- which(colnames(all) %in%
+                                paste(comparison.sample2[i],"sequence.depth",
+                                      sep = "."))
+            total1 = max(all[, col.total1], na.rm = TRUE)
+            total2 = max(all[, col.total2], na.rm = TRUE)
+
+            all[is.na(all[, col.total1]),col.total1] <- total1
+            all[is.na(all[, col.total2]),col.total2] <- total2
+
+            all <- compareSamples(all, col.count1 = col.count1,
+                       col.count2 = col.count2,
+                       total1 = total1,
+                       total2 = total2,
+                       multiAdjMethod = multiAdjMethod,
+                       comparison.score = comparison.score)
+        }
+        write.table(all,
+                file = outputFileName, sep="\t", row.names=FALSE)
+    }
     all
 }

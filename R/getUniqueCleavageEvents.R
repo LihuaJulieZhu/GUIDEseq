@@ -327,23 +327,23 @@ getUniqueCleavageEvents <-
                 filter(n >= min.read.coverage)
         }
         plus.cleavage.R2 <-
-            unique.umi.plus.R2[, c("seqnames.last", "start.last")]
+            unique.umi.plus.R2[, c("seqnames.last", "start.last", "UMI")]
         plus.cleavage.R1 <-
-            unique.umi.plus.R1[, c("seqnames.first", "start.first")]
+            unique.umi.plus.R1[, c("seqnames.first", "start.first", "UMI")]
         minus.cleavage.R2 <-
-            unique.umi.minus.R2[, c("seqnames.last", "end.last")]
+            unique.umi.minus.R2[, c("seqnames.last", "end.last", "UMI")]
         minus.cleavage.R1 <-
-            unique.umi.minus.R1[, c("seqnames.first", "end.first")]
-        colnames(plus.cleavage.R1) <- c("seqnames", "start")
-        colnames(plus.cleavage.R2) <- c("seqnames", "start")
-        colnames(minus.cleavage.R1) <- c("seqnames", "start")
-        colnames(minus.cleavage.R2) <- c("seqnames", "start")
+            unique.umi.minus.R1[, c("seqnames.first", "end.first", "UMI")]
+        colnames(plus.cleavage.R1) <- c("seqnames", "start", "UMI")
+        colnames(plus.cleavage.R2) <- c("seqnames", "start", "UMI")
+        colnames(minus.cleavage.R1) <- c("seqnames", "start", "UMI")
+        colnames(minus.cleavage.R2) <- c("seqnames", "start", "UMI")
         plus.cleavage <- rbind(plus.cleavage.R2, plus.cleavage.R1)
         minus.cleavage <- rbind(minus.cleavage.R2, minus.cleavage.R1)
         plus.cleavage <- cbind(plus.cleavage, strand = "+")
         minus.cleavage <- cbind(minus.cleavage, strand = "-")
-        colnames(plus.cleavage) <- c("seqnames", "start", "strand")
-        colnames(minus.cleavage) <- c("seqnames", "start", "strand")
+        colnames(plus.cleavage)[4] <-  "strand"
+        colnames(minus.cleavage)[4] <-  "strand"
 
         unique.umi.both <- rbind(plus.cleavage, minus.cleavage)
 
@@ -370,9 +370,12 @@ getUniqueCleavageEvents <-
         R2.umi.plus.summary <- unique(add_count(R2.umi.plus, seqnames, strand, start, UMI))
         R2.umi.minus.summary <- unique(add_count(R2.umi.minus, seqnames, strand, start, UMI))
 
-        res <- list(cleavage.gr = GRanges(IRanges(start=unique.umi.both[,2], width=1),
-            seqnames=unique.umi.both[,1], strand = unique.umi.both[,3],
-            total=rep(1, dim(unique.umi.both)[1])),
+        res <- list(cleavage.gr = GRanges(IRanges(start=unique.umi.both[,2],
+                                                  width=1),
+            seqnames=unique.umi.both[,1],
+            strand = unique.umi.both[,4],
+            total=rep(1, dim(unique.umi.both)[1]),
+            umi = unique.umi.both[,3]),
             unique.umi.plus.R2 = unique.umi.plus.R2,
             unique.umi.minus.R2 = unique.umi.minus.R2,
             unique.umi.plus.R1 = unique.umi.plus.R1,

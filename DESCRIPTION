@@ -10,7 +10,7 @@ Maintainer: Lihua Julie Zhu <julie.zhu@umassmed.edu>
 Depends: R (>= 3.5.0), GenomicRanges, BiocGenerics
 Imports: Biostrings, CRISPRseek, ChIPpeakAnno,
          data.table, matrixStats, BSgenome, parallel,
-	 IRanges (>= 2.5.5), S4Vectors (>= 0.9.6),
+	 IRanges (>= 2.5.5), S4Vectors (>= 0.9.6), stringr, multtest,
 	 GenomicAlignments (>= 1.7.3), GenomeInfoDb, Rsamtools, 
          hash, limma,dplyr, GenomicFeatures, rio, tidyr, tools, methods
 biocViews: ImmunoOncology, GeneRegulation, Sequencing, WorkflowStep, CRISPR
