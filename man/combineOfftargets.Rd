@@ -21,7 +21,8 @@ combineOfftargets(
   comparison.sample1,
   comparison.sample2,
   multiAdjMethod = "BH",
-  comparison.score = c("peak_score", "umi.count")
+  comparison.score = c("peak_score", "umi.count"),
+  overwrite = FALSE
 )
 }
 \arguments{
@@ -76,6 +77,9 @@ Two options are available: "peak_score" and "umi.count"
 umi.count is the number of unique UMIs in the associated peak region
 without considering the sequence coordinates while peak_score takes
 into consideration of the sequence coordinates}
+
+\item{overwrite}{Indicates whether to overwrite the existing file
+specified by outputFileName, default to FALSE.}
 }
 \value{
 a data frame containing all off-targets from all samples merged by

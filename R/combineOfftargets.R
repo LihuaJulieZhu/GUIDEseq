@@ -45,6 +45,8 @@
 #' umi.count is the number of unique UMIs in the associated peak region
 #' without considering the sequence coordinates while peak_score takes
 #' into consideration of the sequence coordinates
+#' @param overwrite Indicates whether to overwrite the existing file
+#' specified by outputFileName, default to FALSE.
 #' @return a data frame containing all off-targets from all samples merged by
 #' the columns specified in common.col. Sample specific columns have sample.name
 #' concatenated to the original column name, e.g., peak_score becomes
@@ -61,10 +63,11 @@
 #'        sample.name = c("Cas9Only", "WT-SpCas9", "SpCas9-MT3-ZFP"),
 #'	  comparison.sample1 = c("Cas9Only", "SpCas9-MT3-ZFP"),
 #'	  comparison.sample2 = rep("WT-SpCas9", 2),
-#'        outputFileName = "TS2offtargets3Constructs.xls")
+#'        outputFileName = "TS2offtargets3Constructs.xlsx")
 #'
 #' @importFrom utils read.table write.table
 #' @importFrom limma vennCounts vennDiagram
+#' @importFrom openxlsx createWorkbook saveWorkbook addWorksheet createStyle writeData
 #'
 #' @export combineOfftargets
 #'
@@ -100,7 +103,8 @@ combineOfftargets <- function(offtarget.folder,
     comparison.sample1,
     comparison.sample2,
     multiAdjMethod = "BH",
-    comparison.score = c("peak_score", "umi.count"))
+    comparison.score = c("peak_score", "umi.count"),
+    overwrite = FALSE)
 {
     stopifnot(!missing(offtarget.folder), length(offtarget.folder) > 1,
               !missing(sample.name), !missing(outputFileName))
@@ -119,6 +123,11 @@ combineOfftargets <- function(offtarget.folder,
             stop(offtarget.filename, " is not found in the directory ",
                  offtarget.folder[i])
     }
+    if(missing(outputFileName) ||
+       (file.exists(outputFileName) && !overwrite))
+        stop("outputFileName is required and
+              cannot already exists if overwrite is set to FALSE!")
+
     all <- read.table(file.path(offtarget.folder[1],
         offtarget.filename, fsep = .Platform$file.sep),
         sep="\t", header = TRUE, stringsAsFactors = FALSE)
@@ -162,7 +171,8 @@ combineOfftargets <- function(offtarget.folder,
         all <- merge(all, off, by = common.col, all = TRUE)
     }
 
-    offtarget.columns <- paste(sample.name, "peak_score", sep = "." )
+    offtarget.columns <- paste(sample.name, "peak_score",
+                               sep = "." )
     temp <- do.call(cbind,
         lapply(offtarget.columns, function(i) {
             temp1 <- all[, i]
@@ -183,7 +193,8 @@ combineOfftargets <- function(offtarget.folder,
         else
             message("Please note that control.sample.name is not on the sample.name list, filtering skipped!")
     }
-    write.table(subset(all, !is.na(all[,1])), file = outputFileName, sep="\t", row.names=FALSE)
+    #write.table(subset(all, !is.na(all[,1])), file = outputFileName, sep="\t",
+      #          row.names=FALSE)
 
     if (length(grep("sequence.depth", colnames(all))) > 0)
     {
@@ -216,8 +227,16 @@ combineOfftargets <- function(offtarget.folder,
                        multiAdjMethod = multiAdjMethod,
                        comparison.score = comparison.score)
         }
-        write.table(all,
-                file = outputFileName, sep="\t", row.names=FALSE)
+        # write.table(all, file = outputFileName,
+        #     sep="\t", row.names=FALSE)
     }
+    workbook <- createWorkbook()
+    addWorksheet(workbook, "mergedOfftargets")
+    #bold.style <- createStyle(textDecoration = c("underline","Bold"))
+    bold.style <- createStyle(textDecoration = "Bold")
+    writeData(workbook, "mergedOfftargets", all, startRow = 1, startCol = 1,
+              headerStyle = bold.style)
+    saveWorkbook(workbook, file = outputFileName,
+                 overwrite = overwrite)
     all
 }

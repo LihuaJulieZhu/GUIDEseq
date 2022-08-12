@@ -13,7 +13,7 @@ Imports: Biostrings, CRISPRseek, ChIPpeakAnno,
 	 IRanges (>= 2.5.5), S4Vectors (>= 0.9.6), stringr, multtest,
 	 GenomicAlignments (>= 1.7.3), GenomeInfoDb, Rsamtools, 
          hash, limma,dplyr, GenomicFeatures, rio, tidyr, tools, methods,
-         purrr,ggplot2
+         purrr, ggplot2, openxlsx
 biocViews: ImmunoOncology, GeneRegulation, Sequencing, WorkflowStep, CRISPR
 Suggests: 
     knitr,
