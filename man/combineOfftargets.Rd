@@ -104,7 +104,7 @@ offtargets found in the genome in GUIDEseqAnalysis function.
        sample.name = c("Cas9Only", "WT-SpCas9", "SpCas9-MT3-ZFP"),
   comparison.sample1 = c("Cas9Only", "SpCas9-MT3-ZFP"),
   comparison.sample2 = rep("WT-SpCas9", 2),
-       outputFileName = "TS2offtargets3Constructs.xls")
+       outputFileName = "TS2offtargets3Constructs.xlsx")
 
 }
 \author{
