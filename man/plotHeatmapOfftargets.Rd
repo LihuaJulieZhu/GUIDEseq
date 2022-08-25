@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotHeatmapOfftargets.R
 \name{plotHeatmapOfftargets}
 \alias{plotHeatmapOfftargets}
-\title{Plot offtargets as heatmap}
+\title{Plot offtargets from multiple samples as heatmap}
 \usage{
 plotHeatmapOfftargets(
   mergedOfftargets,
@@ -75,7 +75,7 @@ in the GUIDEseqAnalysis step.}
 a ggplot object
 }
 \description{
-Plot offtargets as heatmap
+Plot offtargets from multiple samples as heatmap
 }
 \examples{
 if(interactive())

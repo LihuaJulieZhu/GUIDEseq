@@ -1,4 +1,4 @@
-#' Plot offtargets as heatmap
+#' Plot offtargets from multiple samples as heatmap
 #'
 #' @param mergedOfftargets a data frame from running combineOfftargets
 #' @param min.detection.rate minimum indel detection rate to be included
@@ -144,11 +144,11 @@ plotHeatmapOfftargets <- function(mergedOfftargets,
                       colnames(mergedOfftargets))
     seq.depth <- as.numeric(unlist(
       mergedOfftargets[1,seq.depth.col]))
-    x2 <- round(t(t(x)/seq.depth) * 100, digit = 3)
+    x2 <- round(t(t(x)/seq.depth) * 100, digits = 3)
   }
   else
   {
-      x2 <- round(t(t(x)/colSums(x)) * 100, digit = 3)
+      x2 <- round(t(t(x)/colSums(x)) * 100, digits = 3)
   }
 
   y.labs = unlist(map(1:nrow(x), rep,
