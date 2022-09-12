@@ -244,7 +244,7 @@
 #' @importFrom tidyr unnest
 #' @importFrom utils read.table write.table
 #' @importFrom dplyr mutate group_by add_count select
-#' filter '%>%' rename
+#' filter '%>%' rename ungroup n
 #' @importFrom GenomicRanges GRanges start end
 #' strand seqnames
 #' @importFrom Biostrings DNAString DNAStringSet neditAt
@@ -823,7 +823,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
 
         cat("Order offtargets. \n")
 
-        orderOfftargetsBy <- intersect(orderOfftargetsBy,colnames(offTargets))
+        orderOfftargetsBy <- intersect(orderOfftargetsBy,
+                                       colnames(offTargets))
         if(length(orderOfftargetsBy) > 0)
             offTargets <- offTargets[order(offTargets[,which(
                 colnames(offTargets) == orderOfftargetsBy)],
@@ -837,6 +838,35 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
             offTargets <- offTargets %>%
                 mutate(sequence.depth =
                            cleavages.gr[[3]] + cleavages.gr[[6]])
+        message("Get the number of unique UMIs for each offtarget. \n")
+        cnames <- colnames(offTargets)
+        x <- makeGRangesFromDataFrame(offTargets,
+                                      keep.extra.columns=TRUE,
+                                      ignore.strand=FALSE,
+                                      seqinfo=NULL,
+                                      seqnames.field="chromosome",
+                                      start.field = "offTarget_Start",
+                                      end.field = "offTarget_End",
+                                      strand.field = "offTargetStrand",
+                                      starts.in.df.are.0based = FALSE)
+
+        names(combined.gr) <- paste0(combined.gr$umi,
+                                     seq_along(1:length(combined.gr$umi)))
+        ann.offtargets.gr <- annotatePeakInBatch(x, AnnotationData = combined.gr,
+                                                 output = "overlap",
+                                                 maxgap = max(upstream, downstream))
+        offTargets <- as.data.frame(ann.offtargets.gr) %>%
+            group_by(offTarget) %>%
+            mutate(n.distinct.UMIs = length(unique(substr(feature,
+                                           1, nchar(combined.gr$umi[1])))),
+                   peak_score = n()) %>%
+            rename(offTarget_Start = start,
+                   offTarget_End = end,
+                   offTargetStrand = strand,
+                  chromosome = seqnames) %>%
+                  ungroup  %>%
+            select(!!cnames, n.distinct.UMIs) %>%
+            unique %>% as.data.frame
         cat("Save offtargets. \n")
         write.table(offTargets, file =
             file.path(outputDir,"offTargetsInPeakRegions.xls"),
@@ -844,7 +874,10 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     }
 
     message("Please check output file in directory ", outputDir , "\n")
+
+
     if (n.files > 1)
+    {
         list(offTargets = offTargets, merged.peaks = merged.gr$mergedPeaks.gr,
             peaks = peaks$peaks, uniqueCleavages = combined.gr,
             read.summary = list(s1 = cleavages.gr[[2]], s2 = cleavages.gr[[5]]),
@@ -852,9 +885,12 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
             sequence.depth = list(s1 = cleavages.gr[[3]],
                                   s2 = cleavages.gr[[6]])
         )
+    }
     else
+    {
          list(offTargets = offTargets, merged.peaks = merged.gr$mergedPeaks.gr,
             peaks = peaks$peaks, uniqueCleavages = combined.gr,
             read.summary = cleavages.gr[[2]],
             sequence.depth = cleavages.gr[[3]])
+    }
 }

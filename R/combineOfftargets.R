@@ -41,8 +41,8 @@
 #' "Bonferroni", "Holm", "Hochberg", "SidakSS", "SidakSD", "BH", "BY", "ABH",
 #' and "TSBH". Please type ?multtest::mt.rawp2adjp for details. Default to "BH"
 #' @param comparison.score the score to be used for statistical analysis.
-#' Two options are available: "peak_score" and "umi.count"
-#' umi.count is the number of unique UMIs in the associated peak region
+#' Two options are available: "peak_score" and "n.distinct.UMIs"
+#' n.distinct.UMIs is the number of unique UMIs in the associated peak region
 #' without considering the sequence coordinates while peak_score takes
 #' into consideration of the sequence coordinates
 #' @param overwrite Indicates whether to overwrite the existing file
@@ -103,7 +103,7 @@ combineOfftargets <- function(offtarget.folder,
     comparison.sample1,
     comparison.sample2,
     multiAdjMethod = "BH",
-    comparison.score = c("peak_score", "umi.count"),
+    comparison.score = c("peak_score", "n.distinct.UMIs"),
     overwrite = FALSE)
 {
     stopifnot(!missing(offtarget.folder), length(offtarget.folder) > 1,
@@ -143,7 +143,8 @@ combineOfftargets <- function(offtarget.folder,
     #         do not specify in the common.col!"))
     # }
 
-    common.col <- intersect(setdiff(common.col, c("offTarget", "peak_score")),
+    common.col <- intersect(setdiff(common.col, c("offTarget", "peak_score",
+                                                  "n.distinct.UMIs")),
                       colnames(all))
     colnames(all)[!colnames(all) %in% common.col] <- paste(sample.name[1],
         colnames(all)[!colnames(all) %in% common.col], sep=".")

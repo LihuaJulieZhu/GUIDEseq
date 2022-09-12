@@ -21,7 +21,7 @@ combineOfftargets(
   comparison.sample1,
   comparison.sample2,
   multiAdjMethod = "BH",
-  comparison.score = c("peak_score", "umi.count"),
+  comparison.score = c("peak_score", "n.distinct.UMIs"),
   overwrite = FALSE
 )
 }
@@ -73,8 +73,8 @@ computed. This vector should include any of the following: "none",
 and "TSBH". Please type ?multtest::mt.rawp2adjp for details. Default to "BH"}
 
 \item{comparison.score}{the score to be used for statistical analysis.
-Two options are available: "peak_score" and "umi.count"
-umi.count is the number of unique UMIs in the associated peak region
+Two options are available: "peak_score" and "n.distinct.UMIs"
+n.distinct.UMIs is the number of unique UMIs in the associated peak region
 without considering the sequence coordinates while peak_score takes
 into consideration of the sequence coordinates}
 

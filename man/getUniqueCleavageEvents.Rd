@@ -159,8 +159,9 @@ from R1 reads mapped to minus strand without corresponding R2 reads mapped
 to the plus strand, with the same columns as unique.umi.plus.R2 }
 \item{unique.umi.minus.R1}{a data frame containing unique cleavage site from
 R1 reads mapped to plus strand without corresponding R2 reads mapped to the
-minus strand, with the same columns as unique.umi.plus.R2 } \item{all.umi}{a
-data frame containing all the mapped reads with the following columns.
+minus strand, with the same columns as unique.umi.plus.R2 }
+ \item{align.umi}{a data frame containing all the mapped reads with the
+ following columns.
 readName (read ID), chr.x (chromosome of readSide.x/R1 read), start.x (start
 of eadSide.x/R1 read), end.x (end of eadSide.x/R1 read), mapping.qual.x
 (mapping quality of readSide.x/R1 read), strand.x (strand of readSide.x/R1

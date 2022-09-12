@@ -52,7 +52,7 @@
 #' @author Lihua Julie Zhu
 #'
 #' @examples
-#' if(interactive())
+#' if (interactive())
 #' {
 #' figs = plotHeatmapOfftargets(mergedOfftargets,
 #'     min.detection.rate = 2,

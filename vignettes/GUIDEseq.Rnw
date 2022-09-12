@@ -115,8 +115,11 @@ information. The alignment.inputfile contains chromosome, start, end, readID,
 mapping quality, strand and CIGAR information as a tab delimited file. 
 Here is an example line. \linebreak
 chr13 27629253 27629403 HWI-M01326:156:1:113:4572:6938/1 44 + 150M \linebreak
-Scripts for bin reads, remove adaptor, mapping to genome are available \linebreak
-at http://mccb.umassmed.edu/GUIDE-seq/. 
+When fastq files are available, scripts for bin reads, remove adaptor, mapping to genome are available \linebreak
+at http://mccb.umassmed.edu/GUIDE-seq/. Otherwise, a one-line, 6-argument pipeline GS-Preprocess at 
+https://github.com/umasstr/GS-Preprocess (Rodríguez et al., 2021) can be used to generate the 
+needed input files for GUIDEseq. The input file for GS-Preprocess is the standard raw data 
+output in BCL file format. 
 
 The umi.inputfile is a tab delimited file containing at least two columns, 
 read IDs and corresponding unique molecular identifiers (UMI). Script for 
@@ -162,7 +165,7 @@ to 2. For detailed parameter settings using function
 <<>>=
 peaks <- getPeaks(uniqueCleavageEvents$cleavage.gr, min.reads = 80)
 peaks.gr <- peaks$peaks
-peaks.gr$peaks
+peaks.gr
 @
 \end{scriptsize}
 
@@ -264,6 +267,7 @@ and Michael Brodsky. CRISPRseek: a Bioconductor package to identify
 target-specific guide RNAs for CRISPR-Cas9 genome-editing systems. Plos One 
 Sept 23rd 2014
 \bibitem{Zhu et al., 2017}Lihua Julie Zhu, Michael Lawrence, Ankit Gupta, Herve Pages, Alper Kucukural, Manuel Garber and Scot A. Wolfe. GUIDEseq: a bioconductor package to analyze GUIDE-Seq datasets for CRISPR-Cas nucleases. BMC Genomics. 2017. 18:379
+\bibitem{Rodríguez et al., 2021}Rodríguez TC, Dadafarin S, Pratt HE, Liu P, Amrani N, Zhu LJ. Genome-wide detection and analysis of CRISPR-Cas off-targets. Reprogramming the Genome: CRISPR-Cas-based Human Disease Therapy, Volume 181 2021
 \end{thebibliography}
 
 \section{Session Info}
