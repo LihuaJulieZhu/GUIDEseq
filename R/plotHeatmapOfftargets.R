@@ -1,13 +1,14 @@
 #' Plot offtargets from multiple samples as heatmap
 #'
-#' @param mergedOfftargets a data frame from running combineOfftargets
+#' @param mergedOfftargets a data frame from running the combineOfftargets 
+#' function
 #' @param min.detection.rate minimum indel detection rate to be included
 #' in the heatmap
 #' @param font.size font size for x labels and numbers along the y-axis.
 #' @param on.target.predicted.score Default to 1 for the CFDscore
 #' scoring method. Set it to 100 for the Hsu-Zhang
 #' scoring method.
-#' @param MR.normalization Default to peak.score, i.e., using the sum of
+#' @param IR.normalization Default to peak.score, i.e., using the sum of
 #' peak.score for each sample in the input file to calculate mutation rate.
 #' Set it to sequence.depth to use the sequencing depth for each sample
 #' in the input file to calculate mutation rate.
@@ -16,7 +17,7 @@
 #' @param dot.distance.breaks a numeric vector for specifying
 #' the minimum number of rows in each panel to use the
 #' the corresponding distance in dot.distance.scaling.factor
-#' betwen consecutive dots along the y-axis.
+#' between consecutive dots along the y-axis.
 #' In the default setting, dot.distance.breaks and
 #' dot.distance.scaling.factor are
 #' set to c(5, 10, 20, 40, 60) and c(0.4, 0.6, 0.8, 1.2, 2)
@@ -36,11 +37,10 @@
 #' in the GUIDEseqAnalysis step.
 #' @param color.low The color used to represent the lowest indel rate,
 #' default to white
-#' @param color.high The color used to represen the highest indel rate
-#' the itermediate indel rates will be colored using the color between
+#' @param color.high The color used to represent the highest indel rate
+#' the intermediate indel rates will be colored using the color between
 #' color.low and color.high. Default to blue.
 #' @return a ggplot object
-#' @author Lihua Julie Zhu
 #' @importFrom ggplot2 ggplot aes annotate theme geom_tile geom_point
 #' @importFrom ggplot2 element_blank element_text element_rect
 #' @importFrom ggplot2 scale_fill_gradient theme_bw
@@ -56,7 +56,7 @@
 #' {
 #' figs = plotHeatmapOfftargets(mergedOfftargets,
 #'     min.detection.rate = 2,
-#'     MR.normalization = "peak.score",
+#'     IR.normalization = "peak.score",
 #'     top.bottom.height.ratio = 6,
 #'     bottom.start.offset = 8,
 #'     dot.distance.scaling.factor = c(0.2,0.2,0.6,0.8, 1.2))
@@ -66,7 +66,7 @@
 #'
 #' plotHeatmapOfftargets(mergedOfftargets,
 #'     min.detection.rate = 0,
-#'     MR.normalization = "peak.score",
+#'     IR.normalization = "peak.score",
 #'    top.bottom.height.ratio = 6,
 #'    bottom.start.offset = 8,
 #'    dot.distance.scaling.factor = c(0.2,0.4,0.6,0.8, 4))
@@ -74,7 +74,7 @@
 #'
 #' figs = plotHeatmapOfftargets(mergedOfftargets,
 #'     min.detection.rate = 0.1,
-#'     MR.normalization = "peak.score",
+#'     IR.normalization = "peak.score",
 #'     top.bottom.height.ratio = 5,
 #'     bottom.start.offset = 8,
 #'     dot.distance.scaling.factor = c(0.2,0.2,0.6,0.8, 1.2))
@@ -84,7 +84,7 @@
 #'
 #'  figs = plotHeatmapOfftargets(mergedOfftargets,
 #'      min.detection.rate = 0.5,
-#'      MR.normalization = "peak.score",
+#'      IR.normalization = "peak.score",
 #'     top.bottom.height.ratio = 12,
 #'     bottom.start.offset = 12,
 #'     dot.distance.scaling.factor = c(0.2,0.2,0.6,0.8, 1.2),
@@ -98,7 +98,7 @@ plotHeatmapOfftargets <- function(mergedOfftargets,
                            min.detection.rate = 0.2,
                            font.size = 12,
                            on.target.predicted.score = 1,
-                           MR.normalization = c("sequence.depth", "peak.score"),
+                           IR.normalization = c("sequence.depth", "peak.score"),
                            top.bottom.height.ratio = 3,
                            dot.distance.breaks =
                              c(5, 10, 20, 40, 60),
@@ -114,7 +114,7 @@ plotHeatmapOfftargets <- function(mergedOfftargets,
      class(mergedOfftargets) !=  "data.frame")
    stop("mergedOfftargets is required as a data frame!")
 
-  MR.normalization <- match.arg(MR.normalization)
+  IR.normalization <- match.arg(IR.normalization)
   score.col <- grep("peak_score",
                           colnames(mergedOfftargets))
   if (missing(sample.names))
@@ -138,7 +138,7 @@ plotHeatmapOfftargets <- function(mergedOfftargets,
              length(sample.names)))
 
 
-  if(MR.normalization == "sequence.depth")
+  if(IR.normalization == "sequence.depth")
   {
     seq.depth.col <- grep("sequence.depth",
                       colnames(mergedOfftargets))
@@ -155,18 +155,18 @@ plotHeatmapOfftargets <- function(mergedOfftargets,
                           length(sample.names)))
   x0 <- data.frame(Offtargets = y.labs,
                    Samples = rep(sample.names, nrow(x)),
-                   MR = as.vector(t(x2)), Ontarget = ontarget) %>%
+                   IR = as.vector(t(x2)), Ontarget = ontarget) %>%
     group_by(Offtargets) %>%
-    mutate(MR.all = sum(MR), MR.max = max(MR)) %>%
-    arrange(desc(MR.all))
+    mutate(IR.all = sum(IR), IR.max = max(IR)) %>%
+    arrange(desc(IR.all))
 
   x0$Offtargets <- sort(y.labs, decreasing = TRUE)
 
   x0.top <- x0 %>%
-    filter(max(MR) >= min.detection.rate)
+    filter(max(IR) >= min.detection.rate)
   x0.bottom <- x0 %>%
-    filter(max(MR) < min.detection.rate) %>%
-    mutate(MR = 0)
+    filter(max(IR) < min.detection.rate) %>%
+    mutate(IR = 0)
 
   dot.distance.m <- data.frame(dot.distance.breaks =
                                  dot.distance.breaks,
@@ -239,7 +239,7 @@ plotHeatmapOfftargets <- function(mergedOfftargets,
   {
      pu <- ggplot(x0.top,
                mapping = aes(x = Samples,
-                             y = Offtargets, fill = MR)) +
+                             y = Offtargets, fill = IR)) +
             geom_tile() +
             geom_point(aes(x = length(sample.names) +
                              ontarget.dot.expand  ,

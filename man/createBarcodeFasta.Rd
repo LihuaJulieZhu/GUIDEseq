@@ -31,9 +31,6 @@ p7.index files.  Default to FALSE}
 barcodes are written. This file can be used to build bowtie1 index for
 binning reads.}
 }
-\value{
-
-}
 \description{
 Create barcode as fasta file format for building bowtie1 index to assign
 reads to each library with different barcodes. The bowtie1 index has been

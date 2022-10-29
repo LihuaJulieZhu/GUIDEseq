@@ -5,15 +5,19 @@
 #' @param sep The separator in the file, default to tab-delimited
 #' @param header Indicates whether the input file contains a header,
 #' default to TRUE
+#' @param gRNA.size The size of the gRNA, default 20
+#' @param PAM.size PAM length, default 3
 #' @param chromosome.order The chromosome order to plot from top to bottom
 #' @param xlab The x-asix label, default to Chromosome Size (bp)
 #' @param ylab The y-asix label, default to Peak Score. Change it to
 #' be consistent with the score.col
 #' @param score.col The column used as y values in the plot. Available choices
-#' are peak_score, total.mismatch.bulge, and predicted_cleavage_score.
+#' are peak_score, total.match, gRNA.match, total.mismatch.bulge,
+#' gRNA.mismatch.bulge, and predicted_cleavage_score.
 #' @param transformation Indicates whether plot the y-value in log10 scale or
-#' in the original scale. When scale.col is set to total.mismatch.bulge, the
-#' data will be plotted in the original scale.
+#' in the original scale. When scale.col is set to total.match, gRNA.match,
+#' total.mismatch.bulge, and gRNA.mismatch.bulge, the data will be plotted
+#' in the original scale.
 #' @param title The figure title, default to none.
 #' @param axis.title.size The font size for the axis labels, default to 12
 #' @param axis.label.size The font size for the tick labels, default to 8
@@ -31,10 +35,11 @@
 #' to black
 #' @param strip.text.y.angle The angel for the y strip text, default to 0.
 #' Set it to 45 if angled representation is desired
-#' @param scale.grid Used to set the scales in facet_grid, default to free,
-#'  meaning that scales vary across both rows and columns.
-#'  Other options are fixed, free_x, and free_y meaning that scales shared
-#'  across all facets, vary across rows, and vary across columns, respectively.
+#' @param scale.grid Used to set the scales in facet_grid, default to free_x,
+#'  meaning that scales vary across different x-axis, but fixed in y-axis.
+#'  Other options are fixed, free, and free_y meaning that scales shared
+#'  across all facets, vary across both x- and y- axises, and vary across 
+#'  y-axis only, respectively.
 #'  For details, please type ?ggplot2::facet_grid
 #'
 #' @return a ggplot object
@@ -43,6 +48,7 @@
 #' @importFrom ggplot2 element_blank element_text geom_rect
 #' @importFrom ggplot2 theme_classic facet_grid xlab ylab ggtitle
 #' @importFrom rlang sym
+#' @importFrom dplyr '%>%'
 #'
 #' @export plotTracks
 #' @author Lihua Julie Zhu
@@ -60,22 +66,41 @@
 #'     ylab = "Total Number of Mismatches and Bulges")
 #'   fig2
 #'   fig3 <- plotTracks(offTargetFile = offTargetFilePath,
+#'      score.col = "total.match",
+#'      ylab = "Total Number of Matches")
+#'   fig3
+#'   fig4 <- plotTracks(offTargetFile = offTargetFilePath,
+#'       score.col = "gRNA.match",
+#'       ylab = "Number of Matches in gRNA")
+#'   fig4
+#'   fig5 <- plotTracks(offTargetFile = offTargetFilePath,
+#'       score.col = "gRNA.mismatch.bulge",
+#'       ylab = "Number of Mismatches and Bulges in gRNA")
+#'   fig5
+#'   fig6 <- plotTracks(offTargetFile = offTargetFilePath,
 #'      score.col = "predicted_cleavage_score",
 #'      ylab = "CFD Score",
 #'      scale.grid = "fixed",
 #'      transformation = "none")
-#'  fig3
+#'  fig6
+#'  
 #' }
 
 plotTracks <- function(offTargetFile, sep ="\t",
                        header = TRUE,
+                       gRNA.size = 20L,
+                       PAM.size = 3L,
                        chromosome.order =
                          paste0("chr", c(1:22, "X", "Y")),
                        xlab  = "Chromosome Size (bp)",
                        ylab  = "Peak Score",
                        score.col = c("peak_score",
+                                     "total.match",
+                                     "gRNA.match",
                                      "total.mismatch.bulge",
-                                     "predicted_cleavage_score"),
+                                     "gRNA.mismatch.bulge",
+                                     "predicted_cleavage_score"
+                                     ),
                        transformation = c("log10", "none"),
                        title = "",
                        axis.title.size = 12,
@@ -87,7 +112,7 @@ plotTracks <- function(offTargetFile, sep ="\t",
                        on.target.color = "red",
                        off.target.color = "black",
                        strip.text.y.angle = 0,
-                       scale.grid = c( "free", "free_y", "free_x", "fixed")
+                       scale.grid = c( "free_x", "fixed", "free", "free_y")
                   )
 {
    if(missing(offTargetFile) || !file.exists(offTargetFile))
@@ -118,8 +143,21 @@ plotTracks <- function(offTargetFile, sep ="\t",
    #                                strand.field = "offTargetStrand",
    #                                starts.in.df.are.0based=FALSE)
 
-    score.col <- sym(score.col)
-    p1 <- ggplot(x,
+   if (score.col == "gRNA.mismatch.bulge")
+      x <- x %>% mutate(gRNA.mismatch.bulge = 
+                           total.mismatch.bulge - n.PAM.mismatch
+                           )
+   else if (score.col == "gRNA.match")
+      x <- x %>% mutate(gRNA.match = gRNA.size -
+                           (total.mismatch.bulge - n.PAM.mismatch)
+      )
+   else if (score.col == "total.match")
+      x <- x %>% mutate(total.match = gRNA.size + PAM.size -
+                           total.mismatch.bulge
+      )
+   
+   score.col <- sym(score.col)
+   p1 <- ggplot(x,
           aes(offTarget_Start, !!score.col)) +
    geom_rect(aes(xmin = offTarget_Start, ymin = 0,
                     xmax = offTarget_End,
@@ -132,7 +170,10 @@ plotTracks <- function(offTargetFile, sep ="\t",
                 size = on.target.line.size
                 )
 
-    if (score.col != "total.mismatch.bulge" &&
+    if (!as.character(score.col) %in% c("total.match",
+        "gRNA.match",
+        "total.mismatch.bulge",
+        "gRNA.mismatch.bulge")  &&
         transformation == "log10")
         p1 <- p1 + scale_y_continuous(trans='log10',
                                       n.breaks = 4)

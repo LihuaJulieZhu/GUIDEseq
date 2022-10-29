@@ -9,7 +9,7 @@ plotHeatmapOfftargets(
   min.detection.rate = 0.2,
   font.size = 12,
   on.target.predicted.score = 1,
-  MR.normalization = c("sequence.depth", "peak.score"),
+  IR.normalization = c("sequence.depth", "peak.score"),
   top.bottom.height.ratio = 3,
   dot.distance.breaks = c(5, 10, 20, 40, 60),
   dot.distance.scaling.factor = c(0.4, 0.6, 0.8, 1.2, 2),
@@ -20,7 +20,8 @@ plotHeatmapOfftargets(
 )
 }
 \arguments{
-\item{mergedOfftargets}{a data frame from running combineOfftargets}
+\item{mergedOfftargets}{a data frame from running the combineOfftargets 
+function}
 
 \item{min.detection.rate}{minimum indel detection rate to be included
 in the heatmap}
@@ -31,7 +32,7 @@ in the heatmap}
 scoring method. Set it to 100 for the Hsu-Zhang
 scoring method.}
 
-\item{MR.normalization}{Default to peak.score, i.e., using the sum of
+\item{IR.normalization}{Default to peak.score, i.e., using the sum of
 peak.score for each sample in the input file to calculate mutation rate.
 Set it to sequence.depth to use the sequencing depth for each sample
 in the input file to calculate mutation rate.}
@@ -42,7 +43,7 @@ vs that of the bottom panel.}
 \item{dot.distance.breaks}{a numeric vector for specifying
 the minimum number of rows in each panel to use the
 the corresponding distance in dot.distance.scaling.factor
-betwen consecutive dots along the y-axis.
+between consecutive dots along the y-axis.
 In the default setting, dot.distance.breaks and
 dot.distance.scaling.factor are
 set to c(5, 10, 20, 40, 60) and c(0.4, 0.6, 0.8, 1.2, 2)
@@ -63,8 +64,8 @@ the value will move the number away from the top border.}
 \item{color.low}{The color used to represent the lowest indel rate,
 default to white}
 
-\item{color.high}{The color used to represen the highest indel rate
-the itermediate indel rates will be colored using the color between
+\item{color.high}{The color used to represent the highest indel rate
+the intermediate indel rates will be colored using the color between
 color.low and color.high. Default to blue.}
 
 \item{sample.names}{Optional sample Names used to label the x-axis. If
@@ -82,7 +83,7 @@ if (interactive())
 {
 figs = plotHeatmapOfftargets(mergedOfftargets,
     min.detection.rate = 2,
-    MR.normalization = "peak.score",
+    IR.normalization = "peak.score",
     top.bottom.height.ratio = 6,
     bottom.start.offset = 8,
     dot.distance.scaling.factor = c(0.2,0.2,0.6,0.8, 1.2))
@@ -92,7 +93,7 @@ figs[[1]]/figs[[2]] +
 
 plotHeatmapOfftargets(mergedOfftargets,
     min.detection.rate = 0,
-    MR.normalization = "peak.score",
+    IR.normalization = "peak.score",
    top.bottom.height.ratio = 6,
    bottom.start.offset = 8,
    dot.distance.scaling.factor = c(0.2,0.4,0.6,0.8, 4))
@@ -100,7 +101,7 @@ plotHeatmapOfftargets(mergedOfftargets,
 
 figs = plotHeatmapOfftargets(mergedOfftargets,
     min.detection.rate = 0.1,
-    MR.normalization = "peak.score",
+    IR.normalization = "peak.score",
     top.bottom.height.ratio = 5,
     bottom.start.offset = 8,
     dot.distance.scaling.factor = c(0.2,0.2,0.6,0.8, 1.2))
@@ -110,7 +111,7 @@ figs[[1]]/figs[[2]] +
 
  figs = plotHeatmapOfftargets(mergedOfftargets,
      min.detection.rate = 0.5,
-     MR.normalization = "peak.score",
+     IR.normalization = "peak.score",
     top.bottom.height.ratio = 12,
     bottom.start.offset = 12,
     dot.distance.scaling.factor = c(0.2,0.2,0.6,0.8, 1.2),
@@ -121,7 +122,5 @@ figs[[1]]/figs[[2]] +
 }
 }
 \author{
-Lihua Julie Zhu
-
 Lihua Julie Zhu
 }

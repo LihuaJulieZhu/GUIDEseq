@@ -26,8 +26,8 @@
 #' of DNA/RNA bulges, default to 3
 #' @param color.values The color used to represent different bases, DNA
 #' bulges, and RNA bulges.
-#' @param PAM PAM sequence in the gRNA, please update it to
-#' the exact PAM sequence in the input gRNA.
+#' @param PAM PAM sequence in the target site, please update it to
+#' the exact PAM sequence in the input target site.
 #' @param body.tile.height  Specifies the height of each plotting
 #' tile around each base/symbol for offtargets, default to 2.5
 #' @param header.tile.height Specifies the height of each plotting
@@ -42,7 +42,7 @@
 #' users can select the top n offtargets to be included in the plot.
 #' For example, set plot.top.n = 20 to include only top 20 offtargets
 #' in the plot. Please note offtargets are ordered by the peak_score
-#' from top to bottom. Mutation Rate (MR) % is calculated as peak_score divided
+#' from top to bottom. Insertion Rate (IR) % is calculated as peak_score divided
 #' by sum(peak_score) of all offtargets in the offtarget file.
 #'
 #' @return a ggplot object
@@ -94,12 +94,12 @@ plotAlignedOfftargets <- function(offTargetFile, sep ="\t",
                   sep = sep,
                   header = header,
                   stringsAsFactors = FALSE)
-  x <- x %>% mutate(MR =
+  x <- x %>% mutate(IR =
                       round(peak_score/sum(peak_score) * 100,
                             digits = 2)) %>%
-                      arrange(MR)
+                      arrange(IR)
   if (!missing(plot.top.n) && class(plot.top.n) == "numeric")
-    x <- x %>% top_n(plot.top.n, MR)
+    x <- x %>% top_n(plot.top.n, IR)
 
   x <- rbind(x[x$total.mismatch.bulge > 0,], x[x$total.mismatch.bulge == 0,])
   ontarget <- paste0(substr(x$gRNAPlusPAM[1],
@@ -140,7 +140,7 @@ plotAlignedOfftargets <- function(offTargetFile, sep ="\t",
   x1 <- data.frame(x = rep(gRNA.size + nchar(PAM) + 1.6,
                            nrow(x)),
                    y = 2 * 1:nrow(x) - 0.6,
-                   MR = x$MR)
+                   IR = x$IR)
   x.DNA.bulge <- data.frame(x = x$pos.DNA.bulge,
                    y = 2 * 1:nrow(x))
   x.DNA.bulge <- x.DNA.bulge[!is.na(x.DNA.bulge[,1]) &
@@ -158,12 +158,14 @@ plotAlignedOfftargets <- function(offTargetFile, sep ="\t",
      geom_text(data = x0.for.symbol, aes(x=x,
                                y=y, label = aligns.char),
                size = size.symbol) +
-     geom_text(data = x1, aes(x, y, label = MR), hjust = "middle") +
+     geom_text(data = x1, aes(x, y, label = IR), hjust = "middle") +
      annotate("text", x = max(x1$x), y = max.y - 2,
-              label = "MR (%)", hjust = "middle") +
-     #annotate("text", x = x1$x, y = x1$y, label = x1$MR) +
+              label = "IR (%)", hjust = "middle") +
+     #annotate("text", x = x1$x, y = x1$y, label = x1$IR) +
      geom_text(data = x.DNA.bulge, aes(x=x,
-                             y=y, label = plot.DNA.bulge.symbol),
+                             y=y, 
+                             label = plot.DNA.bulge.symbol),
+                             size = size.symbol + 4,
               color = color.DNA.bulge) +
      geom_vline(xintercept = gRNA.size + 0.5) +
      geom_vline(xintercept = gRNA.size + nchar(PAM) + 0.5) +

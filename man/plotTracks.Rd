@@ -8,10 +8,13 @@ plotTracks(
   offTargetFile,
   sep = "\\t",
   header = TRUE,
+  gRNA.size = 20L,
+  PAM.size = 3L,
   chromosome.order = paste0("chr", c(1:22, "X", "Y")),
   xlab = "Chromosome Size (bp)",
   ylab = "Peak Score",
-  score.col = c("peak_score", "total.mismatch.bulge", "predicted_cleavage_score"),
+  score.col = c("peak_score", "total.match", "gRNA.match", "total.mismatch.bulge",
+    "gRNA.mismatch.bulge", "predicted_cleavage_score"),
   transformation = c("log10", "none"),
   title = "",
   axis.title.size = 12,
@@ -23,7 +26,7 @@ plotTracks(
   on.target.color = "red",
   off.target.color = "black",
   strip.text.y.angle = 0,
-  scale.grid = c("free", "free_y", "free_x", "fixed")
+  scale.grid = c("free_x", "fixed", "free", "free_y")
 )
 }
 \arguments{
@@ -35,6 +38,10 @@ from GUIDEseqAnalysis}
 \item{header}{Indicates whether the input file contains a header,
 default to TRUE}
 
+\item{gRNA.size}{The size of the gRNA, default 20}
+
+\item{PAM.size}{PAM length, default 3}
+
 \item{chromosome.order}{The chromosome order to plot from top to bottom}
 
 \item{xlab}{The x-asix label, default to Chromosome Size (bp)}
@@ -43,11 +50,13 @@ default to TRUE}
 be consistent with the score.col}
 
 \item{score.col}{The column used as y values in the plot. Available choices
-are peak_score, total.mismatch.bulge, and predicted_cleavage_score.}
+are peak_score, total.match, gRNA.match, total.mismatch.bulge,
+gRNA.mismatch.bulge, and predicted_cleavage_score.}
 
 \item{transformation}{Indicates whether plot the y-value in log10 scale or
-in the original scale. When scale.col is set to total.mismatch.bulge, the
-data will be plotted in the original scale.}
+in the original scale. When scale.col is set to total.match, gRNA.match,
+total.mismatch.bulge, and gRNA.mismatch.bulge, the data will be plotted
+in the original scale.}
 
 \item{title}{The figure title, default to none.}
 
@@ -76,10 +85,11 @@ to black}
 \item{strip.text.y.angle}{The angel for the y strip text, default to 0.
 Set it to 45 if angled representation is desired}
 
-\item{scale.grid}{Used to set the scales in facet_grid, default to free,
-meaning that scales vary across both rows and columns.
-Other options are fixed, free_x, and free_y meaning that scales shared
-across all facets, vary across rows, and vary across columns, respectively.
+\item{scale.grid}{Used to set the scales in facet_grid, default to free_x,
+meaning that scales vary across different x-axis, but fixed in y-axis.
+Other options are fixed, free, and free_y meaning that scales shared
+across all facets, vary across both x- and y- axises, and vary across 
+y-axis only, respectively.
 For details, please type ?ggplot2::facet_grid}
 }
 \value{
@@ -101,11 +111,24 @@ if (interactive())
     ylab = "Total Number of Mismatches and Bulges")
   fig2
   fig3 <- plotTracks(offTargetFile = offTargetFilePath,
+     score.col = "total.match",
+     ylab = "Total Number of Matches")
+  fig3
+  fig4 <- plotTracks(offTargetFile = offTargetFilePath,
+      score.col = "gRNA.match",
+      ylab = "Number of Matches in gRNA")
+  fig4
+  fig5 <- plotTracks(offTargetFile = offTargetFilePath,
+      score.col = "gRNA.mismatch.bulge",
+      ylab = "Number of Mismatches and Bulges in gRNA")
+  fig5
+  fig6 <- plotTracks(offTargetFile = offTargetFilePath,
      score.col = "predicted_cleavage_score",
      ylab = "CFD Score",
      scale.grid = "fixed",
      transformation = "none")
- fig3
+ fig6
+ 
 }
 }
 \author{

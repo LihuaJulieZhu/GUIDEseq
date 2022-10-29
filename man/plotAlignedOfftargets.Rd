@@ -66,8 +66,8 @@ of DNA/RNA bulges, default to 3}
 \item{color.values}{The color used to represent different bases, DNA
 bulges, and RNA bulges.}
 
-\item{PAM}{PAM sequence in the gRNA, please update it to
-the exact PAM sequence in the input gRNA.}
+\item{PAM}{PAM sequence in the target site, please update it to
+the exact PAM sequence in the input target site.}
 
 \item{body.tile.height}{Specifies the height of each plotting
 tile around each base/symbol for offtargets, default to 2.5}
@@ -86,7 +86,7 @@ in the plot. For samples with a very large number of offtargets,
 users can select the top n offtargets to be included in the plot.
 For example, set plot.top.n = 20 to include only top 20 offtargets
 in the plot. Please note offtargets are ordered by the peak_score
-from top to bottom. Mutation Rate (MR) % is calculated as peak_score divided
+from top to bottom. Insertion Rate (IR) % is calculated as peak_score divided
 by sum(peak_score) of all offtargets in the offtarget file.}
 }
 \value{
