@@ -6,24 +6,25 @@
 \usage{
 plotHeatmapOfftargets(
   mergedOfftargets,
-  min.detection.rate = 0.2,
+  min.detection.rate = 0.1,
   font.size = 12,
   on.target.predicted.score = 1,
-  IR.normalization = c("sequence.depth", "peak.score"),
+  IR.normalization = c("sequence.depth", "on.target.score", "sum.score", "none"),
   top.bottom.height.ratio = 3,
   dot.distance.breaks = c(5, 10, 20, 40, 60),
   dot.distance.scaling.factor = c(0.4, 0.6, 0.8, 1.2, 2),
   bottom.start.offset = 8,
   color.low = "white",
   color.high = "blue",
-  sample.names
+  sample.names,
+  insertion.score.column = c("n.distinct.UMIs", "peak_score")
 )
 }
 \arguments{
 \item{mergedOfftargets}{a data frame from running the combineOfftargets 
 function}
 
-\item{min.detection.rate}{minimum indel detection rate to be included
+\item{min.detection.rate}{minimum relative detection rate to be included
 in the heatmap}
 
 \item{font.size}{font size for x labels and numbers along the y-axis.}
@@ -32,10 +33,14 @@ in the heatmap}
 scoring method. Set it to 100 for the Hsu-Zhang
 scoring method.}
 
-\item{IR.normalization}{Default to peak.score, i.e., using the sum of
-peak.score for each sample in the input file to calculate mutation rate.
-Set it to sequence.depth to use the sequencing depth for each sample
-in the input file to calculate mutation rate.}
+\item{IR.normalization}{Default to sequence.depth which uses
+the sequencing depth for each sample
+in the input file to calculate the relative insertion rate (RIR). 
+Other options are "on.target.score" and "sum.score" which use the 
+on-target score for each sample and the sum of all on-target and 
+off-target scores to calculate the RIR respectively.
+The score can be either peak.score or n.distinct.UMIs as specified by
+the parameter insertion.score.column}
 
 \item{top.bottom.height.ratio}{the ratio of the height of top panel
 vs that of the bottom panel.}
@@ -49,7 +54,7 @@ dot.distance.scaling.factor are
 set to c(5, 10, 20, 40, 60) and c(0.4, 0.6, 0.8, 1.2, 2)
 respectively, which means that if the number of rows in each panel
 is greater than or equal to 60, 40-59, 20-39, 10-19, 5-9, and less
-than 5,then the disance between consecutive dots will
+than 5,then the distance between consecutive dots will
 be plotted 2, 1.2, 0.8, 0,6, 0.4, and 0.2 (half of 0.4) units away
 in y-axis respectively.}
 
@@ -71,6 +76,12 @@ color.low and color.high. Default to blue.}
 \item{sample.names}{Optional sample Names used to label the x-axis. If
 not provided, x-axis will be labeled using the sample names provided
 in the GUIDEseqAnalysis step.}
+
+\item{insertion.score.column}{"n.distinct.UMI" or "peak_score" to be included on
+the right side of the alignment as Insertion Events. Relative Insertion 
+Rate (RIR) % is calculated as peak_score/n.distinct.UMI 
+divided by ontarget peak_score/n.distinct.UMI. For example, RIR for ontarget
+should be 100}
 }
 \value{
 a ggplot object
@@ -81,44 +92,53 @@ Plot offtargets from multiple samples as heatmap
 \examples{
 if (interactive())
 {
+  mergedOfftargets <- 
+        read.table(system.file("extdata/forVisualization",
+      "mergedOfftargets.txt",
+       package = "GUIDEseq"),
+                   sep ="\t", header = TRUE)
+                   
+ figs <- plotHeatmapOfftargets(mergedOfftargets,
+                   min.detection.rate = 2.5,
+                   IR.normalization = "on.target.score",
+                   top.bottom.height.ratio = 12,
+                   bottom.start.offset = 6,
+                   dot.distance.scaling.factor = c(0.2,0.2,0.4,0.4, 0.4),
+                   sample.names = c("Group1", "Group2"))
+                   figs[[1]]/figs[[2]] +
+ plot_layout(heights = unit(c(2,1),
+                             c('null', 'null')))
+                             
 figs = plotHeatmapOfftargets(mergedOfftargets,
-    min.detection.rate = 2,
-    IR.normalization = "peak.score",
-    top.bottom.height.ratio = 6,
-    bottom.start.offset = 8,
-    dot.distance.scaling.factor = c(0.2,0.2,0.6,0.8, 1.2))
-figs[[1]]/figs[[2]] +
-     plot_layout(heights = unit(c(2.6,1),
-                        c('null', 'null')))
-
-plotHeatmapOfftargets(mergedOfftargets,
-    min.detection.rate = 0,
-    IR.normalization = "peak.score",
-   top.bottom.height.ratio = 6,
-   bottom.start.offset = 8,
-   dot.distance.scaling.factor = c(0.2,0.4,0.6,0.8, 4))
-
-
-figs = plotHeatmapOfftargets(mergedOfftargets,
-    min.detection.rate = 0.1,
-    IR.normalization = "peak.score",
-    top.bottom.height.ratio = 5,
-    bottom.start.offset = 8,
-    dot.distance.scaling.factor = c(0.2,0.2,0.6,0.8, 1.2))
-figs[[1]]/figs[[2]] +
-     plot_layout(heights = unit(c(3,1),
-                 c('null', 'null')))
-
- figs = plotHeatmapOfftargets(mergedOfftargets,
-     min.detection.rate = 0.5,
-     IR.normalization = "peak.score",
+                 min.detection.rate = 1.2,
+                 IR.normalization = "sum.score",
+                 top.bottom.height.ratio = 12,
+                 bottom.start.offset = 6,
+                 dot.distance.scaling.factor = c(0.2,0.2,0.4,0.4, 0.4),
+                 sample.names = c("Group1", "Group2"))
+                 figs[[1]]/figs[[2]] +
+                 plot_layout(heights = unit(c(2,1),
+                  c('null', 'null')))
+ figs <- plotHeatmapOfftargets(mergedOfftargets,
+    min.detection.rate = 0.2,
+    IR.normalization = "sequence.depth",
     top.bottom.height.ratio = 12,
-    bottom.start.offset = 12,
-    dot.distance.scaling.factor = c(0.2,0.2,0.6,0.8, 1.2),
-    sample.names = c("Control", "Treated"))
+    bottom.start.offset = 6,
+    dot.distance.scaling.factor = c(0.2,0.2,0.2,0.2, 0.2),
+    sample.names = c("Group1", "Group2"))
 figs[[1]]/figs[[2]] +
-   plot_layout(heights = unit(c(2,1),
-                           c('null', 'null')))
+    plot_layout(heights = unit(c(2,1),
+    c('null', 'null')))
+figs = plotHeatmapOfftargets(mergedOfftargets,
+    min.detection.rate = 3,
+    IR.normalization = "none",
+    top.bottom.height.ratio = 12,
+    bottom.start.offset = 6,
+    dot.distance.scaling.factor = c(0.2,0.2,0.7,0.7, 0.7),
+    sample.names = c("Group1", "Group2"))
+    figs[[1]]/figs[[2]] 
+plot_layout(heights = unit(c(2,1),
+                c('null', 'null')))
 }
 }
 \author{

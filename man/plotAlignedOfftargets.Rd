@@ -12,18 +12,24 @@ plotAlignedOfftargets(
   input.DNA.bulge.symbol = "^",
   input.RNA.bulge.symbol = "-",
   input.match.symbol = ".",
-  plot.DNA.bulge.symbol = "I",
-  plot.RNA.bulge.symbol = " ",
-  plot.match.symbol = "-",
+  plot.DNA.bulge.symbol = "DNA.bulge",
+  plot.RNA.bulge.symbol = "-",
+  plot.match.symbol = ".",
   color.DNA.bulge = "red",
   size.symbol = 3,
-  color.values = c(A = "#B5D33D", T = "#AE9CD6", C = "#6CA2EA", G = "#FED23F", ` ` =
-    "gray", `-` = "white"),
+  color.values = c(A = "#B5D33D", T = "#AE9CD6", C = "#6CA2EA", G = "#FED23F", `-` =
+    "gray", . = "white"),
   PAM = "GGG",
   body.tile.height = 2.5,
-  header.tile.height = 4,
-  hline.offset = 4,
-  plot.top.n
+  header.tile.height = 3.6,
+  hline.offset = 3.8,
+  plot.top.n,
+  insertion.score.column = c("n.distinct.UMIs", "peak_score"),
+  width.IR = 2.5,
+  width.RIR = 2.5,
+  family = "sans",
+  hjust = "middle",
+  vjust = 0.5
 )
 }
 \arguments{
@@ -49,13 +55,15 @@ in the file specified as offTargetFile, default to "-"}
 in the file specified as offTargetFile, default to "."}
 
 \item{plot.DNA.bulge.symbol}{The symbol used to represent DNA bulges
-in the figure to be generated, default to "I"}
+in the figure to be generated, default to DNA.bulge, i.e., the nucleotide
+in the DNA bulge. Alternatively, you can specify a symbol to represent
+all DNA bulges such as "I".}
 
 \item{plot.RNA.bulge.symbol}{The symbol used to represent RNA bulges
-in the figure to be generated, default to " "}
+in the figure to be generated, default to "-"}
 
 \item{plot.match.symbol}{The symbol used to represent matched bases
-in the figure to be generated, default to "-"}
+in the figure to be generated, default to "."}
 
 \item{color.DNA.bulge}{The color used to represent DNA bulges
 in the figure to be generated, default to "red"}
@@ -74,20 +82,41 @@ tile around each base/symbol for offtargets, default to 2.5}
 
 \item{header.tile.height}{Specifies the height of each plotting
 tile around each base/symbol for the target sequence on the very
-top, default to 4}
+top, default to 3.6}
 
 \item{hline.offset}{Specifies the offset from the top border to draw
-the horizontal line below the gRNA sequence, default to 4. Increase it
+the horizontal line below the gRNA sequence, default to 3.8. Increase it
 to move the line down and decrease it to move the line up.}
 
 \item{plot.top.n}{Optional. If not specified, all the offtargets
 in the input file specified as offTargetFile will be included
-in the plot. For samples with a very large number of offtargets,
+in the plot. With a very large number of offtargets,
 users can select the top n offtargets to be included in the plot.
 For example, set plot.top.n = 20 to include only top 20 offtargets
-in the plot. Please note offtargets are ordered by the peak_score
-from top to bottom. Insertion Rate (IR) % is calculated as peak_score divided
-by sum(peak_score) of all offtargets in the offtarget file.}
+in the plot. Please note offtargets are ordered by the n.distinct.UMIs or
+peak_score from top to bottom.}
+
+\item{insertion.score.column}{"n.distinct.UMIs" or "peak_score" to be included on
+the right side of the alignment as Insertion Events. Relative Insertion 
+Rate (RIR) % is calculated as peak_score/n.distinct.UMIs 
+divided by ontarget peak_score/n.distinct.UMIs. For example, RIR for ontarget
+should be 100}
+
+\item{width.IR}{For adjusting the width of the IR output}
+
+\item{width.RIR}{For adjusting the width of the RIR output}
+
+\item{family}{font family, default to sans (Arial). Other options are 
+serif (Times New Roman) and mono (Courier). It is possible to use custom 
+fonts with the extrafont package with the following commands
+install.packages("extrafont")
+library(extrafont)
+font_import()
+loadfonts(device = "postscript")}
+
+\item{hjust}{horizontal alignment}
+
+\item{vjust}{vertical alignment}
 }
 \value{
 a ggplot object
@@ -100,8 +129,18 @@ offTargetFilePath <- system.file("extdata/forVisualization",
  "offTargetsInPeakRegions.xls",
  package = "GUIDEseq")
 fig1 <- plotAlignedOfftargets(offTargetFile = offTargetFilePath,
-    plot.top.n = 20)
+    plot.top.n = 20,
+    plot.match.symbol = ".",  
+    plot.RNA.bulge.symbol = "-", 
+    insertion.score.column = "peak_score")
 fig1
+
+fig2 <- plotAlignedOfftargets(offTargetFile = offTargetFilePath,
+    plot.top.n = 20,
+    plot.match.symbol = ".",  
+    plot.RNA.bulge.symbol = "-", 
+    insertion.score.column = "n.distinct.UMIs")
+fig2
 
 }
 \author{

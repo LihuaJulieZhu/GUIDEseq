@@ -10,11 +10,12 @@ plotTracks(
   header = TRUE,
   gRNA.size = 20L,
   PAM.size = 3L,
+  cleavage.position = 19L,
   chromosome.order = paste0("chr", c(1:22, "X", "Y")),
   xlab = "Chromosome Size (bp)",
   ylab = "Peak Score",
-  score.col = c("peak_score", "total.match", "gRNA.match", "total.mismatch.bulge",
-    "gRNA.mismatch.bulge", "predicted_cleavage_score"),
+  score.col = c("peak_score", "n.distinct.UMIs", "total.match", "gRNA.match",
+    "total.mismatch.bulge", "gRNA.mismatch.bulge", "predicted_cleavage_score"),
   transformation = c("log10", "none"),
   title = "",
   axis.title.size = 12,
@@ -26,7 +27,9 @@ plotTracks(
   on.target.color = "red",
   off.target.color = "black",
   strip.text.y.angle = 0,
-  scale.grid = c("free_x", "fixed", "free", "free_y")
+  scale.grid = c("free_x", "fixed", "free", "free_y"),
+  plot.type = c("tracks", "manhattan"),
+  family = "sans"
 )
 }
 \arguments{
@@ -50,12 +53,13 @@ default to TRUE}
 be consistent with the score.col}
 
 \item{score.col}{The column used as y values in the plot. Available choices
-are peak_score, total.match, gRNA.match, total.mismatch.bulge,
+are peak_score, n.distinct.UMIs, total.match, gRNA.match, total.mismatch.bulge,
 gRNA.mismatch.bulge, and predicted_cleavage_score.}
 
 \item{transformation}{Indicates whether plot the y-value in log10 scale or
 in the original scale. When scale.col is set to total.match, gRNA.match,
-total.mismatch.bulge, and gRNA.mismatch.bulge, the data will be plotted
+total.mismatch.bulge, and gRNA.mismatch.bulge, transformation will
+not be applied and the data will be plotted
 in the original scale.}
 
 \item{title}{The figure title, default to none.}
@@ -91,6 +95,17 @@ Other options are fixed, free, and free_y meaning that scales shared
 across all facets, vary across both x- and y- axises, and vary across 
 y-axis only, respectively.
 For details, please type ?ggplot2::facet_grid}
+
+\item{plot.type}{Plot type as tracks by individual chromosome or
+manhattan plot with all chromosome in one plot}
+
+\item{family}{font family, default to sans (Arial). Other options are 
+serif (Times New Roman) and mono (Courier). It is possible to use custom 
+fonts with the extrafont package with the following commands
+install.packages("extrafont")
+library(extrafont)
+font_import()
+loadfonts(device = "postscript")}
 }
 \value{
 a ggplot object
@@ -129,6 +144,39 @@ if (interactive())
      transformation = "none")
  fig6
  
+ ## manhattan plot
+  fig <- plotTracks(offTargetFile = offTargetFilePath,
+        score.col = "total.mismatch.bulge", axis.title.size =9,
+        plot.type =  "manhattan",
+        ylab = "Number of Mismatches and Bulges in gRNA Plus PAM")
+   fig
+  fig <- plotTracks(offTargetFile = offTargetFilePath,
+       score.col = "total.match", axis.title.size =9,
+       plot.type =  "manhattan",
+       ylab = "Number of Matches in gRNA Plus PAM")
+   fig
+fig <- plotTracks(offTargetFile = offTargetFilePath,
+                 score.col = "gRNA.match",axis.title.size =9,
+                 plot.type =  "manhattan",
+                 ylab = "Number of Matches in gRNA")
+fig
+fig <- plotTracks(offTargetFile = offTargetFilePath,
+                 score.col = "gRNA.mismatch.bulge", axis.title.size =9, 
+                 plot.type =  "manhattan",
+                 ylab = "Number of Mismatches and Bulges in gRNA")
+  fig
+  
+  plotTracks(offTargetFile = offTargetFilePath,
+      score.col = "predicted_cleavage_score",
+      axis.title.size =9, 
+      plot.type =  "manhattan", transformation = "log10",
+      ylab = "CFD Score")
+      
+  plotTracks(offTargetFile = offTargetFilePath,
+       score.col = "peak_score",
+       axis.title.size =9, 
+       plot.type =  "manhattan",
+       ylab = "Number of Insertion Events")
 }
 }
 \author{

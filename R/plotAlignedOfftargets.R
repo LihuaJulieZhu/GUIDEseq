@@ -15,11 +15,13 @@
 #' @param input.match.symbol The symbol used to represent matched bases
 #' in the file specified as offTargetFile, default to "."
 #' @param plot.DNA.bulge.symbol The symbol used to represent DNA bulges
-#' in the figure to be generated, default to "I"
+#' in the figure to be generated, default to DNA.bulge, i.e., the nucleotide
+#' in the DNA bulge. Alternatively, you can specify a symbol to represent
+#' all DNA bulges such as "I".
 #' @param plot.RNA.bulge.symbol The symbol used to represent RNA bulges
-#' in the figure to be generated, default to " "
-#' @param plot.match.symbol The symbol used to represent matched bases
 #' in the figure to be generated, default to "-"
+#' @param plot.match.symbol The symbol used to represent matched bases
+#' in the figure to be generated, default to "."
 #' @param color.DNA.bulge The color used to represent DNA bulges
 #' in the figure to be generated, default to "red"
 #' @param size.symbol The size used to plot the bases, and the symbols
@@ -32,18 +34,33 @@
 #' tile around each base/symbol for offtargets, default to 2.5
 #' @param header.tile.height Specifies the height of each plotting
 #' tile around each base/symbol for the target sequence on the very
-#' top, default to 4
+#' top, default to 3.6
 #' @param hline.offset Specifies the offset from the top border to draw
-#' the horizontal line below the gRNA sequence, default to 4. Increase it
+#' the horizontal line below the gRNA sequence, default to 3.8. Increase it
 #' to move the line down and decrease it to move the line up.
 #' @param plot.top.n Optional. If not specified, all the offtargets
 #' in the input file specified as offTargetFile will be included
-#' in the plot. For samples with a very large number of offtargets,
+#' in the plot. With a very large number of offtargets,
 #' users can select the top n offtargets to be included in the plot.
 #' For example, set plot.top.n = 20 to include only top 20 offtargets
-#' in the plot. Please note offtargets are ordered by the peak_score
-#' from top to bottom. Insertion Rate (IR) % is calculated as peak_score divided
-#' by sum(peak_score) of all offtargets in the offtarget file.
+#' in the plot. Please note offtargets are ordered by the n.distinct.UMIs or
+#' peak_score from top to bottom.
+#' @param insertion.score.column "n.distinct.UMIs" or "peak_score" to be included on
+#' the right side of the alignment as Insertion Events. Relative Insertion 
+#' Rate (RIR) % is calculated as peak_score/n.distinct.UMIs 
+#' divided by ontarget peak_score/n.distinct.UMIs. For example, RIR for ontarget
+#' should be 100
+#' @param width.IR For adjusting the width of the IR output
+#' @param width.RIR For adjusting the width of the RIR output
+#' @param family font family, default to sans (Arial). Other options are 
+#' serif (Times New Roman) and mono (Courier). It is possible to use custom 
+#' fonts with the extrafont package with the following commands
+#' install.packages("extrafont")
+#' library(extrafont)
+#' font_import()
+#' loadfonts(device = "postscript")
+#' @param hjust horizontal alignment
+#' @param vjust vertical alignment
 #'
 #' @return a ggplot object
 #' @importFrom ggplot2 ggplot aes geom_text annotate theme geom_tile
@@ -61,17 +78,27 @@
 #'  "offTargetsInPeakRegions.xls",
 #'  package = "GUIDEseq")
 #' fig1 <- plotAlignedOfftargets(offTargetFile = offTargetFilePath,
-#'     plot.top.n = 20)
+#'     plot.top.n = 20,
+#'     plot.match.symbol = ".",  
+#'     plot.RNA.bulge.symbol = "-", 
+#'     insertion.score.column = "peak_score")
 #' fig1
+#' 
+#' fig2 <- plotAlignedOfftargets(offTargetFile = offTargetFilePath,
+#'     plot.top.n = 20,
+#'     plot.match.symbol = ".",  
+#'     plot.RNA.bulge.symbol = "-", 
+#'     insertion.score.column = "n.distinct.UMIs")
+#' fig2
 #'
 plotAlignedOfftargets <- function(offTargetFile, sep ="\t",
                            header = TRUE, gRNA.size = 20L,
                            input.DNA.bulge.symbol = "^",
                            input.RNA.bulge.symbol = "-",
                            input.match.symbol = ".",
-                           plot.DNA.bulge.symbol = "I",
-                           plot.RNA.bulge.symbol = " ",
-                           plot.match.symbol = "-",
+                           plot.DNA.bulge.symbol = "DNA.bulge",
+                           plot.RNA.bulge.symbol = "-",
+                           plot.match.symbol = ".",
                            color.DNA.bulge = "red",
                            size.symbol = 3,
                            color.values =
@@ -79,13 +106,21 @@ plotAlignedOfftargets <- function(offTargetFile, sep ="\t",
                                "T" = "#AE9CD6", #purple
                                "C" = "#6CA2EA", #blue
                                "G" = "#FED23F", #orange
-                               " " = "gray",
-                               "-" = "white"),
+                               "-" = "gray",
+                               "." = "white"),
                            PAM = "GGG",
                            body.tile.height = 2.5,
-                           header.tile.height = 4,
-                           hline.offset = 4,
-                           plot.top.n
+                           header.tile.height = 3.6,
+                           hline.offset = 3.8,
+                           plot.top.n,
+                           insertion.score.column = c("n.distinct.UMIs",
+                                          "peak_score"
+                                          ),
+                           width.IR = 2.5,
+                           width.RIR = 2.5,
+                           family = "sans",
+                           hjust = "middle",
+                           vjust = 0.5
                         )
 {
   if(missing(offTargetFile) || !file.exists(offTargetFile))
@@ -94,14 +129,24 @@ plotAlignedOfftargets <- function(offTargetFile, sep ="\t",
                   sep = sep,
                   header = header,
                   stringsAsFactors = FALSE)
-  x <- x %>% mutate(IR =
-                      round(peak_score/sum(peak_score) * 100,
-                            digits = 2)) %>%
-                      arrange(IR)
+  insertion.score.column = match.arg(insertion.score.column)
+  insertion.score.column <- sym(insertion.score.column)
+  on.target.IR <- x %>% 
+          filter(total.mismatch.bulge == 0) %>% 
+          select(insertion.score.column) %>% 
+          as.numeric
+          
+  x <- x %>% mutate(
+                IR = !!insertion.score.column,
+                RIR =
+                      round(!!insertion.score.column/on.target.IR * 100,
+                              digits = 2)) %>%
+                      arrange(RIR)
   if (!missing(plot.top.n) && class(plot.top.n) == "numeric")
-    x <- x %>% top_n(plot.top.n, IR)
+    x <- x %>% top_n(plot.top.n, RIR)
 
   x <- rbind(x[x$total.mismatch.bulge > 0,], x[x$total.mismatch.bulge == 0,])
+  
   ontarget <- paste0(substr(x$gRNAPlusPAM[1],
                                             1, gRNA.size),
                                      PAM)
@@ -130,53 +175,116 @@ plotAlignedOfftargets <- function(offTargetFile, sep ="\t",
 
   x0 <- data.frame(x = rep(1:(gRNA.size + nchar(PAM)),
                            length(aligns) ),
-              y = 2 * sort(rep(1:length(aligns),
+              y = body.tile.height * sort(rep(1:length(aligns),
                                gRNA.size + nchar(PAM))),
               aligns.char = aligns.char,
               h = c(rep(body.tile.height, nrow(x) * (gRNA.size + nchar(PAM))),
-                rep(header.tile.height, gRNA.size + nchar(PAM))))
-  x0.for.symbol <- x0 %>%
-    mutate(y = y - 0.6)
-  x1 <- data.frame(x = rep(gRNA.size + nchar(PAM) + 1.6,
+                rep(header.tile.height, gRNA.size + nchar(PAM))))  
+  # top.gRNA.indexS <- (length(aligns) - 1) * (gRNA.size + nchar(PAM)) + 1
+  # top.gRNA.indexE <- top.gRNA.indexS + (gRNA.size + nchar(PAM)) - 1
+  # 
+  # x0[top.gRNA.indexS:top.gRNA.indexE , 2] <- 
+  #   x0[top.gRNA.indexS, 2] + body.tile.height/2
+  # 
+  # top.gRNA.indexS <- (length(aligns)) * (gRNA.size + nchar(PAM)) + 1
+  # x0[top.gRNA.indexS:nrow(x0) , 2] <- 
+  #   x0[top.gRNA.indexS, 2] + body.tile.height/2
+  # 
+  
+  x0.for.symbol <- x0 
+  #%>% mutate(y = y - 0.6)
+  x1 <- data.frame(x = rep(gRNA.size + nchar(PAM) + width.IR,
                            nrow(x)),
-                   y = 2 * 1:nrow(x) - 0.6,
+                   y = body.tile.height * 1:nrow(x) - 0.135, 
                    IR = x$IR)
+ 
+  # x1[nrow(x1) , 2] <- 
+  #   x1[nrow(x1), 2] + body.tile.height/2
+  # 
+  x2 <- data.frame(x = rep(gRNA.size + nchar(PAM) + width.IR + width.RIR,
+                           nrow(x)),
+                   y = body.tile.height * 1:nrow(x) - 0.135,
+                   RIR = formatC(x$RIR, format ="f", digits = 2))
+  
+  # x2[nrow(x2) , 2] <- 
+  #   x2[nrow(x2), 2] + body.tile.height/2
+  # 
   x.DNA.bulge <- data.frame(x = x$pos.DNA.bulge,
-                   y = 2 * 1:nrow(x))
+                   y = body.tile.height * 1:nrow(x), 
+                   DNA.bulge = x$DNA.bulge)
   x.DNA.bulge <- x.DNA.bulge[!is.na(x.DNA.bulge[,1]) &
                                x.DNA.bulge[,1] != "",] %>%
-    mutate(x = strsplit(as.character(x), ",")) %>%
-    unnest(x) %>%
+    mutate(x = strsplit(as.character(x), ","),
+           DNA.bulge = strsplit(as.character(DNA.bulge), ",")) %>%
+    unnest(c(x, DNA.bulge)) %>%
     mutate(x = as.numeric(x) - 0.5)
 
   max.y <- max(x0$y) + 2
   max.x <- max(x0$x)
-  ggplot(x0, aes(x = x, y = y)) +
+  p1 <- ggplot(x0, aes(x = x, y = y)) +
      geom_tile(aes(x, y, fill = aligns.char,
                    height=h)) +
      scale_fill_manual(values = color.values) +
      geom_text(data = x0.for.symbol, aes(x=x,
                                y=y, label = aligns.char),
-               size = size.symbol) +
-     geom_text(data = x1, aes(x, y, label = IR), hjust = "middle") +
-     annotate("text", x = max(x1$x), y = max.y - 2,
-              label = "IR (%)", hjust = "middle") +
-     #annotate("text", x = x1$x, y = x1$y, label = x1$IR) +
-     geom_text(data = x.DNA.bulge, aes(x=x,
+               size = size.symbol, vjust = vjust, hjust = hjust,
+               family = family) +
+     geom_text(data = x1, aes(x, y, label = IR), hjust = "right",
+               vjust = vjust,
+               family = family, size = size.symbol) +
+     annotate("text", x = max(x1$x) - width.IR/4, y = max.y - 2,
+              label = "IR", hjust = hjust, vjust = vjust,
+              family = family, size = size.symbol, fontface = "bold") +
+     geom_text(data = x2, aes(x, y, label = RIR), hjust = "right",
+               vjust = vjust,
+               family = family, size = size.symbol) +
+     annotate("text", x = max(x2$x) - width.RIR/4, y = max.y - 2,
+             label = "RIR (%)", hjust = hjust, vjust = vjust,
+             family = family, size = size.symbol,fontface = "bold") 
+     #annotate("text", x = x1$x, y = x1$y, label = x1$IR) 
+  if (plot.DNA.bulge.symbol == "DNA.bulge")
+    p1 <- p1 +
+      geom_text(data = x.DNA.bulge, aes(x=x,
+                                      y=y, 
+                                      label = DNA.bulge),
+              size = size.symbol +0.5,
+              color = color.DNA.bulge,
+              family = family,
+              vjust = 0.1) +
+      geom_text(data = x.DNA.bulge, aes(x=x,
+                                      y=y - 0.4, 
+                                      label = "^"),
+              size = size.symbol,
+              color = color.DNA.bulge,
+              family = family,
+              vjust = 0.8)
+  else
+    p1 <- p1 +
+        geom_text(data = x.DNA.bulge, aes(x=x,
                              y=y, 
                              label = plot.DNA.bulge.symbol),
-                             size = size.symbol + 4,
-              color = color.DNA.bulge) +
+                             size = size.symbol + 0.5,
+              color = color.DNA.bulge, family = family,
+              vjust = 0.1)  +
+        geom_text(data = x.DNA.bulge, aes(x=x,
+                                      y=y - 0.4, 
+                                      label = "^"),
+              size = size.symbol,
+              color = color.DNA.bulge,
+              family = family,
+              vjust = 0.8)
+    
+  p1 +
      geom_vline(xintercept = gRNA.size + 0.5) +
      geom_vline(xintercept = gRNA.size + nchar(PAM) + 0.5) +
      geom_hline(yintercept = max.y - hline.offset) +
      theme_bw() +
      scale_y_continuous(limits = c(0, max.y),
                         expand = c(0, 0)) +
-     scale_x_continuous(limits = c(0.5, max(x1$x) + 1.4),
+     scale_x_continuous(limits = c(0.5, max(x2$x) + 1.4),
                        expand = c(0, 0)) +
      #coord_cartesian(xlim = c(0, max(x1$x) + 1), clip = "off") +
-     theme(text=element_text(size=size.symbol, family="Arial",
+     theme(text=element_text(size=size.symbol, family= family,
                             face = "bold"),
           axis.text.x=element_blank(),
           axis.text.y=element_blank(),
