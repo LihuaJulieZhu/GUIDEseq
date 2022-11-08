@@ -215,9 +215,7 @@
 #' \item{sequence.depth}{sequence depth in the input alignment files}
 #' @author Lihua Julie Zhu
 #' @seealso getPeaks
-#' @references Shengdar Q Tsai and J Keith Joung et al. GUIDE-seq enables
-#' genome-wide profiling of off-target cleavage by CRISPR-Cas nucleases. Nature
-#' Biotechnology 33, 187 to 197 (2015)
+#' @references Lihua Julie Zhu, Michael Lawrence, Ankit Gupta, Herve Pages, Alper Ku- cukural, Manuel Garber and Scot A. Wolfe. GUIDEseq: a bioconductor package to analyze GUIDE-Seq datasets for CRISPR-Cas nucleases. BMC Genomics. 2017. 18:379
 #' @keywords misc
 #' @examples
 #'

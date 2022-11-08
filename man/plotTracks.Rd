@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotTracks.R
 \name{plotTracks}
 \alias{plotTracks}
-\title{Plot offtargets along all chromosomes with one track per chromosome}
+\title{Plot offtargets as manhantann plots or along all chromosomes with one track per chromosome}
 \usage{
 plotTracks(
   offTargetFile,
@@ -28,8 +28,10 @@ plotTracks(
   off.target.color = "black",
   strip.text.y.angle = 0,
   scale.grid = c("free_x", "fixed", "free", "free_y"),
-  plot.type = c("tracks", "manhattan"),
-  family = "sans"
+  plot.type = c("manhattan", "tracks"),
+  family = "serif",
+  x.exp = 1.5,
+  plot.zero.logscale = 1e-08
 )
 }
 \arguments{
@@ -106,12 +108,21 @@ install.packages("extrafont")
 library(extrafont)
 font_import()
 loadfonts(device = "postscript")}
+
+\item{x.exp}{For transforming the x-axis to allow sufficient spaces
+between small chromsoms default to 1.5}
+
+\item{plot.zero.logscale}{Specifying "none" to filter out score.col with
+zeros when plotting in log10 scale. Specify a very small numeric number
+if you intend to show the zeros in log scale in the figure. If users
+specify a number that's bigger than any positive score, plot.zero.logscale
+will be set to the minimum positive score divided by 10.}
 }
 \value{
 a ggplot object
 }
 \description{
-Plot offtargets along all chromosomes with one track per chromosome
+Plot offtargets as manhantann plots or along all chromosomes with one track per chromosome
 }
 \examples{
 if (interactive())
@@ -167,13 +178,19 @@ fig <- plotTracks(offTargetFile = offTargetFilePath,
   fig
   
   plotTracks(offTargetFile = offTargetFilePath,
-      score.col = "predicted_cleavage_score",
-      axis.title.size =9, 
+      #'score.col = "predicted_cleavage_score",
+      axis.title.size =9, family = "serif", plot.zero.logscale = 1e-6,
       plot.type =  "manhattan", transformation = "log10",
       ylab = "CFD Score")
       
   plotTracks(offTargetFile = offTargetFilePath,
        score.col = "peak_score",
+       axis.title.size =9, 
+       plot.type =  "manhattan",
+       ylab = "Number of Insertion Events")
+       
+  plotTracks(offTargetFile = offTargetFilePath,
+       score.col = "n.distinct.UMIs",
        axis.title.size =9, 
        plot.type =  "manhattan",
        ylab = "Number of Insertion Events")

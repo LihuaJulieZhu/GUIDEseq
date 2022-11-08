@@ -1,4 +1,4 @@
-#' Plot offtargets along all chromosomes with one track per chromosome
+#' Plot offtargets as manhantann plots or along all chromosomes with one track per chromosome
 #'
 #' @param offTargetFile The file path containing off-targets generated
 #'  from GUIDEseqAnalysis
@@ -51,6 +51,13 @@
 #' library(extrafont)
 #' font_import()
 #' loadfonts(device = "postscript")
+#' @param x.exp For transforming the x-axis to allow sufficient spaces
+#' between small chromsoms default to 1.5
+#' @param plot.zero.logscale Specifying "none" to filter out score.col with
+#' zeros when plotting in log10 scale. Specify a very small numeric number
+#' if you intend to show the zeros in log scale in the figure. If users
+#' specify a number that's bigger than any positive score, plot.zero.logscale
+#' will be set to the minimum positive score divided by 10.
 #' @return a ggplot object
 #'
 #' @importFrom ggplot2 ggplot aes theme scale_y_continuous scale_color_manual scale_x_continuous
@@ -58,7 +65,7 @@
 #' @importFrom ggplot2 theme_classic facet_grid xlab ylab ggtitle element_blank
 #' @importFrom rlang sym
 #' @importFrom dplyr '%>%' summarise mutate left_join arrange select
-#'
+
 #' @export plotTracks
 #' @author Lihua Julie Zhu
 #'
@@ -116,13 +123,19 @@
 #'   fig
 #'   
 #'   plotTracks(offTargetFile = offTargetFilePath,
-#'       score.col = "predicted_cleavage_score",
-#'       axis.title.size =9, 
+#'       #'score.col = "predicted_cleavage_score",
+#'       axis.title.size =9, family = "serif", plot.zero.logscale = 1e-6,
 #'       plot.type =  "manhattan", transformation = "log10",
 #'       ylab = "CFD Score")
 #'       
 #'   plotTracks(offTargetFile = offTargetFilePath,
 #'        score.col = "peak_score",
+#'        axis.title.size =9, 
+#'        plot.type =  "manhattan",
+#'        ylab = "Number of Insertion Events")
+#'        
+#'   plotTracks(offTargetFile = offTargetFilePath,
+#'        score.col = "n.distinct.UMIs",
 #'        axis.title.size =9, 
 #'        plot.type =  "manhattan",
 #'        ylab = "Number of Insertion Events")
@@ -157,8 +170,9 @@ plotTracks <- function(offTargetFile, sep ="\t",
                        off.target.color = "black",
                        strip.text.y.angle = 0,
                        scale.grid = c( "free_x", "fixed", "free", "free_y"),
-                       plot.type = c("tracks", "manhattan"),
-                       family = "sans"
+                       plot.type = c("manhattan", "tracks"),
+                       family = "serif", x.exp = 1.5,
+                       plot.zero.logscale = 1e-8
                   )
 {
    if(missing(offTargetFile) || !file.exists(offTargetFile))
@@ -207,12 +221,35 @@ plotTracks <- function(offTargetFile, sep ="\t",
           left_join(x, ., by=c("chromosome"="chromosome")) %>%
           arrange(chromosome, cleavage.position) %>%
           mutate(cum.cleavage.position = cleavage.position + chr.offset)
-       xaxis.lab.pos = x %>% group_by(chromosome) %>% 
-         summarize(chr.center=( max(cum.cleavage.position) +
-                              min(cum.cleavage.position) ) / 2 )
+       
        ymin <- as.numeric(x %>% summarize(min(!!score.col))) - 2
        ymax <- as.numeric(x %>% summarize(max(!!score.col))) + 1
+       xmax <- max(x$cum.cleavage.position)
+       xmin <- min(x$cum.cleavage.position) - 1
        
+       x$cum.cleavage.position <- 
+         ((x$cum.cleavage.position - xmin)/xmin)^x.exp
+
+       xaxis.lab.pos = x %>% group_by(chromosome) %>% 
+             summarize(chr.center=( max(cum.cleavage.position) +
+                           min(cum.cleavage.position) ) / 2 )
+
+       xmin <- min(x$cum.cleavage.position) 
+       if ( plot.zero.logscale == "none" && transformation == "log10")
+           x <- x %>% filter(!!score.col <= 0)
+       else if (transformation == "log10" && is.numeric(plot.zero.logscale)) {
+           plot.zero.logscale <- min(plot.zero.logscale, 
+                                     min(x[x[, as.character(score.col)] > 0, 
+                                           as.character(score.col)]) / 10)
+           x[x[, as.character(score.col)] <= 0, as.character(score.col)] <-
+               plot.zero.logscale
+       }
+       # signed_log10 <- scales::trans_new("signed_log10",
+       #                            transform=function(x) 
+       #                               ifelse(x == 0, 0, sign(x)*log10(abs(x))),
+       #                            inverse=function(x) 
+       #                               ifelse(x == 0, 0, sign(x) * abs(x)^10))
+       # 
        p1 <- ggplot(x, aes(x= cum.cleavage.position,
                            y = !!score.col)) +
              geom_point(aes(color=as.factor(chromosome)), 
@@ -220,42 +257,73 @@ plotTracks <- function(offTargetFile, sep ="\t",
              geom_point(data = x[x$predicted_cleavage_score == 
                                    on.target.score,],
                    aes(x = cum.cleavage.position,
-                       y = !!score.col), shape = 6, color = on.target.color,
-                   size = on.target.line.size) +
+                       y = !!score.col), shape = 25, 
+                       fill = on.target.color,
+                       color = on.target.color,
+                       size = on.target.line.size) +
             scale_color_manual(values = rep(c("grey", "lightblue",
                                               "purple", "orange"),
                                             ceiling(nrow(xaxis.lab.pos)/4))) +
             scale_x_continuous(label = xaxis.lab.pos$chromosome, 
-                                breaks= xaxis.lab.pos$chr.center) 
+                                breaks= xaxis.lab.pos$chr.center) +
+                              #  guide = guide_axis(n.dodge=n.dodge)) +
+            theme_classic() 
        
       if (as.character(score.col) %in% c("total.match",
                                           "gRNA.match",
                                           "total.mismatch.bulge",
                                           "gRNA.mismatch.bulge"))
           p1 <- p1 + 
-             scale_y_continuous(breaks = ymin:ymax)
-       else  if (transformation == "log10")
-          p1 <- p1 + scale_y_continuous(trans='log10',
-                              n.breaks = 6)
-       
+             scale_y_continuous(breaks = ymin:ymax) 
+        else if (as.character(score.col) == "predicted_cleavage_score" && 
+                transformation == "log10" && is.numeric(plot.zero.logscale)) {
+            if (-log10(plot.zero.logscale) %% 2 == 0)
+                breaks = 0.1^seq(0, -log10(plot.zero.logscale),
+                                       by = 2)
+            else
+                breaks = 0.1^seq(0, -log10(plot.zero.logscale),
+                               by = 1)
+            labels <- breaks
+            labels[length(labels)] = 0   
+            p1 <- p1 + scale_y_continuous(trans='log10',
+                                       breaks = breaks, labels = 
+                                         format(labels, scientific = TRUE)) +
+                theme(axis.line.y = element_blank()) +
+                annotate(geom = "segment", x = -Inf, xend = -Inf,
+                        # x = layer_scales(p1)$x$range$range[1], 
+                        # xend = layer_scales(p1)$x$range$range[1], 
+                         y = labels[length(labels) - 1], 
+                         yend = Inf) +
+                        # yend = 10^layer_scales(p1)$y$range$range[2]) +
+                annotate(geom = "segment", x = -Inf, xend = -Inf,
+                        # x = layer_scales(p1)$x$range$range[1], 
+                        # xend = layer_scales(p1)$x$range$range[1], 
+                         y =  labels[length(labels)], 
+                         yend = labels[length(labels) - 1],
+                    linetype = "dashed", color = "black")
+        }
+        else  if (transformation == "log10")
+              p1 <- p1 + scale_y_continuous(trans='log10',n.breaks =6) 
+            
       p1 <- p1 +
-             theme_bw() + xlab(label = "") + 
-             ylab(label = ylab) +
-             theme( 
-                  legend.position="none",
-                  panel.border = element_blank(),
-                  axis.line = element_line(),
-                  panel.grid.major.x = element_blank(),
-                  panel.grid.minor.x = element_blank(),
-                  panel.grid.major.y = element_blank(),
-                  panel.grid.minor.y = element_blank(),
-                  axis.title =element_text(size=axis.title.size,
-                                           face = "bold",
-                                           family = family),
+        #theme_bw() + 
+        xlab(label = "") + 
+        ylab(label = ylab) +
+        theme( 
+          legend.position="none",
+          panel.border = element_blank(),
+          axis.line = element_line(),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.major.y = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          axis.title =element_text(size=axis.title.size,
+                                   face = "bold" ,
+                                   family = family),
                   axis.text=element_text(size=axis.label.size, 
-                                         face = "bold",
+                                         face = "bold" ,
                                          family = family),
-                  axis.text.x=element_text(angle=90, hjust= 1,
+                  axis.text.x=element_text(angle= 90, hjust= 1,
                                            vjust = 0.5,
                                            color = 
                                                rep(c("grey", "lightblue",
@@ -294,8 +362,7 @@ plotTracks <- function(offTargetFile, sep ="\t",
     if (length(unique(x$chromosome)) > 1)
       p1 <- p1 + facet_grid(chromosome ~.,
                 scales = scale.grid )
-    p1 <- p1 +
-      theme_classic() +
+    p1 <- p1 + theme_bw() +
       xlab(xlab) +
       ylab(ylab) +
       ggtitle(title) +
