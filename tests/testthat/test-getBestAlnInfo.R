@@ -322,7 +322,6 @@ test_that("getBestAlnInfo plus strand with bulge in both guide (first) and OT wo
 })
 
 test_that("getBestAlnInfo plus strand with bulge in both guide (second) and OT (first) works", {
-
    peak <- "CTTGCCCCACAGGGCAGTAA"
    gRNA <- "CTAGCTCTCACAGGAACTAA"
    pa.f<- pairwiseAlignment(pattern = gRNA,
@@ -345,3 +344,27 @@ test_that("getBestAlnInfo plus strand with bulge in both guide (second) and OT (
    expect_equal(temp$pos.insertion, 8)
    expect_equal(temp$pos.deletion, 16)
 })
+
+test_that("getBestAlnInfo plus strand with bulge in both guide (second) and OT (first) works", {
+   gRNA <- "CTTGCCCCACAGGGCAGTAA"
+   peak <- "ATTGCCCAGGCTTAGTGCAGTAGCGC"
+   pa.f<- pairwiseAlignment(pattern = gRNA,
+                    subject = peak,
+                    type = "global-local",
+                    scoreOnly = FALSE)
+
+   pa.r <- pairwiseAlignment(pattern = gRNA,
+               subject = as.character(reverseComplement(DNAString(peak))),
+               type = "global-local",
+               scoreOnly = FALSE)
+
+   temp <- getBestAlnInfo(peak, pa.f, pa.r)
+   expect_equal(temp$offTarget_sequence, peak)
+   expect_equal(temp$offTargetStrand, "+")
+   expect_equal(temp$pos.mismatch, c(1, 9, 10, 13, 20))
+   expect_equal( temp$guideAlignment2OffTarget, "A......^^^.TT..T......G")
+   expect_equal(temp$n.insertion, 0)
+   expect_equal(temp$n.deletion, 3)
+   expect_equal(temp$pos.deletion, c(8,9,10))
+})
+
