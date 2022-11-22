@@ -59,8 +59,6 @@ buildFeatureVectorForScoringBulge <-
     insertion.symbol = "^",
      PAM.size = 3, PAM.location = "3prime")
 {
-    #hits = read.table(hitsFile, sep = "\t", header=TRUE,
-    # stringsAsFactors = FALSE)
     if (PAM.location != "3prime")
         stop("Bulge scoring for 5prime PAM not implemented yet")
     if (dim(alns)[1] == 0)
@@ -69,6 +67,12 @@ buildFeatureVectorForScoringBulge <-
     }
     #subject <- DNAStringSet(as.character(alns$offTarget_sequence))
 
+    # remove alignments with extended peak sequences too short
+    # users should increase upstream and downstream to fetch sufficient number
+    # of bases for givent peaks if needed
+      
+    alns <- alns[alns$PAM != "" & nchar(alns$PAM) == PAM.size, ]
+    
     PAM <- DNAStringSet(unlist(alns$PAM.sequence))
     isCanonical.PAM <- as.numeric(isMatchingAt(canonical.PAM,
                                                PAM,
@@ -80,21 +84,30 @@ buildFeatureVectorForScoringBulge <-
     mismatches <- matrix(rep(0, gRNA.size * length(PAM)),
                          ncol = gRNA.size, nrow = length(PAM))
     colnames(mismatches) <- paste0("IsMismatch.pos", 1:gRNA.size)
-    for (i in 1:nrow(mismatches))
-        mismatches[i, mismatch_pos[[i]]] <- 1
-
+    for (i in 1:nrow(mismatches)) {
+        if (length(mismatch_pos[[i]][mismatch_pos[[i]] <=
+                gRNA.size & mismatch_pos[[i]] > 0]) > 0)
+          mismatches[i, mismatch_pos[[i]][mismatch_pos[[i]] <= 
+                gRNA.size & mismatch_pos[[i]] > 0]] <- 1
+    }
     insertions <- matrix(rep(0, gRNA.size * length(PAM)),
                          ncol = gRNA.size, nrow = length(PAM))
     colnames(insertions) <- paste0("IsInsertion.pos", 1:gRNA.size)
-    for (i in 1:nrow(insertions))
-      insertions[i, insertion_pos[[i]]] <- 1
-
+    for (i in 1:nrow(insertions)) {
+      if (length(insertion_pos[[i]][insertion_pos[[i]] <=
+                gRNA.size & insertion_pos[[i]] > 0]) >0 )
+          insertions[i, insertion_pos[[i]][insertion_pos[[i]] <=
+                gRNA.size & insertion_pos[[i]] > 0]] <- 1
+    }
     deletions <- matrix(rep(0, gRNA.size * length(PAM)),
                          ncol = gRNA.size, nrow = length(PAM))
     colnames(deletions) <- paste0("IsDeletion.pos", 1:gRNA.size)
-    for (i in 1:nrow(deletions))
-      deletions[i, deletion_pos[[i]]] <- 1
-
+    for (i in 1:nrow(deletions)) {
+      if (length(deletion_pos[[i]][deletion_pos[[i]] <=
+                gRNA.size & deletion_pos[[i]] > 0]) > 0)
+          deletions[i, deletion_pos[[i]][deletion_pos[[i]] <=
+                gRNA.size & deletion_pos[[i]] > 0]] <- 1
+    }
     #d.nucleotide is the nucleotide that will hybridize to the gRNA
     ### reverse complement of the offtarget sequence
     #r.nucleotide is the gRNA sequence,except T is converted to U)
@@ -123,7 +136,7 @@ buildFeatureVectorForScoringBulge <-
       DNAStringSet(unlist(alns$offTarget_sequence)), at.del)))
     # insertion and deletion are on gRNA, so need to translate from T to U
     # for CFD score calculation
-
+    # need to convert the deletion back to T in the offtarget output file
     r.ins[r.ins == "T"] <- "U"
     r.del[r.del == "T"] <- "U"
 

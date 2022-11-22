@@ -1,4 +1,5 @@
-#' Plot offtargets as manhantann plots or along all chromosomes with one track per chromosome
+#' Plot offtargets as manhantann plots or along all chromosomes with one track 
+#' per chromosome, or scatter plot for two selected measurements
 #'
 #' @param offTargetFile The file path containing off-targets generated
 #'  from GUIDEseqAnalysis
@@ -13,12 +14,17 @@
 #' be consistent with the score.col
 #' @param score.col The column used as y values in the plot. Available choices
 #' are peak_score, n.distinct.UMIs, total.match, gRNA.match, total.mismatch.bulge,
-#' gRNA.mismatch.bulge, and predicted_cleavage_score.
+#' gRNA.mismatch.bulge, and predicted_cleavage_score. When plot.type is set to
+#' scatter, a vector of size two can be set. Otherwise, a scatter plot with log10
+#' transformed n.distinct.UMIs and log10 transformed predicted_cleavage_score 
+#' will be plotted.
 #' @param transformation Indicates whether plot the y-value in log10 scale or
 #' in the original scale. When scale.col is set to total.match, gRNA.match,
 #' total.mismatch.bulge, and gRNA.mismatch.bulge, transformation will
-#' not be applied and the data will be plotted
-#' in the original scale.
+#' not be applied and the data will be plotted in the original scale.
+#' When plot.type is set to "scatter", a vector of size two is required when 
+#' score.col is a vector of size two. Examples are c("log10", "log10"), 
+#' c("none", "none"), c(log10", "none"), and c("none", "log10"). 
 #' @param title The figure title, default to none.
 #' @param axis.title.size The font size for the axis labels, default to 12
 #' @param axis.label.size The font size for the tick labels, default to 8
@@ -64,7 +70,7 @@
 #' @importFrom ggplot2 element_blank element_text geom_rect element_line
 #' @importFrom ggplot2 theme_classic facet_grid xlab ylab ggtitle element_blank
 #' @importFrom rlang sym
-#' @importFrom dplyr '%>%' summarise mutate left_join arrange select
+#' @importFrom dplyr '%>%' summarize mutate left_join arrange select
 
 #' @export plotTracks
 #' @author Lihua Julie Zhu
@@ -139,7 +145,25 @@
 #'        axis.title.size =9, 
 #'        plot.type =  "manhattan",
 #'        ylab = "Number of Insertion Events")
-#' }
+#'        
+#'  # default scatter plot with blue line from fitting the entire dataset
+#'  # and the red line from fitting the subset with CFD score > 0
+#'   plotTracks(offTargetFile = offTargetFilePath,
+#'       axis.title.size =9, plot.zero.logscale = 1e-8,
+#'       plot.type =  "scatter")
+#'       
+#'  # select the x, y, the transformation of x and y,
+#'  # and the labels on the scatter plot
+#'  
+#'   plotTracks(offTargetFile = offTargetFilePath,
+#'       axis.title.size =9,
+#'       score.col = c("n.distinct.UMIs", "predicted_cleavage_score"), 
+#'       transformation = c("log10", "log10"),
+#'       plot.type =  "scatter", plot.zero.logscale = 1e-8,
+#'       xlab = "log10(Number of Insertion Events)",
+#'       ylab = "log10(CFD score)")
+#'        
+#'  }
 
 plotTracks <- function(offTargetFile, sep ="\t",
                        header = TRUE,
@@ -147,7 +171,7 @@ plotTracks <- function(offTargetFile, sep ="\t",
                        PAM.size = 3L,
                        cleavage.position = 19L,
                        chromosome.order =
-                         paste0("chr", c(1:22, "X", "Y")),
+                         paste0("chr", c(1:22, "X", "Y", "M")),
                        xlab  = "Chromosome Size (bp)",
                        ylab  = "Peak Score",
                        score.col = c("peak_score",
@@ -170,7 +194,7 @@ plotTracks <- function(offTargetFile, sep ="\t",
                        off.target.color = "black",
                        strip.text.y.angle = 0,
                        scale.grid = c( "free_x", "fixed", "free", "free_y"),
-                       plot.type = c("manhattan", "tracks"),
+                       plot.type = c("manhattan", "tracks", "scatter"),
                        family = "serif", x.exp = 1.5,
                        plot.zero.logscale = 1e-8
                   )
@@ -178,10 +202,6 @@ plotTracks <- function(offTargetFile, sep ="\t",
    if(missing(offTargetFile) || !file.exists(offTargetFile))
       stop("Please specify the offTargetFile as a valid file path!")
    scale.grid <- match.arg(scale.grid)
-   transformation <- match.arg(transformation)
-   score.col <- match.arg(score.col)
-   
-   score.col <- sym(score.col)
    plot.type <- match.arg(plot.type)
    x <- read.table(offTargetFile,
                   sep = sep,
@@ -212,10 +232,57 @@ plotTracks <- function(offTargetFile, sep ="\t",
                                                offTarget_End - 
                                                  cleavage.position + 1)
                     )
-     
-    if (plot.type == "manhattan") {
+    allowed.score.cols <- c("peak_score",
+                      "n.distinct.UMIs",
+                      "total.match",
+                      "gRNA.match",
+                      "total.mismatch.bulge",
+                      "gRNA.mismatch.bulge",
+                      "predicted_cleavage_score"
+    )
+    if (plot.type == "scatter")
+    {
+       if (length(score.col) != 2 || 
+           length(intersect(score.col, allowed.score.cols)) != 2) {
+         x.posCFDscore = subset(x, x$predicted_cleavage_score > 0)
+         p1 <- ggplot(x, aes(log10(n.distinct.UMIs), 
+                            log10(predicted_cleavage_score +
+                                    plot.zero.logscale ))) +
+           geom_point() +
+           geom_smooth(method = "lm", color = "blue") + 
+           geom_smooth(data = x.posCFDscore,
+                      aes(log10(n.distinct.UMIs), 
+                          log10(predicted_cleavage_score)),
+                      method = "lm", color = "red") +
+           ylab("log10(CFD Score)") +
+           xlab("log10(Number of Insertion Events)") + ggtitle(title) +
+           theme_classic()
+       }
+       else {
+          score.col1 <- sym(score.col[1])
+          score.col2 <- sym(score.col[2])
+          if (transformation[1] == "log10")
+             x[, as.character(score.col1)] <- 
+               log10(x[, as.character(score.col1)])
+          if (length(transformation) == 2 && transformation[2] == "log10")
+            x[, as.character(score.col2)] <- 
+                  log10(x[, as.character(score.col2)])
+          p1 <- ggplot(x, aes(!!score.col1, !!score.col2)) +
+              geom_point() +
+              geom_smooth(method = "lm")  + ylab(ylab) +
+            xlab(xlab) + ggtitle(title) +
+            theme_classic()
+          
+       }
+    }
+    else {
+      score.col <- match.arg(score.col)
+      score.col <- sym(score.col)
+      transformation <- match.arg(transformation)
+      
+      if (plot.type == "manhattan") {
        x <- x %>%  group_by(chromosome) %>% 
-          summarise(chr.max = max(cleavage.position)) %>% 
+          summarize(chr.max = max(cleavage.position)) %>% 
           mutate(chr.offset = cumsum(as.numeric(chr.max))-chr.max) %>%
           select(chromosome, chr.offset) %>%
           left_join(x, ., by=c("chromosome"="chromosome")) %>%
@@ -224,7 +291,6 @@ plotTracks <- function(offTargetFile, sep ="\t",
        
        ymin <- as.numeric(x %>% summarize(min(!!score.col))) - 2
        ymax <- as.numeric(x %>% summarize(max(!!score.col))) + 1
-       xmax <- max(x$cum.cleavage.position)
        xmin <- min(x$cum.cleavage.position) - 1
        
        x$cum.cleavage.position <- 
@@ -376,6 +442,7 @@ plotTracks <- function(offTargetFile, sep ="\t",
                                      size = strip.text.y.size ),
            legend.position= "none"
         )
-    } ### if plot.type is not manhattan
+     } ### if plot.type is not manhattan
+    } ### not scatter plot
    p1
 }

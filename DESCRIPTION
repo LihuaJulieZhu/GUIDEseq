@@ -1,8 +1,8 @@
 Package: GUIDEseq
 Type: Package
 Title: GUIDE-seq and PEtag-seq analysis pipeline
-Version: 1.29.2
-Date: 2022-11-07
+Version: 1.29.4
+Date: 2022-11-18
 Encoding: UTF-8
 Author: Lihua Julie Zhu, Michael Lawrence, Ankit Gupta,
        Hervé Pagès , Alper Kucukural, Manuel Garber, Scot A. Wolfe
@@ -30,7 +30,7 @@ Description: The package implements GUIDE-seq and PEtag-seq analysis workflow
         sites (proxy of cleavage sites), estimating the locations 
         of the insertion sites, aka, peaks, merging estimated insertion
         sites from plus and minus strand, and performing off target 
-        search of the extended regions around insertion sites.
+        search of the extended regions around insertion sites with mismatches and indels.
 License: GPL (>= 2)
 LazyLoad: yes
 NeedsCompilation: no

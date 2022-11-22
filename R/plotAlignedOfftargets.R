@@ -1,3 +1,4 @@
+n
 #' Plot offtargets aligned to the target sequence
 #'
 #' @param offTargetFile The path of the file offTargetsInPeakRegions.xls
@@ -242,7 +243,7 @@ plotAlignedOfftargets <- function(offTargetFile, sep ="\t",
              label = "RIR (%)", hjust = hjust, vjust = vjust,
              family = family, size = size.symbol,fontface = "bold") 
      #annotate("text", x = x1$x, y = x1$y, label = x1$IR) 
-  if (plot.DNA.bulge.symbol == "DNA.bulge")
+  if (nrow(x.DNA.bulge) >0 && plot.DNA.bulge.symbol == "DNA.bulge")
     p1 <- p1 +
       geom_text(data = x.DNA.bulge, aes(x=x,
                                       y=y, 
@@ -258,7 +259,7 @@ plotAlignedOfftargets <- function(offTargetFile, sep ="\t",
               color = color.DNA.bulge,
               family = family,
               vjust = 0.8)
-  else
+  else if (nrow(x.DNA.bulge) >0)
     p1 <- p1 +
         geom_text(data = x.DNA.bulge, aes(x=x,
                              y=y, 

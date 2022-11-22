@@ -129,36 +129,39 @@ getBestAlnInfo <- function(offtargetSeq, pa.f, pa.r, gRNA.size = 20,
   else
     seq.print[pos.deletion.guide] <- insertion.symbol
 
-  if (length(pos.deletion.off) > 0  )
+  pos.mismatch.original <- pos.mismatch
+ if (length(pos.deletion.off) > 0  )
   {
-    for (i in 1:length(pos.deletion.off))
-    {
-      # if (best.pos == 1)
-        pos.mismatch[(pos.mismatch - pos.deletion.off[i]) > 0] <-
-          pos.mismatch[(pos.mismatch - pos.deletion.off[i]) > 0] + 1
-      # else
-      #   pos.mismatch[(pos.mismatch - pos.deletion.off[i]) < 0] <-
-      #      pos.mismatch[(pos.mismatch - pos.deletion.off[i]) < 0] - 1
-    }
-  }
+     for (i in 1:length(pos.deletion.off))
+     {
+       # if (best.pos == 1)
+         pos.mismatch[(pos.mismatch.original - pos.deletion.off[i]) >= 0] <-
+            pos.mismatch[(pos.mismatch.original - pos.deletion.off[i]) >= 0] + 1
+       # else
+       #   pos.mismatch[(pos.mismatch - pos.deletion.off[i]) < 0] <-
+       #      pos.mismatch[(pos.mismatch - pos.deletion.off[i]) < 0] - 1
+   }
+ }
  # It is important to set seq.print before reset pos.mismatch using
  # pos.deletion.guide information
-
-  n.deletion <- length(which(guide.print.v == "-"))
-  n.insertion <- length(which(seq.print == "-"))
-
+  
   seq.print[setdiff(1:width(seq[2]),c(pos.deletion.guide,
                                       pos.deletion.off,
                                       pos.mismatch))] <- "."
-
+  
+  n.deletion <- length(which(guide.print.v == "-"))
+  n.insertion <- length(which(seq.print == "-"))
 
   if (length(pos.deletion.guide) > 0  )
   {
+    pos.deletion.off.original <- pos.deletion.off
     for (i in 1:length(pos.deletion.guide))
     {
       # if (best.pos == 1)
-        pos.mismatch[(pos.mismatch - pos.deletion.guide[i]) > 0] <-
-          pos.mismatch[(pos.mismatch - pos.deletion.guide[i]) > 0] - 1
+        pos.mismatch[(pos.mismatch.original- pos.deletion.guide[i]) > 0] <-
+          pos.mismatch[(pos.mismatch.original - pos.deletion.guide[i]) > 0] - 1
+        pos.deletion.off[(pos.deletion.off.original- pos.deletion.guide[i]) > 0] <-
+          pos.deletion.off[(pos.deletion.off.original - pos.deletion.guide[i]) > 0] - 1
       # else
       # {
       #   pos.mismatch[(pos.mismatch - pos.deletion.guide[i]) < 0] <-
@@ -169,6 +172,7 @@ getBestAlnInfo <- function(offtargetSeq, pa.f, pa.r, gRNA.size = 20,
     }
   }
 
+  
   seq.aligned <- as.character(best.aln@subject)
               # switch(best.pos,
               #           as.character(pa.f@subject),

@@ -160,9 +160,14 @@ offTargetAnalysisWithBulge <-
             )
     temp <- alns$aln.all
     alns <- subset(temp,
-                   (as.numeric(temp$n.mismatch) +
+                   (as.numeric(temp$n.insertion) +
+                      as.numeric(temp$n.deletion) <= max.DNA.bulge &
+                      as.numeric(temp$n.mismatch) +
                         as.numeric(temp$n.insertion) +
-                        as.numeric(temp$n.deletion)) <= max.mismatch)
+                        as.numeric(temp$n.deletion)) <= max.mismatch &
+                     temp$PAM.sequence != "" & 
+                     nchar(temp$PAM.sequence) == PAM.size
+                )
 
     if (nrow(alns) ==  0 || sum(unlist(alns$n.insertion)) +
         sum(unlist(alns$n.deletion)) == 0)

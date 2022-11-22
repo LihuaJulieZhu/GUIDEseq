@@ -83,7 +83,9 @@ GUIDEseqAnalysis(
   mat,
   includeBulge = FALSE,
   max.n.bulge = 2L,
-  removeDuplicate = TRUE
+  min.peak.score.bulge = 60L,
+  removeDuplicate = TRUE,
+  resume = FALSE
 )
 }
 \arguments{
@@ -348,8 +350,17 @@ default to FALSE}
 included in the offtarget list. Only applicalbe with includeBulge set to
 TRUE}
 
+\item{min.peak.score.bulge}{default to 60. Set it to a higher number to
+speed up the alignment with bulges. Any peaks with 
+peak.score less than min.peak.score.bulge will not be included in
+the offtarget analysis with bulges. However, all peaks
+will be included in the offtarget analysis with mismatches.}
+
 \item{removeDuplicate}{default to TRUE. Set it to FALSE if PCR duplicates
 not to be removed for testing purpose}
+
+\item{resume}{default to FALSE to restart the analysis. set it TRUE to
+resume an analysis.}
 }
 \value{
 \item{offTargets}{ a data frame, containing all input peaks with

@@ -38,6 +38,8 @@ test_that("getBestAlnInfo plus strand bulge in gRNA works", {
   expect_equal(temp$n.mismatch, 6)
   expect_equal(temp$n.insertion, 3)
   expect_equal(temp$n.deletion, 0)
+  expect_equal(temp$pos.insertion, c(8,9,10))
+  expect_equal(temp$pos.mismatch, c(3, 5, 13, 14, 16, 17))
 })
 
 test_that("getBestAlnInfo plus strand bulge in gRNA works", {
@@ -292,4 +294,54 @@ test_that("getBestAlnInfo minus strand with perfect match in offtargets works", 
 
   expect_equal(temp$n.insertion, 0)
   expect_equal(temp$n.deletion, 0)
+})
+
+test_that("getBestAlnInfo plus strand with bulge in both guide (first) and OT works", {
+
+   gRNA <- "CTTGCCCCACAGGGCAGTAA"
+   peak <- "CTAGCTCTCACAGGAACTAA"
+   pa.f<- pairwiseAlignment(pattern = gRNA,
+                    subject = peak,
+                    type = "global-local",
+                    scoreOnly = FALSE)
+
+   pa.r <- pairwiseAlignment(pattern = gRNA,
+               subject = as.character(reverseComplement(DNAString(peak))), 
+               type = "global-local",
+   	       scoreOnly = FALSE)
+
+   temp <- getBestAlnInfo(peak, pa.f, pa.r)
+   expect_equal(temp$offTarget_sequence, "CTAGCTCTCACAGGA-ACTAA")
+   expect_equal(temp$guideAlignment2OffTarget , "..A..T.^......A-.C...")
+   expect_equal(temp$offTargetStrand, "+")
+   expect_equal(temp$pos.mismatch, c(3, 6, 14, 17)) 
+   expect_equal(temp$n.insertion, 1)
+   expect_equal(temp$n.deletion, 1)
+   expect_equal(temp$pos.insertion, 15)
+   expect_equal(temp$pos.deletion, 8)
+})
+
+test_that("getBestAlnInfo plus strand with bulge in both guide (second) and OT (first) works", {
+
+   peak <- "CTTGCCCCACAGGGCAGTAA"
+   gRNA <- "CTAGCTCTCACAGGAACTAA"
+   pa.f<- pairwiseAlignment(pattern = gRNA,
+                    subject = peak,
+                    type = "global-local",
+                    scoreOnly = FALSE)
+
+   pa.r <- pairwiseAlignment(pattern = gRNA,
+               subject = as.character(reverseComplement(DNAString(peak))),
+               type = "global-local",
+               scoreOnly = FALSE)
+
+   temp <- getBestAlnInfo(peak, pa.f, pa.r)
+   expect_equal(temp$offTarget_sequence, "CTTGCCC-CACAGGGCAGTAA")
+   expect_equal(temp$offTargetStrand, "+")
+   expect_equal(temp$pos.mismatch, c(3, 6, 15, 17))
+   expect_equal(temp$guideAlignment2OffTarget, "..T..C.-......G^.G...")
+   expect_equal(temp$n.insertion, 1)
+   expect_equal(temp$n.deletion, 1)
+   expect_equal(temp$pos.insertion, 8)
+   expect_equal(temp$pos.deletion, 16)
 })

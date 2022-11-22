@@ -197,8 +197,15 @@
 #' @param max.n.bulge offtargets with at most this number of indels to be
 #' included in the offtarget list. Only applicalbe with includeBulge set to
 #' TRUE
+#' @param min.peak.score.bulge default to 60. Set it to a higher number to
+#' speed up the alignment with bulges. Any peaks with 
+#' peak.score less than min.peak.score.bulge will not be included in
+#' the offtarget analysis with bulges. However, all peaks
+#' will be included in the offtarget analysis with mismatches. 
 #' @param removeDuplicate default to TRUE. Set it to FALSE if PCR duplicates
 #' not to be removed for testing purpose
+#' @param resume default to FALSE to restart the analysis. set it TRUE to
+#' resume an analysis.
 #' @return \item{offTargets}{ a data frame, containing all input peaks with
 #' potential gRNA binding sites, mismatch number and positions, alignment to
 #' the input gRNA and predicted cleavage score.}
@@ -345,7 +352,9 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
      mat,
      includeBulge = FALSE,
      max.n.bulge = 2L,
-     removeDuplicate = TRUE)
+     min.peak.score.bulge = 60L,
+     removeDuplicate = TRUE,
+     resume = FALSE)
 {
     alignment.format <- match.arg(alignment.format)
     orderOfftargetsBy <- match.arg(orderOfftargetsBy)
@@ -417,191 +426,203 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     sampleName <- gsub(".", "",
                        gsub("minus", "", gsub("plus", "", gsub(".bam", "",
                        gsub("sort", "",
+                       gsub("sorted", "",
                             gsub("bowtie", "",
                                 gsub("bowtie1", "",
                                     gsub("bowtie2", "",
-                        basename(alignment.inputfile[1])))))))),
+                        basename(alignment.inputfile[1]))))))))),
                       fixed = TRUE)
 
     output.bedfile <- file.path(outputDir, paste(sampleName,
                             paste(gRNAName, "PlusMinusPeaksMerged.bed",
                                   sep = "_" ), sep ="_"))
-    cleavages.gr <- do.call(c, lapply(1:n.files, function(i)
-    {
-         cleavages <-
-            getUniqueCleavageEvents(
-            alignment.inputfile = alignment.inputfile[i],
-            umi.inputfile = umi.inputfile[i],
-            alignment.format = alignment.format,
-            umi.header = umi.header, read.ID.col = read.ID.col,
-            umi.col = umi.col, umi.sep = umi.sep,
-            keep.chrM = keep.chrM,
-            keep.R1only = keep.R1only, keep.R2only = keep.R2only,
-            concordant.strand = concordant.strand,
-            max.paired.distance = max.paired.distance,
-            min.mapping.quality = min.mapping.quality,
-            max.R1.len = max.R1.len, max.R2.len = max.R2.len,
-            apply.both.max.len = apply.both.max.len,
-            same.chromosome = same.chromosome,
-            distance.inter.chrom = distance.inter.chrom,
-            min.R1.mapped = min.R1.mapped,
-            min.R2.mapped = min.R2.mapped,
-            apply.both.min.mapped = apply.both.min.mapped,
-            max.duplicate.distance = max.duplicate.distance,
-            umi.plus.R1start.unique = umi.plus.R1start.unique,
-            umi.plus.R2start.unique = umi.plus.R2start.unique,
-            min.umi.count = min.umi.count,
-            max.umi.count = max.umi.count,
-            min.read.coverage = min.read.coverage,
-            n.cores.max = n.cores.max,
-            outputDir = outputDir,
-            removeDuplicate = removeDuplicate)
-        fileName <- gsub("bowtie2.", "",
-            basename(alignment.inputfile[i]))
-        fileName <- gsub("bowtie1.", "", fileName)
-        fileName <- gsub("bowtie.", "", fileName)
-        fileName <- gsub(".bed", "", fileName)
-        fileName <- gsub(".sort", "", fileName)
-        fileName <- gsub(".bam", "", fileName)
+    skipPeakCalling <- TRUE
+    if (!resume || !file.exists(output.bedfile)) {
+         skipPeakCalling <- FALSE
+         cleavages.gr <- do.call(c, lapply(1:n.files, function(i)
+         {
+            cleavages <-
+               getUniqueCleavageEvents(
+               alignment.inputfile = alignment.inputfile[i],
+               umi.inputfile = umi.inputfile[i],
+               alignment.format = alignment.format,
+               umi.header = umi.header, read.ID.col = read.ID.col,
+               umi.col = umi.col, umi.sep = umi.sep,
+               keep.chrM = keep.chrM,
+               keep.R1only = keep.R1only, keep.R2only = keep.R2only,
+               concordant.strand = concordant.strand,
+               max.paired.distance = max.paired.distance,
+               min.mapping.quality = min.mapping.quality,
+               max.R1.len = max.R1.len, max.R2.len = max.R2.len,
+               apply.both.max.len = apply.both.max.len,
+               same.chromosome = same.chromosome,
+               distance.inter.chrom = distance.inter.chrom,
+               min.R1.mapped = min.R1.mapped,
+               min.R2.mapped = min.R2.mapped,
+               apply.both.min.mapped = apply.both.min.mapped,
+               max.duplicate.distance = max.duplicate.distance,
+               umi.plus.R1start.unique = umi.plus.R1start.unique,
+               umi.plus.R2start.unique = umi.plus.R2start.unique,
+               min.umi.count = min.umi.count,
+               max.umi.count = max.umi.count,
+               min.read.coverage = min.read.coverage,
+               n.cores.max = n.cores.max,
+               outputDir = outputDir,
+               removeDuplicate = removeDuplicate)
+            fileName <- gsub("bowtie2.", "",
+               basename(alignment.inputfile[i]))
+            fileName <- gsub("bowtie1.", "", fileName)
+            fileName <- gsub("bowtie.", "", fileName)
+            fileName <- gsub(".bed", "", fileName)
+            fileName <- gsub(".sorted", "", fileName)
+            fileName <- gsub(".bam", "", fileName)
+            fileName <- gsub(".sort", "", fileName)
 
-        temp <- as.data.frame(cleavages$cleavage.gr)
-        temp1 <- paste(temp[,1], temp[,5], temp[,2], sep = "")
-        read.summary <- table(temp1)
-        write.table(read.summary,
+            temp <- as.data.frame(cleavages$cleavage.gr)
+            temp1 <- paste(temp[,1], temp[,5], temp[,2], sep = "")
+            read.summary <- table(temp1)
+            write.table(read.summary,
                     file = file.path(outputDir,
                                      paste(gRNAName, fileName,
-            "ReadSummary.xls", sep = "")),
-            sep = "\t", row.names = FALSE)
-        seq.depth <- as.data.frame(table(cleavages$umi.count.summary$n))
-        colnames(seq.depth)[1] <- c("UMIduplicateLevels")
-        write.table(seq.depth,
+                    "ReadSummary.xls", sep = "")),
+                  sep = "\t", row.names = FALSE)
+            seq.depth <- as.data.frame(table(cleavages$umi.count.summary$n))
+            colnames(seq.depth)[1] <- c("UMIduplicateLevels")
+            write.table(seq.depth,
                     file = file.path(outputDir,
                                      paste(gRNAName, fileName,
-            "UMIsummary.xls", sep = "")),
-            sep = "\t", row.names = FALSE)
-	list(cleavages.gr = cleavages$cleavage.gr,
-	     read.summary = read.summary,
-	     sequence.depth = cleavages$sequence.depth)
-    }))
-    message("Peak calling ...\n")
-    if (n.files > 1)
-         combined.gr <- c(cleavages.gr[[1]], cleavages.gr[[4]])
-    else
-         combined.gr <- cleavages.gr[[1]]
-    peaks <- getPeaks(combined.gr, step = step,
-        window.size = window.size, bg.window.size = bg.window.size,
-        maxP = maxP, p.adjust.methods = p.adjust.methods,
-        min.reads = min.reads, min.SNratio = min.SNratio)
-    if (n.files >1)
-    {
-        peaks1 <- getPeaks(cleavages.gr[[1]], step = step,
+                    "UMIsummary.xls", sep = "")),
+                    sep = "\t", row.names = FALSE)
+	     list(cleavages.gr = cleavages$cleavage.gr,
+	         read.summary = read.summary,
+	         sequence.depth = cleavages$sequence.depth)
+         }))
+        saveRDS(cleavages.gr, file = file.path(outputDir,"cleavages.RDS"))
+        message("Peak calling ...\n")
+        if (n.files > 1)
+              combined.gr <- c(cleavages.gr[[1]], cleavages.gr[[4]])
+        else
+              combined.gr <- cleavages.gr[[1]]
+        saveRDS(combined.gr, file.path(outputDir,"combined.gr.RDS"))
+        
+        peaks <- getPeaks(combined.gr, step = step,
             window.size = window.size, bg.window.size = bg.window.size,
             maxP = maxP, p.adjust.methods = p.adjust.methods,
-            min.reads = min.reads.per.lib, min.SNratio = min.SNratio)
-        peaks2 <- getPeaks(cleavages.gr[[4]], step = step,
-            window.size = window.size, bg.window.size = bg.window.size,
-            maxP = maxP, p.adjust.methods = p.adjust.methods,
-            min.reads = min.reads.per.lib, min.SNratio = min.SNratio)
+            min.reads = min.reads, min.SNratio = min.SNratio)
+        if (n.files >1)
+        {
+            peaks1 <- getPeaks(cleavages.gr[[1]], step = step,
+                window.size = window.size, bg.window.size = bg.window.size,
+                maxP = maxP, p.adjust.methods = p.adjust.methods,
+                min.reads = min.reads.per.lib, min.SNratio = min.SNratio)
+            peaks2 <- getPeaks(cleavages.gr[[4]], step = step,
+                window.size = window.size, bg.window.size = bg.window.size,
+                maxP = maxP, p.adjust.methods = p.adjust.methods,
+                min.reads = min.reads.per.lib, min.SNratio = min.SNratio)
          #save(peaks1, file="peaks1.RData")
          #save(peaks2, file="peaks2.RData")
-
-    }
+        }
 
     #write.table(as.data.frame(peaks$peaks),
     #    file = "testPeaks.xls", sep="\t", row.names=FALSE)
     #save(peaks, file="peaks.RData")
-    message("combine plus and minus peaks ... \n")
+       message("combine plus and minus peaks ... \n")
 
-    merged.gr<- mergePlusMinusPeaks(peaks.gr = peaks$peaks,
-        distance.threshold = distance.threshold,
-        max.overlap.plusSig.minusSig = max.overlap.plusSig.minusSig,
-        output.bedfile = output.bedfile)
-    append = FALSE
-    if (length(merged.gr$mergedPeaks.gr) >= 1 && class(merged.gr$mergedPeaks.gr) == "GRanges")
-    {
-        write.table(cbind(name = names(merged.gr$mergedPeaks.gr),
-            as.data.frame(merged.gr$mergedPeaks.gr)),
-            file = file.path(outputDir, paste(gRNAName,
-            "PlusMinusPeaksMerged.xls", sep = "-" )),
-             sep="\t", quote = FALSE, row.names=FALSE, append = FALSE)
-         append = TRUE
-    }
+       merged.gr<- mergePlusMinusPeaks(peaks.gr = peaks$peaks,
+           distance.threshold = distance.threshold,
+           max.overlap.plusSig.minusSig = max.overlap.plusSig.minusSig,
+           output.bedfile = output.bedfile)
+       append = FALSE
+       if (length(merged.gr$mergedPeaks.gr) >= 1 && 
+           class(merged.gr$mergedPeaks.gr) == "GRanges")
+       {
+           write.table(cbind(name = names(merged.gr$mergedPeaks.gr),
+              as.data.frame(merged.gr$mergedPeaks.gr)),
+              file = file.path(outputDir, paste(gRNAName,
+               "PlusMinusPeaksMerged.xls", sep = "-" )),
+               sep="\t", quote = FALSE, row.names=FALSE, append = FALSE)
+            append = TRUE
+        }
    ##save(merged.gr, file="merged.gr.RData")
    #if (length(merged.gr) < 1)
        #merged.gr <- list(peaks.1strandOnly = peaks$peaks)
-   message("keep peaks not in merged.gr but present in both peaks1 and peaks2\n")
-   peaks.inboth1and2.gr <- GRanges()
-    if (n.files >1 && length(peaks1$peaks) > 0 && length(peaks2$peaks) > 0)
-    {
-        cat("Find unmerged peaks with reads representation in both libraries\n")
-        peaks.1strandOnly <- merged.gr$peaks.1strandOnly
-        peaks.1strandOnly <-
-            peaks.1strandOnly[peaks.1strandOnly$count >= (min.reads + 1)]
-        if (length(names(peaks1$peaks)) < length(peaks1$peaks))
-            names(peaks1$peaks) <- paste(seqnames(peaks1$peaks),
-                start(peaks1$peaks), sep=":")
-        if (length(names(peaks2$peaks)) < length(peaks2$peaks))
-            names(peaks2$peaks) <- paste(seqnames(peaks2$peaks),
-                start(peaks2$peaks), sep=":")
-        peaks.in1.gr <- annotatePeakInBatch(peaks.1strandOnly, featureType = "TSS",
-            AnnotationData = peaks1$peaks, output="overlap",
-            PeakLocForDistance = "middle", FeatureLocForDistance = "middle",
-            maxgap = 0)
-        peaks.in1 <- unique(peaks.in1.gr[!is.na(peaks.in1.gr$feature)]$peak)
-        peaks.in2.gr <- annotatePeakInBatch(peaks.1strandOnly, featureType = "TSS",
-            AnnotationData = peaks2$peaks, output="overlap",
-            PeakLocForDistance = "middle", FeatureLocForDistance = "middle",
-            maxgap = 0)
-        peaks.in2 <- unique(peaks.in2.gr[!is.na(peaks.in2.gr$feature)]$peak)
+       message("keep peaks not in merged.gr but present in both peaks1 and peaks2\n")
+       peaks.inboth1and2.gr <- GRanges()
+       if (n.files >1 && length(peaks1$peaks) > 0 && length(peaks2$peaks) > 0)
+       {
+            cat("Find unmerged peaks with reads representation in both libraries\n")
+            peaks.1strandOnly <- merged.gr$peaks.1strandOnly
+            peaks.1strandOnly <-
+                peaks.1strandOnly[peaks.1strandOnly$count >= (min.reads + 1)]
+            if (length(names(peaks1$peaks)) < length(peaks1$peaks))
+                names(peaks1$peaks) <- paste(seqnames(peaks1$peaks),
+                   start(peaks1$peaks), sep=":")
+            if (length(names(peaks2$peaks)) < length(peaks2$peaks))
+                names(peaks2$peaks) <- paste(seqnames(peaks2$peaks),
+                   start(peaks2$peaks), sep=":")
+            peaks.in1.gr <- annotatePeakInBatch(peaks.1strandOnly, featureType = "TSS",
+                AnnotationData = peaks1$peaks, output="overlap",
+                PeakLocForDistance = "middle", FeatureLocForDistance = "middle",
+                maxgap = 0)
+            peaks.in1 <- unique(peaks.in1.gr[!is.na(peaks.in1.gr$feature)]$peak)
+            peaks.in2.gr <- annotatePeakInBatch(peaks.1strandOnly, featureType = "TSS",
+                AnnotationData = peaks2$peaks, output="overlap",
+                PeakLocForDistance = "middle", FeatureLocForDistance = "middle",
+                maxgap = 0)
+            peaks.in2 <- unique(peaks.in2.gr[!is.na(peaks.in2.gr$feature)]$peak)
 
-        peaks.inboth1and2 <- intersect(peaks.in1, peaks.in2)
-        if (length(peaks.inboth1and2))
-        {
-            peaks.inboth1and2.gr <- peaks.1strandOnly[names(peaks.1strandOnly) %in%
-                peaks.inboth1and2]
-            bed.temp <- cbind(as.character(seqnames(peaks.inboth1and2.gr)),
-                start(peaks.inboth1and2.gr),
-                end(peaks.inboth1and2.gr), names(peaks.inboth1and2.gr),
-                peaks.inboth1and2.gr$count, as.character(strand(peaks.inboth1and2.gr)))
-            write.table(bed.temp,
+            peaks.inboth1and2 <- intersect(peaks.in1, peaks.in2)
+            if (length(peaks.inboth1and2))
+            {
+                peaks.inboth1and2.gr <- peaks.1strandOnly[names(peaks.1strandOnly) %in%
+                     peaks.inboth1and2]
+                bed.temp <- cbind(as.character(seqnames(peaks.inboth1and2.gr)),
+                    start(peaks.inboth1and2.gr),
+                    end(peaks.inboth1and2.gr), names(peaks.inboth1and2.gr),
+                    peaks.inboth1and2.gr$count, as.character(strand(peaks.inboth1and2.gr)))
+                write.table(bed.temp,
                         file = output.bedfile,
                         sep = "\t",
-                row.names = FALSE,
-                col.names = FALSE,
-                quote = FALSE, append = append)
-            write.table(cbind(name = names(peaks.inboth1and2.gr),
-                as.data.frame(peaks.inboth1and2.gr)),
-                file = file.path(outputDir, paste(gRNAName,
-                "PlusMinusPeaksMerged.xls", sep = "-" )),
-                sep="\t", quote = FALSE, row.names=FALSE,
-                col.names = FALSE, append = append)
-            append = TRUE
-         }
-    }
-    else if (!keepPeaksInBothStrandsOnly)
-    {
-       message("Find unmerged peaks with very high reads one-library protocol\n")
-       peaks.1strandOnly.bed <- cbind(as.character(seqnames(merged.gr$peaks.1strandOnly)),
-            start(merged.gr$peaks.1strandOnly),
-            end(merged.gr$peaks.1strandOnly), names(merged.gr$peaks.1strandOnly),
-            merged.gr$peaks.1strandOnly$count, as.character(strand(merged.gr$peaks.1strandOnly)))
+                        row.names = FALSE,
+                        col.names = FALSE,
+                        quote = FALSE, append = append)
+                write.table(cbind(name = names(peaks.inboth1and2.gr),
+                    as.data.frame(peaks.inboth1and2.gr)),
+                    file = file.path(outputDir, paste(gRNAName,
+                    "PlusMinusPeaksMerged.xls", sep = "-" )),
+                    sep="\t", quote = FALSE, row.names=FALSE,
+                    col.names = FALSE, append = append)
+                append = TRUE
+            }
+        }
+        else if (!keepPeaksInBothStrandsOnly)
+        {
+            message("Find unmerged peaks with very high reads one-library protocol\n")
+            peaks.1strandOnly.bed <- cbind(as.character(seqnames(merged.gr$peaks.1strandOnly)),
+                start(merged.gr$peaks.1strandOnly),
+                end(merged.gr$peaks.1strandOnly), names(merged.gr$peaks.1strandOnly),
+                merged.gr$peaks.1strandOnly$count, as.character(strand(merged.gr$peaks.1strandOnly)))
 
-       peaks.1strandOnly.bed <- peaks.1strandOnly.bed[as.numeric(as.character(
-           peaks.1strandOnly.bed[,5])) >= min.peak.score.1strandOnly, ]
-       write.table(peaks.1strandOnly.bed,
+            peaks.1strandOnly.bed <- peaks.1strandOnly.bed[as.numeric(as.character(
+                peaks.1strandOnly.bed[,5])) >= min.peak.score.1strandOnly, ]
+            write.table(peaks.1strandOnly.bed,
                    file = output.bedfile,
                    sep = "\t",
-            row.names = FALSE,
-            col.names = FALSE,
-            quote = FALSE, append = append)
-    }
-   message("offtarget analysis ...\n")
-
+                   row.names = FALSE,
+                   col.names = FALSE,
+                   quote = FALSE, append = append)
+         }
+    } # if merged bed file does not exist
+    message("offtarget analysis ...\n")
     offTargets <-  read.table(
-        file = output.bedfile,
-        sep = "\t",
-        header = FALSE)
-    tryCatch(offTargets <- offTargetAnalysisOfPeakRegions(gRNA = gRNA.file,
+            file = output.bedfile,
+            sep = "\t",
+            header = FALSE)
+    skipOTAWithNoBulge <- TRUE
+    if (!resume || !file.exists(file.path(outputDir,"offTargetsWithNoBulge.RDS")))
+    {
+       skipOTAWithNoBulge <- FALSE
+       tryCatch(offTargets <- offTargetAnalysisOfPeakRegions(gRNA = gRNA.file,
             peaks = output.bedfile,
             format = c(gRNA.format, "bed"),
             peaks.withHeader = FALSE, BSgenomeName = BSgenomeName,
@@ -623,8 +644,8 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
              return(NA)
         })
 
-        if (length(which(colnames(offTargets) == "n.mismatch")) > 0)
-        {
+       if (length(which(colnames(offTargets) == "n.mismatch")) > 0)
+       {
             colnames(offTargets)[colnames(offTargets) == "n.mismatch"] <-
                 "n.guide.mismatch"
             colnames(offTargets)[colnames(offTargets) == "name"] <- "gRNA.name"
@@ -673,10 +694,18 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
                                 offTargets[,ind4:dim(offTargets)[2]])
                 colnames(offTargets)[ind2+1] <- name.ind2
             }
-       }
+        }
+        saveRDS(offTargets, file = file.path(outputDir,"offTargetsWithNoBulge.RDS"))
+    } # if offtarget analysis has not been performed previously
+    else
+    {
+        offTargets <- readRDS(file.path(outputDir,"offTargetsWithNoBulge.RDS"))
+        cleavages.gr <- readRDS(file.path(outputDir,"cleavages.RDS"))
+        combined.gr <- readRDS(file.path(outputDir,"combined.gr.RDS"))
+    }
     if (includeBulge)
     {
-        if (length(which(colnames(offTargets) == "n.guide.mismatch")) > 0)
+         if (length(which(colnames(offTargets) == "n.guide.mismatch")) > 0)
         {
             offTargets <- offTargets %>%
                 select(offTarget,
@@ -704,9 +733,17 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
                            n.guide.mismatch + n.PAM.mismatch)
         }
         cat("Finding offtargets with bulges ...")
+        bed.for.bulge <- read.table(output.bedfile, sep = "\t", 
+             header = FALSE)
+        bed.for.bulge <- bed.for.bulge[bed.for.bulge[,5] >= min.peak.score.bulge,]
+        bulge.bedfile <- file.path(outputDir, paste(sampleName,
+                            paste(gRNAName, "peaksForBulgeSearch.bed",
+                                  sep = "_" ), sep ="_"))
+        write.table(bed.for.bulge, file = bulge.bedfile,
+             sep = "\t", col.names = FALSE, row.names = FALSE) 
         offTargets.bulge <- do.call(rbind, lapply(1:length(gRNAName), function(i) {
             temp <- offTargetAnalysisWithBulge(gRNA = gRNA[i], gRNA.name = gRNAName[i],
-                                               peaks = output.bedfile,
+                                               peaks = bulge.bedfile,
                                                BSgenomeName = BSgenomeName,
                                                mismatch.activity.file = bulge.activity.file,
                                                peaks.withHeader = FALSE,
@@ -791,10 +828,15 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
 
             offTargets.b$pos.RNA.bulge[is.na(offTargets.b$pos.RNA.bulge)] <- ""
             offTargets.b$pos.DNA.bulge[is.na(offTargets.b$pos.DNA.bulge)] <- ""
+            # convert U back to T for visualization (U is for CFD score calculation)
+            offTargets.b$DNA.bulge <- gsub("U", "T", offTargets.b$DNA.bulge)
 
             if (length(which(colnames(offTargets) == "n.guide.mismatch")) > 0)
             {
                 offTargets <- rbind(offTargets.b, offTargets)
+                offTargets <- subset(offTargets, 
+                                    (as.numeric(offTargets$n.DNA.bulge) + 
+                                        as.numeric(offTargets$n.RNA.bulge)) <= max.n.bulge)
             }
             else
             {
@@ -806,6 +848,7 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     cat("Done with offtarget search!\n")
 
     offTargets <- subset(offTargets, !is.na(offTargets$offTarget))
+    
     if (nrow(offTargets) == 0)
     {
         message("No offtargets found with the searching criteria!")
@@ -873,8 +916,11 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
 
     message("Please check output file in directory ", outputDir , "\n")
 
-
-    if (n.files > 1)
+    if (skipPeakCalling)
+    {
+          list(offTargets = offTargets)
+    }
+    else if (n.files > 1)
     {
         list(offTargets = offTargets, merged.peaks = merged.gr$mergedPeaks.gr,
             peaks = peaks$peaks, uniqueCleavages = combined.gr,

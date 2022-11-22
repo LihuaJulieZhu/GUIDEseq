@@ -2,7 +2,8 @@
 % Please edit documentation in R/plotTracks.R
 \name{plotTracks}
 \alias{plotTracks}
-\title{Plot offtargets as manhantann plots or along all chromosomes with one track per chromosome}
+\title{Plot offtargets as manhantann plots or along all chromosomes with one track 
+per chromosome, or scatter plot for two selected measurements}
 \usage{
 plotTracks(
   offTargetFile,
@@ -11,7 +12,7 @@ plotTracks(
   gRNA.size = 20L,
   PAM.size = 3L,
   cleavage.position = 19L,
-  chromosome.order = paste0("chr", c(1:22, "X", "Y")),
+  chromosome.order = paste0("chr", c(1:22, "X", "Y", "M")),
   xlab = "Chromosome Size (bp)",
   ylab = "Peak Score",
   score.col = c("peak_score", "n.distinct.UMIs", "total.match", "gRNA.match",
@@ -28,7 +29,7 @@ plotTracks(
   off.target.color = "black",
   strip.text.y.angle = 0,
   scale.grid = c("free_x", "fixed", "free", "free_y"),
-  plot.type = c("manhattan", "tracks"),
+  plot.type = c("manhattan", "tracks", "scatter"),
   family = "serif",
   x.exp = 1.5,
   plot.zero.logscale = 1e-08
@@ -56,13 +57,18 @@ be consistent with the score.col}
 
 \item{score.col}{The column used as y values in the plot. Available choices
 are peak_score, n.distinct.UMIs, total.match, gRNA.match, total.mismatch.bulge,
-gRNA.mismatch.bulge, and predicted_cleavage_score.}
+gRNA.mismatch.bulge, and predicted_cleavage_score. When plot.type is set to
+scatter, a vector of size two can be set. Otherwise, a scatter plot with log10
+transformed n.distinct.UMIs and log10 transformed predicted_cleavage_score 
+will be plotted.}
 
 \item{transformation}{Indicates whether plot the y-value in log10 scale or
 in the original scale. When scale.col is set to total.match, gRNA.match,
 total.mismatch.bulge, and gRNA.mismatch.bulge, transformation will
-not be applied and the data will be plotted
-in the original scale.}
+not be applied and the data will be plotted in the original scale.
+When plot.type is set to "scatter", a vector of size two is required when 
+score.col is a vector of size two. Examples are c("log10", "log10"), 
+c("none", "none"), c(log10", "none"), and c("none", "log10").}
 
 \item{title}{The figure title, default to none.}
 
@@ -122,7 +128,8 @@ will be set to the minimum positive score divided by 10.}
 a ggplot object
 }
 \description{
-Plot offtargets as manhantann plots or along all chromosomes with one track per chromosome
+Plot offtargets as manhantann plots or along all chromosomes with one track 
+per chromosome, or scatter plot for two selected measurements
 }
 \examples{
 if (interactive())
@@ -194,7 +201,25 @@ fig <- plotTracks(offTargetFile = offTargetFilePath,
        axis.title.size =9, 
        plot.type =  "manhattan",
        ylab = "Number of Insertion Events")
-}
+       
+ # default scatter plot with blue line from fitting the entire dataset
+ # and the red line from fitting the subset with CFD score > 0
+  plotTracks(offTargetFile = offTargetFilePath,
+      axis.title.size =9, plot.zero.logscale = 1e-8,
+      plot.type =  "scatter")
+      
+ # select the x, y, the transformation of x and y,
+ # and the labels on the scatter plot
+ 
+  plotTracks(offTargetFile = offTargetFilePath,
+      axis.title.size =9,
+      score.col = c("n.distinct.UMIs", "predicted_cleavage_score"), 
+      transformation = c("log10", "log10"),
+      plot.type =  "scatter", plot.zero.logscale = 1e-8,
+      xlab = "log10(Number of Insertion Events)",
+      ylab = "log10(CFD score)")
+       
+ }
 }
 \author{
 Lihua Julie Zhu
