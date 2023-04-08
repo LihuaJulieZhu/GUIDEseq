@@ -85,7 +85,9 @@ GUIDEseqAnalysis(
   max.n.bulge = 2L,
   min.peak.score.bulge = 60L,
   removeDuplicate = TRUE,
-  resume = FALSE
+  resume = FALSE,
+  ignoreTagmSite = FALSE,
+  ignoreUMI = FALSE
 )
 }
 \arguments{
@@ -361,6 +363,16 @@ not to be removed for testing purpose}
 
 \item{resume}{default to FALSE to restart the analysis. set it TRUE to
 resume an analysis.}
+
+\item{ignoreTagmSite}{default to FALSE. To collapse
+reads with the same integration site and UMI but with different 
+tagmentation site, set the option to TRUE.}
+
+\item{ignoreUMI}{default to FALSE. To collapse reads with the same 
+integration and tagmentation site but with different UMIs, 
+set the option to TRUE and retain the UMI that appears most frequently
+ for each combination of integration and tagmentation site. 
+ In case of ties, randomly select one UMI.}
 }
 \value{
 \item{offTargets}{ a data frame, containing all input peaks with

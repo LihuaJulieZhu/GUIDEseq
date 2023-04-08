@@ -31,8 +31,9 @@ plotTracks(
   scale.grid = c("free_x", "fixed", "free", "free_y"),
   plot.type = c("manhattan", "tracks", "scatter"),
   family = "serif",
-  x.exp = 1.5,
-  plot.zero.logscale = 1e-08
+  x.sep = 6e+06,
+  plot.zero.logscale = 1e-08,
+  scale.chrom = TRUE
 )
 }
 \arguments{
@@ -47,6 +48,9 @@ default to TRUE}
 \item{gRNA.size}{The size of the gRNA, default 20}
 
 \item{PAM.size}{PAM length, default 3}
+
+\item{cleavage.position}{the cleavage position of Cas
+nuclease, default to 19 for SpCas9.}
 
 \item{chromosome.order}{The chromosome order to plot from top to bottom}
 
@@ -115,14 +119,18 @@ library(extrafont)
 font_import()
 loadfonts(device = "postscript")}
 
-\item{x.exp}{For transforming the x-axis to allow sufficient spaces
-between small chromsoms default to 1.5}
+\item{x.sep}{For transforming the x-axis to allow sufficient spaces
+between small chromosomes default to 6000000}
 
 \item{plot.zero.logscale}{Specifying "none" to filter out score.col with
 zeros when plotting in log10 scale. Specify a very small numeric number
 if you intend to show the zeros in log scale in the figure. If users
 specify a number that's bigger than any positive score, plot.zero.logscale
 will be set to the minimum positive score divided by 10.}
+
+\item{scale.chrom}{Applicable to manhatann plot only.
+TRUE or FALSE default to TRUE to space offtargets evenly
+along x-axis.}
 }
 \value{
 a ggplot object

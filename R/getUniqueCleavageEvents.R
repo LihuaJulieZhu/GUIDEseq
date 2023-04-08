@@ -83,13 +83,22 @@
 #' multicore processing for small dataset.
 #' @param outputDir output Directory to save the figures
 #' @param removeDuplicate default to TRUE. Set it to FALSE if PCR duplicates
-#' not to be removed for testing purpose
+#' not to be removed for testing purpose.
+#' @param ignoreTagmSite default to FALSE. To collapse
+#' reads with the same integration site and UMI but with different 
+#' tagmentation site, set the option to TRUE.
+#' @param ignoreUMI default to FALSE. To collapse reads with the same 
+#' integration and tagmentation site but with different UMIs, 
+#' set the option to TRUE and retain the UMI that appears most frequently
+#'  for each combination of integration and tagmentation site. 
+#'  In case of ties, randomly select one UMI.
+#' 
 #' @return \item{cleavage.gr }{Cleavage sites with one site per UMI as GRanges
 #' with metadata column total set to 1 for each range}
 #' \item{unique.umi.plus.R2}{a data frame containing unique cleavage site from
-#' R2 reads mapped to plus strand with the following columns seqnames
-#' (chromosome) start (cleavage site) strand UMI (unique molecular identifier
-#' (umi) or umi with the first few bases of R1 read) UMI read duplication level
+#' R2 reads mapped to plus strand with the following columns: seqnames
+#' (chromosome), start (cleavage/Integration site), 
+#' strand, UMI (unique molecular identifier), and UMI read duplication level
 #' (min.read.coverage can be used to remove UMI-read with very low coverage) }
 #' \item{unique.umi.minus.R2}{a data frame containing unique cleavage site from
 #' R2 reads mapped to minus strand with the same columns as unique.umi.plus.R2
@@ -149,7 +158,7 @@
 #' parLapply
 #' @importFrom Rsamtools ScanBamParam BamFile bamFlagTest
 #' @importFrom tools file_ext
-#' @importFrom dplyr select mutate add_count filter '%>%'
+#' @importFrom dplyr select mutate add_count filter slice_sample group_by count '%>%'
 
 #' @export getUniqueCleavageEvents
 getUniqueCleavageEvents <-
@@ -182,7 +191,9 @@ getUniqueCleavageEvents <-
     min.read.coverage = 1L,
     n.cores.max = 6,
     outputDir,
-    removeDuplicate = TRUE)
+    removeDuplicate = TRUE,
+    ignoreTagmSite = FALSE,
+    ignoreUMI = FALSE)
 {
     if(!file.exists(alignment.inputfile))
         stop("alignment.inputfile is required,
@@ -300,32 +311,89 @@ getUniqueCleavageEvents <-
             unique.umi.minus.R2 <- R2.umi.minus %>%
                 select(seqnames.last, seqnames.first,
                      strand.last, strand.first,
-                     end.last, start.first, UMI) %>%
+                     start.first, end.last, UMI) %>%
                 add_count(seqnames.last, seqnames.first,
                      strand.last, strand.first,
-                     end.last, start.first, UMI) %>%
+                     start.first, end.last, UMI) %>%
                 unique %>%
                 filter(n >= min.read.coverage)
-
+# R2 did not pass filter
             unique.umi.plus.R1 <- R1.umi.plus %>%
                 select(seqnames.last, seqnames.first,
                      strand.last, strand.first,
-                     start.first, start.last, UMI) %>%
+                     start.first, end.first, UMI) %>%
                 add_count(seqnames.last, seqnames.first,
                      strand.last, strand.first,
-                     start.first, start.last, UMI) %>%
+                     start.first, end.first, UMI) %>%
                 unique %>%
                 filter(n >= min.read.coverage)
 
             unique.umi.minus.R1 <- R1.umi.minus  %>%
                 select(seqnames.last, seqnames.first,
                      strand.last, strand.first,
-                     end.first, end.last, UMI) %>%
+                     start.first, end.first, UMI) %>%
                 add_count(seqnames.last, seqnames.first,
                      strand.last, strand.first,
-                     end.first, end.last, UMI) %>%
+                     start.first, end.first, UMI) %>%
                 unique %>%
                 filter(n >= min.read.coverage)
+        }
+        if (ignoreUMI) {
+          unique.umi.plus.R1 <- unique.umi.plus.R1 %>% 
+            group_by(seqnames.first,
+                   strand.first,
+                   start.first, end.first, UMI) %>%
+            summarize(count = n()) %>%
+            group_by(seqnames.first,
+                     strand.first,
+                     start.first, end.first) %>%
+            filter(count == max(count)) %>%
+            slice_sample(n = 1) %>%  # randomly select one row if there's a tie
+            select(seqnames.first,
+                   strand.first,
+                   start.first, end.first, UMI)
+          
+          unique.umi.minus.R1 <- unique.umi.minus.R1 %>% 
+            group_by(seqnames.first,
+                   strand.first,
+                   end.first, start.first, UMI) %>%
+            summarize(count = n()) %>%
+            group_by(seqnames.first,
+                     strand.first,
+                     end.first, start.first) %>%
+            filter(count == max(count)) %>%
+            slice_sample(n = 1) %>%  # randomly select one row if there's a tie
+            select(seqnames.first,
+                   strand.first,
+                   end.first, start.first, UMI)
+        
+          unique.umi.plus.R2 <-   unique.umi.plus.R2 %>% 
+            group_by(seqnames.last,
+                   strand.last, 
+                   start.last, end.first, UMI) %>%
+            summarize(count = n()) %>% 
+            group_by(seqnames.last,
+                     strand.last, 
+                     start.last, end.first) %>% 
+            filter(count == max(count)) %>% 
+            slice_sample(n = 1) %>% 
+            select(seqnames.last,
+                   strand.last, 
+                   start.last, end.first, UMI)
+            
+          unique.umi.minus.R2 <- unique.umi.minus.R2 %>% 
+            group_by(seqnames.last,
+                   strand.last, 
+                   end.last, start.first, UMI) %>%
+            summarize(count = n()) %>% 
+            group_by(seqnames.last,
+                     strand.last, 
+                     end.last, start.first) %>% 
+            filter(count == max(count)) %>%
+            slice_sample(n = 1) %>% 
+            select(seqnames.last,
+                    strand.last, 
+                    end.last, start.first, UMI)
         }
         plus.cleavage.R2 <-
             unique.umi.plus.R2[, c("seqnames.last", "start.last", "UMI")]
@@ -335,6 +403,13 @@ getUniqueCleavageEvents <-
             unique.umi.minus.R2[, c("seqnames.last", "end.last", "UMI")]
         minus.cleavage.R1 <-
             unique.umi.minus.R1[, c("seqnames.first", "end.first", "UMI")]
+        if (ignoreTagmSite) {
+            plus.cleavage.R2 <-  unique(plus.cleavage.R2)
+            plus.cleavage.R1 <- unique(plus.cleavage.R1)
+            minus.cleavage.R2 <- unique(minus.cleavage.R2)
+            minus.cleavage.R1 <- unique(minus.cleavage.R1)
+        }
+    
         colnames(plus.cleavage.R1) <- c("seqnames", "start", "UMI")
         colnames(plus.cleavage.R2) <- c("seqnames", "start", "UMI")
         colnames(minus.cleavage.R1) <- c("seqnames", "start", "UMI")
@@ -366,17 +441,23 @@ getUniqueCleavageEvents <-
         colnames(R2.umi.plus) <- c("seqnames", "strand", "start", "UMI")
         colnames(R2.umi.minus) <- c("seqnames", "strand", "start", "UMI")
 
-	R1.umi.plus.summary <- unique(add_count(R1.umi.plus, seqnames, strand, start, UMI))
-        R1.umi.minus.summary <- unique(add_count(R1.umi.minus, seqnames, strand, start, UMI))
-        R2.umi.plus.summary <- unique(add_count(R2.umi.plus, seqnames, strand, start, UMI))
-        R2.umi.minus.summary <- unique(add_count(R2.umi.minus, seqnames, strand, start, UMI))
+        # summary before duplicate removal
+	      R1.umi.plus.summary <- unique(add_count(R1.umi.plus, seqnames, 
+	                                              strand, start, UMI))
+        R1.umi.minus.summary <- unique(add_count(R1.umi.minus, seqnames,
+                                                 strand, start, UMI))
+        R2.umi.plus.summary <- unique(add_count(R2.umi.plus, seqnames,
+                                                strand, start, UMI))
+        R2.umi.minus.summary <- unique(add_count(R2.umi.minus, seqnames, 
+                                                 strand, start, UMI))
 
-        res <- list(cleavage.gr = GRanges(IRanges(start=unique.umi.both[,2],
+        res <- list(cleavage.gr = GRanges(IRanges(
+                                start=as.numeric(unlist(unique.umi.both[,2])),
                                                   width=1),
-            seqnames=unique.umi.both[,1],
-            strand = unique.umi.both[,4],
-            total=rep(1, dim(unique.umi.both)[1]),
-            umi = unique.umi.both[,3]),
+                        seqnames=unlist(unique.umi.both[,1]),
+                        strand = unlist(unique.umi.both[,4]),
+                        total=rep(1, dim(unique.umi.both)[1]),
+                        umi = unlist(unique.umi.both[,3])),
             unique.umi.plus.R2 = unique.umi.plus.R2,
             unique.umi.minus.R2 = unique.umi.minus.R2,
             unique.umi.plus.R1 = unique.umi.plus.R1,

@@ -206,6 +206,15 @@
 #' not to be removed for testing purpose
 #' @param resume default to FALSE to restart the analysis. set it TRUE to
 #' resume an analysis.
+#' @param ignoreTagmSite default to FALSE. To collapse
+#' reads with the same integration site and UMI but with different 
+#' tagmentation site, set the option to TRUE.
+#' @param ignoreUMI default to FALSE. To collapse reads with the same 
+#' integration and tagmentation site but with different UMIs, 
+#' set the option to TRUE and retain the UMI that appears most frequently
+#'  for each combination of integration and tagmentation site. 
+#'  In case of ties, randomly select one UMI.
+#'
 #' @return \item{offTargets}{ a data frame, containing all input peaks with
 #' potential gRNA binding sites, mismatch number and positions, alignment to
 #' the input gRNA and predicted cleavage score.}
@@ -354,7 +363,9 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
      max.n.bulge = 2L,
      min.peak.score.bulge = 60L,
      removeDuplicate = TRUE,
-     resume = FALSE)
+     resume = FALSE,
+     ignoreTagmSite = FALSE,
+     ignoreUMI = FALSE)
 {
     alignment.format <- match.arg(alignment.format)
     orderOfftargetsBy <- match.arg(orderOfftargetsBy)
@@ -390,15 +401,15 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
     n.files <- min(n.files, 2)
     if (class(gRNA.file) != "DNAStringSet")
     {
-        gRNAName <- gsub(".fa", "", basename(gRNA.file))
+        #gRNAName <- gsub(".fa", "", basename(gRNA.file))
         gRNA <- readDNAStringSet(gRNA.file)
     }
     else
     {
-        gRNAName <- names(gRNA.file)
         gRNA <- gRNA.file
     }
 
+    gRNAName <- names(gRNA)
     if (PAM.location == "3prime")
         gRNA <- as.character(substr(as.character(gRNA), 1, gRNA.size))
     else if (nchar(as.character(gRNA)) == gRNA.size + PAM.size)
@@ -468,7 +479,9 @@ GUIDEseqAnalysis <- function(alignment.inputfile,
                min.read.coverage = min.read.coverage,
                n.cores.max = n.cores.max,
                outputDir = outputDir,
-               removeDuplicate = removeDuplicate)
+               removeDuplicate = removeDuplicate,
+               ignoreTagmSite = ignoreTagmSite,
+               ignoreUMI = ignoreUMI)
             fileName <- gsub("bowtie2.", "",
                basename(alignment.inputfile[i]))
             fileName <- gsub("bowtie1.", "", fileName)

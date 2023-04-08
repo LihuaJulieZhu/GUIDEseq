@@ -34,7 +34,9 @@ getUniqueCleavageEvents(
   min.read.coverage = 1L,
   n.cores.max = 6,
   outputDir,
-  removeDuplicate = TRUE
+  removeDuplicate = TRUE,
+  ignoreTagmSite = FALSE,
+  ignoreUMI = FALSE
 )
 }
 \arguments{
@@ -142,15 +144,25 @@ multicore processing for small dataset.}
 \item{outputDir}{output Directory to save the figures}
 
 \item{removeDuplicate}{default to TRUE. Set it to FALSE if PCR duplicates
-not to be removed for testing purpose}
+not to be removed for testing purpose.}
+
+\item{ignoreTagmSite}{default to FALSE. To collapse
+reads with the same integration site and UMI but with different 
+tagmentation site, set the option to TRUE.}
+
+\item{ignoreUMI}{default to FALSE. To collapse reads with the same 
+integration and tagmentation site but with different UMIs, 
+set the option to TRUE and retain the UMI that appears most frequently
+ for each combination of integration and tagmentation site. 
+ In case of ties, randomly select one UMI.}
 }
 \value{
 \item{cleavage.gr }{Cleavage sites with one site per UMI as GRanges
 with metadata column total set to 1 for each range}
 \item{unique.umi.plus.R2}{a data frame containing unique cleavage site from
-R2 reads mapped to plus strand with the following columns seqnames
-(chromosome) start (cleavage site) strand UMI (unique molecular identifier
-(umi) or umi with the first few bases of R1 read) UMI read duplication level
+R2 reads mapped to plus strand with the following columns: seqnames
+(chromosome), start (cleavage/Integration site), 
+strand, UMI (unique molecular identifier), and UMI read duplication level
 (min.read.coverage can be used to remove UMI-read with very low coverage) }
 \item{unique.umi.minus.R2}{a data frame containing unique cleavage site from
 R2 reads mapped to minus strand with the same columns as unique.umi.plus.R2

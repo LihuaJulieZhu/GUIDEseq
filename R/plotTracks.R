@@ -8,6 +8,8 @@
 #' default to TRUE
 #' @param gRNA.size The size of the gRNA, default 20
 #' @param PAM.size PAM length, default 3
+#' @param cleavage.position the cleavage position of Cas
+#' nuclease, default to 19 for SpCas9.
 #' @param chromosome.order The chromosome order to plot from top to bottom
 #' @param xlab The x-asix label, default to Chromosome Size (bp)
 #' @param ylab The y-asix label, default to Peak Score. Change it to
@@ -57,13 +59,17 @@
 #' library(extrafont)
 #' font_import()
 #' loadfonts(device = "postscript")
-#' @param x.exp For transforming the x-axis to allow sufficient spaces
-#' between small chromsoms default to 1.5
+#' @param x.sep For transforming the x-axis to allow sufficient spaces
+#' between small chromosomes default to 6000000
 #' @param plot.zero.logscale Specifying "none" to filter out score.col with
 #' zeros when plotting in log10 scale. Specify a very small numeric number
 #' if you intend to show the zeros in log scale in the figure. If users
 #' specify a number that's bigger than any positive score, plot.zero.logscale
 #' will be set to the minimum positive score divided by 10.
+#' @param scale.chrom Applicable to manhatann plot only.
+#' TRUE or FALSE default to TRUE to space offtargets evenly
+#' along x-axis.
+#' 
 #' @return a ggplot object
 #'
 #' @importFrom ggplot2 ggplot aes theme scale_y_continuous scale_color_manual scale_x_continuous
@@ -195,8 +201,9 @@ plotTracks <- function(offTargetFile, sep ="\t",
                        strip.text.y.angle = 0,
                        scale.grid = c( "free_x", "fixed", "free", "free_y"),
                        plot.type = c("manhattan", "tracks", "scatter"),
-                       family = "serif", x.exp = 1.5,
-                       plot.zero.logscale = 1e-8
+                       family = "serif", x.sep = 6000000,
+                       plot.zero.logscale = 1e-8,
+                       scale.chrom = TRUE
                   )
 {
    if(missing(offTargetFile) || !file.exists(offTargetFile))
@@ -282,24 +289,29 @@ plotTracks <- function(offTargetFile, sep ="\t",
       
       if (plot.type == "manhattan") {
        x <- x %>%  group_by(chromosome) %>% 
-          summarize(chr.max = max(cleavage.position)) %>% 
-          mutate(chr.offset = cumsum(as.numeric(chr.max))-chr.max) %>%
+          summarize(chr.max = max(max(cleavage.position), x.sep)) %>% 
+          mutate(chr.offset = cumsum(as.numeric(chr.max))- chr.max) %>%
           select(chromosome, chr.offset) %>%
           left_join(x, ., by=c("chromosome"="chromosome")) %>%
           arrange(chromosome, cleavage.position) %>%
           mutate(cum.cleavage.position = cleavage.position + chr.offset)
-       
        ymin <- as.numeric(x %>% summarize(min(!!score.col))) - 2
        ymax <- as.numeric(x %>% summarize(max(!!score.col))) + 1
-       xmin <- min(x$cum.cleavage.position) - 1
        
-       x$cum.cleavage.position <- 
-         ((x$cum.cleavage.position - xmin)/xmin)^x.exp
-
+       if (scale.chrom == TRUE)
+       {
+         x <- x %>% 
+           mutate(cum.cleavage.position = rank(cum.cleavage.position))
+       }
+      else
+       {
+          xmin <- min(x$cum.cleavage.position) - 1
+          x$cum.cleavage.position <- 
+              ((x$cum.cleavage.position - xmin)/xmin)
+       }
        xaxis.lab.pos = x %>% group_by(chromosome) %>% 
              summarize(chr.center=( max(cum.cleavage.position) +
                            min(cum.cleavage.position) ) / 2 )
-
        xmin <- min(x$cum.cleavage.position) 
        if ( plot.zero.logscale == "none" && transformation == "log10")
            x <- x %>% filter(!!score.col <= 0)
