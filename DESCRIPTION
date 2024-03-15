@@ -1,8 +1,8 @@
 Package: GUIDEseq
 Type: Package
 Title: GUIDE-seq and PEtag-seq analysis pipeline
-Version: 1.33.0
-Date: 2023-04-07
+Version: 1.33.1
+Date: 2024-03-15
 Encoding: UTF-8
 Author: Lihua Julie Zhu, Michael Lawrence, Ankit Gupta,
        Hervé Pagès , Alper Kucukural, Manuel Garber, Scot A. Wolfe

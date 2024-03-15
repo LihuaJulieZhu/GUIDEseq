@@ -18,7 +18,6 @@
 #' @param outputFile Give a name to the output file where the generated
 #' barcodes are written. This file can be used to build bowtie1 index for
 #' binning reads.
-#' @return
 #' @note Create barcode file to be used to bin the reads sequenced in a pooled
 #' lane
 #' @author Lihua Julie Zhu

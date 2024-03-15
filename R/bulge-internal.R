@@ -1,3 +1,5 @@
+#' @importFrom CRISPRseek translatePattern
+
 .addPAMpattern <- function(gRNA, PAM.pattern, PAM.size, PAM.location)
 {
   PAM.pattern <- gsub("^", "", gsub("$", "", PAM.pattern, fixed = TRUE),
@@ -30,7 +32,7 @@
                       gsub("$", "", PAM.pattern, fixed = TRUE),
                       fixed = TRUE)
   if (length(strsplit(PAM.pattern, "|", fixed = TRUE)[[1]]) <= 1)
-    PAM.pattern <- CRISPRseek:::translatePattern(PAM.pattern)
+    PAM.pattern <- translatePattern(PAM.pattern)
   PAM.pattern <- paste0("(?=", PAM.pattern, ")")
   pattern.ind <- gregexpr(PAM.pattern, sequences,
                           perl = TRUE, ignore.case = TRUE)

@@ -342,7 +342,7 @@ plotTracks <- function(offTargetFile, sep ="\t",
             scale_color_manual(values = rep(c("grey", "lightblue",
                                               "purple", "orange"),
                                             ceiling(nrow(xaxis.lab.pos)/4))) +
-            scale_x_continuous(label = xaxis.lab.pos$chromosome, 
+            scale_x_continuous(labels = xaxis.lab.pos$chromosome, 
                                 breaks= xaxis.lab.pos$chr.center) +
                               #  guide = guide_axis(n.dodge=n.dodge)) +
             theme_classic() 

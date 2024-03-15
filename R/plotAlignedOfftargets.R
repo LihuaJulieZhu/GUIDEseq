@@ -144,7 +144,7 @@ plotAlignedOfftargets <- function(offTargetFile, sep ="\t",
           select(insertion.score.column) %>% 
           as.numeric
           
-  x <- x %>% filter(insertion.score.column > 0) %>% 
+  x <- x %>% filter(!!insertion.score.column > 0) %>% 
           mutate(
                 IR = !!insertion.score.column,
                 RIR =
