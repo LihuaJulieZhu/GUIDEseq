@@ -267,7 +267,7 @@ and Michael Brodsky. CRISPRseek: a Bioconductor package to identify
 target-specific guide RNAs for CRISPR-Cas9 genome-editing systems. Plos One 
 Sept 23rd 2014
 \bibitem{Zhu et al., 2017}Lihua Julie Zhu, Michael Lawrence, Ankit Gupta, Herve Pages, Alper Kucukural, Manuel Garber and Scot A. Wolfe. GUIDEseq: a bioconductor package to analyze GUIDE-Seq datasets for CRISPR-Cas nucleases. BMC Genomics. 2017. 18:379
-\bibitem{Rodríguez et al., 2021}Rodríguez TC, Dadafarin S, Pratt HE, Liu P, Amrani N, Zhu LJ. Genome-wide detection and analysis of CRISPR-Cas off-targets. Reprogramming the Genome: CRISPR-Cas-based Human Disease Therapy, Volume 181 2021
+\bibitem{Rodriguez et al., 2021}Rodriguez TC, Dadafarin S, Pratt HE, Liu P, Amrani N, Zhu LJ. Genome-wide detection and analysis of CRISPR-Cas off-targets. Reprogramming the Genome: CRISPR-Cas-based Human Disease Therapy, Volume 181 2021
 \end{thebibliography}
 
 \section{Session Info}
